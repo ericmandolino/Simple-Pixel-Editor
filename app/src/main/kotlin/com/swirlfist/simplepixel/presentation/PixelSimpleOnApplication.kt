@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel
+package com.swirlfist.simplepixel.presentation
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp

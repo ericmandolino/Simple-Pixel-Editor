@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel
+package com.swirlfist.simplepixel.presentation.main
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -12,7 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import com.swirlfist.simplepixel.ui.theme.SimplePixelTheme
+import com.swirlfist.simplepixel.presentation.PixelCanvas
+import com.swirlfist.simplepixel.presentation.createCheckersPixelImage
+import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

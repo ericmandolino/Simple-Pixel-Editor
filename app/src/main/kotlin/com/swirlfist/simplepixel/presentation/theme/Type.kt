@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel.ui.theme
+package com.swirlfist.simplepixel.presentation.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

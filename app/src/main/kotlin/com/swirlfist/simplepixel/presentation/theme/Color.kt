@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel.ui.theme
+package com.swirlfist.simplepixel.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

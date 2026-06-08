@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel
+package com.swirlfist.simplepixel.presentation
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -18,7 +18,7 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.swirlfist.simplepixel.ui.theme.SimplePixelTheme
+import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import kotlin.math.max
 
 @Composable
