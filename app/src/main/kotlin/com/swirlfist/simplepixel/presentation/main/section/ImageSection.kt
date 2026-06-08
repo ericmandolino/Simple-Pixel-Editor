@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel.presentation
+package com.swirlfist.simplepixel.presentation.main.section
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -18,32 +18,61 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.swirlfist.simplepixel.domain.model.PaletteModel
+import com.swirlfist.simplepixel.domain.model.PixelImageModel
+import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
+import com.swirlfist.simplepixel.domain.model.PixelModel
+import com.swirlfist.simplepixel.presentation.getColor
+import com.swirlfist.simplepixel.presentation.getPixelAt
+import com.swirlfist.simplepixel.presentation.getPixelHeight
+import com.swirlfist.simplepixel.presentation.getPixelWidth
+import com.swirlfist.simplepixel.presentation.invert
+import com.swirlfist.simplepixel.presentation.main.state.ImageSectionState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import kotlin.math.max
 
 @Composable
+fun ImageSection(
+    modifier: Modifier,
+    state: ImageSectionState,
+    onEvent: (ImageSectionEvent) -> Unit,
+) {
+    val pixelImage = state.pixelImageModel
+
+    if (pixelImage != null) {
+        PixelCanvas(
+            modifier = modifier,
+            pixelImage = pixelImage,
+            zoomFactor = state.zoomFactor,
+            isShowCoordinatesEnabled = state.isShowCoordinatesEnabled,
+            onPixelTap = { x, y -> onEvent(ImageSectionEvent.PixelTap(x, y)) }
+        )
+    }
+}
+
+@Composable
 fun PixelCanvas(
     modifier: Modifier,
-    pixelImage: PixelImage,
+    pixelImage: PixelImageModel,
     zoomFactor: Float = 1F,
-    initialImageDeltaX: Float = 0F,
-    initialImageDeltaY: Float = 0F,
     isShowCoordinatesEnabled: Boolean = false,
     onPixelTap: (xPixel: Int, yPixel: Int) -> Unit,
 ) {
     val textMeasurer = rememberTextMeasurer()
-    val invertedPalette = remember {  pixelImage.palette.invert() }
+    val invertedPalette = remember {  pixelImage.paletteModel.invert() }
+    val imagePixelWidth = remember { pixelImage.getPixelWidth() }
+    val imagePixelHeight = remember { pixelImage.getPixelHeight() }
     val isShowCoordinates = remember { isShowCoordinatesEnabled && zoomFactor >= 1F }
-    val imageDeltaX = rememberSaveable { mutableFloatStateOf(initialImageDeltaX) }
-    val imageDeltaY = rememberSaveable { mutableFloatStateOf(initialImageDeltaY) }
+    val imageDeltaX = rememberSaveable { mutableFloatStateOf(0F) }
+    val imageDeltaY = rememberSaveable { mutableFloatStateOf(0F) }
 
     Canvas(
         modifier = modifier
             .pointerInput(Unit) {
                 detectDragGestures { _, dragAmount ->
                     val pixelSize = 32.dp.toPx() * zoomFactor
-                    val imageWidth = pixelImage.pixelMatrix.width * pixelSize
-                    val imageHeight = pixelImage.pixelMatrix.height * pixelSize
+                    val imageWidth = imagePixelWidth * pixelSize
+                    val imageHeight = imagePixelHeight * pixelSize
                     val minImageDeltaX = 0F
                     val minImageDeltaY = 0F
                     val maxImageDeltaX = max(imageWidth - size.width, 0F)
@@ -53,23 +82,17 @@ fun PixelCanvas(
                         .cap(minImageDeltaX, maxImageDeltaX)
                     imageDeltaY.floatValue = (imageDeltaY.floatValue - dragAmount.y)
                         .cap(minImageDeltaY, maxImageDeltaY)
-//                    android.util.Log.e(
-//                        "gus",
-//                        "drag $dragAmount delta: (${imageDeltaX.floatValue},${imageDeltaY.floatValue})"
-//                    )
                 }
             }
             .pointerInput(Unit) {
                 detectTapGestures { tapOffset ->
                     val pixelSize = 32.dp.toPx() * zoomFactor
                     val xPixel = ((imageDeltaX.floatValue + tapOffset.x) / pixelSize).toInt()
-                    val yPixel =
-                        pixelImage.pixelMatrix.height - 1 - ((imageDeltaY.floatValue + tapOffset.y) / pixelSize).toInt()
+                    val yPixel =  imagePixelHeight - 1 - ((imageDeltaY.floatValue + tapOffset.y) / pixelSize).toInt()
 
-                    if (xPixel !in 0..<pixelImage.pixelMatrix.width) return@detectTapGestures
-                    if (yPixel !in 0..<pixelImage.pixelMatrix.height) return@detectTapGestures
+                    if (xPixel !in 0 ..< imagePixelWidth) return@detectTapGestures
+                    if (yPixel !in 0 ..< imagePixelHeight) return@detectTapGestures
 
-//                    android.util.Log.e("gus", "tap $tapOffset -> ($xPixel,$yPixel)")
                     onPixelTap(xPixel, yPixel)
                 }
             }
@@ -82,7 +105,7 @@ fun PixelCanvas(
 
         var y = 0F
         while (y < canvasHeight) {
-            val yPixelMatrix = pixelImage.pixelMatrix.height - 1 - ((imageDeltaY.floatValue + y) / pixelSize).toInt()
+            val yPixelMatrix = imagePixelHeight - 1 - ((imageDeltaY.floatValue + y) / pixelSize).toInt()
             if (yPixelMatrix < 0) break
 
             val pixelRectHeight = if (y > 0F || imageDeltaY.floatValue == 0F) {
@@ -94,7 +117,7 @@ fun PixelCanvas(
             var x = 0F
             while (x < canvasWidth) {
                 val xPixelMatrix = ((imageDeltaX.floatValue + x) / pixelSize).toInt()
-                if (xPixelMatrix > pixelImage.pixelMatrix.width - 1) break
+                if (xPixelMatrix > imagePixelWidth - 1) break
 
                 val pixelRectWidth = if (x > 0F || imageDeltaX.floatValue == 0F) {
                     pixelSize
@@ -106,7 +129,7 @@ fun PixelCanvas(
                     x = xPixelMatrix,
                     y = yPixelMatrix
                 )
-                val pixelColor = pixelImage.palette.getColor(pixel.paletteIndex)
+                val pixelColor = pixelImage.getColor(pixel)
 
                 val pixelRectOffset = Offset(x, y)
                 val pixelRectSize = Size(pixelRectWidth, pixelRectHeight)
@@ -119,7 +142,7 @@ fun PixelCanvas(
 
                 if (isShowCoordinates) {
                     val coordinateText = "$xPixelMatrix,$yPixelMatrix"
-                    val textColor = invertedPalette.getColor(pixel.paletteIndex)
+                    val textColor = invertedPalette.getColor(pixel)
                     val textSize = textMeasurer.measure(
                         text = coordinateText
                     ).size
@@ -158,10 +181,8 @@ fun PixelCanvasPreview() {
                 color2 = Color.Yellow,
             ),
             zoomFactor = 4F,
-            initialImageDeltaX = 0F,
-            initialImageDeltaY = 0F,
             isShowCoordinatesEnabled = true,
-            onPixelTap = { x, y -> }
+            onPixelTap = { x, y -> android.util.Log.d("PixelCanvas", "onPixelTap: $x,$y") },
         )
     }
 }
@@ -177,72 +198,24 @@ fun createCheckersPixelImage(
     height: Int,
     color1: Color,
     color2: Color,
-): PixelImage {
-    val rows = mutableListOf<Array<Pixel>>()
+): PixelImageModel {
+    val rows = mutableListOf<List<PixelModel>>()
     for (y in 0..< height) {
-        val row = mutableListOf<Pixel>()
+        val row = mutableListOf<PixelModel>()
         for (x in 0..< width) {
             val isXEven = x % 2 == 0
             val isYEven = y % 2 == 0
             row.add(
-                Pixel(if ((isXEven && !isYEven) || (!isXEven && isYEven)) 0 else 1)
+                PixelModel(if ((isXEven && !isYEven) || (!isXEven && isYEven)) 0 else 1)
             )
         }
-        rows.add(row.toTypedArray())
+        rows.add(row)
     }
 
-    return PixelImage(
-        pixelMatrix = PixelMatrix(
-            content = rows.toTypedArray()
+    return PixelImageModel(
+        pixelMatrixModel = PixelMatrixModel(
+            content = rows
         ),
-        palette = Palette(listOf(color1, color2)),
-    )
-}
-
-class PixelImage(
-    val pixelMatrix: PixelMatrix,
-    val palette: Palette,
-) {
-    fun getPixelAt(
-        x: Int,
-        y: Int,
-        invertY: Boolean = false,
-    ): Pixel {
-        return if (invertY) {
-            val height = pixelMatrix.content.size
-            pixelMatrix.content[height - 1 - y][x]
-        } else {
-            pixelMatrix.content[y][x]
-        }
-    }
-}
-
-class PixelMatrix(
-    val content: Array<Array<Pixel>>,
-) {
-    val width: Int
-        get() = if (content.isEmpty()) 0 else content.first().size
-
-    val height: Int
-        get() = content.size
-}
-
-data class Pixel(
-    val paletteIndex: Int,
-)
-
-class Palette(
-    private val colors: List<Color>
-) {
-    fun getColor(index: Int) = colors[index]
-
-    fun invert() : Palette = Palette(
-        colors.map { color ->
-            color.copy(
-                red = 1F - color.red,
-                green = 1F - color.green,
-                blue = 1F - color.blue,
-            )
-        }
+        paletteModel = PaletteModel(listOf(color1, color2)),
     )
 }
