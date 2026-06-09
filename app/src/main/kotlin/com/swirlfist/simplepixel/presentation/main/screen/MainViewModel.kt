@@ -2,6 +2,9 @@ package com.swirlfist.simplepixel.presentation.main.screen
 
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
+import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.main.section.ImageSectionEvent
 import com.swirlfist.simplepixel.presentation.main.section.createCheckersPixelImage
@@ -11,10 +14,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor() : ViewModel() {
+class MainViewModel @Inject constructor(
+    private val updatePixelColorUseCase: UpdatePixelColorUseCase,
+) : ViewModel() {
     private val _mainScreenState = MutableStateFlow(
         value = MainScreenState(
             imageSectionState = ImageSectionState()
@@ -46,36 +52,30 @@ class MainViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun onPixelTap(event: ImageSectionEvent.PixelTap) {
+        val pixelImage = _mainScreenState.value.imageSectionState.pixelImageModel ?: return
         val x = event.x
         val y = event.y
-
-        val pixelImage = _mainScreenState.value.imageSectionState.pixelImageModel ?: return
-        val pixelMatrix = pixelImage.pixelMatrixModel
         val pixel = pixelImage.getPixelAt(x, y)
-        val updatedRow = pixelMatrix.content[y].toMutableList().apply {
-            set(
-                index = x,
-                element = pixel.copy(
-                    paletteIndex = (pixel.paletteIndex + 1) % pixelImage.paletteModel.colors.size
-                ),
-            )
-        }
-        val updatedPixelMatrix = pixelMatrix.copy(
-            content = pixelMatrix.content.toMutableList().apply {
-                set(
-                    index = y,
-                    element = updatedRow,
-                )
-            },
-        )
+        val newPaletteIndex = (pixel.paletteIndex + 1) % pixelImage.paletteModel.colors.size
 
-        _mainScreenState.update { mainScreenState ->
-            val imageSectionState = mainScreenState.imageSectionState
-            mainScreenState.copy(
-                imageSectionState = imageSectionState.copy(
-                    pixelImageModel = imageSectionState.pixelImageModel?.copy(
-                        pixelMatrixModel = updatedPixelMatrix,
-                    )
+        viewModelScope.launch {
+            updatePixelColorUseCase.execute(
+                successBlock = { updatedPixelImage ->
+                    _mainScreenState.update { mainScreenState ->
+                        val imageSectionState = mainScreenState.imageSectionState
+                        mainScreenState.copy(
+                            imageSectionState = imageSectionState.copy(
+                                pixelImageModel = updatedPixelImage,
+                            ),
+                        )
+                    }
+                },
+                failureBlock = { },
+                params = UpdatePixelColorUseCase.Params(
+                    pixelImageModel = pixelImage,
+                    x = x,
+                    y = y,
+                    paletteIndex = newPaletteIndex,
                 ),
             )
         }
