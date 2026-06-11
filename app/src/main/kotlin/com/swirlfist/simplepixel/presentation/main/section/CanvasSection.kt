@@ -65,7 +65,6 @@ private fun PixelCanvas(
     val invertedPalette = remember {  pixelImage.paletteModel.invert() }
     val imagePixelWidth = remember { pixelImage.getPixelWidth() }
     val imagePixelHeight = remember { pixelImage.getPixelHeight() }
-    val isShowCoordinates = remember { isShowCoordinatesEnabled && zoomFactor >= 1F }
     val imageDeltaX = rememberSaveable { mutableFloatStateOf(0F) }
     val imageDeltaY = rememberSaveable { mutableFloatStateOf(0F) }
     val lastCanvasWidth = rememberSaveable { mutableIntStateOf(-1) }
@@ -92,7 +91,7 @@ private fun PixelCanvas(
                 lastCanvasWidth.intValue = currentWidth
                 lastCanvasHeight.intValue = currentHeight
             }
-            .pointerInput(Unit) {
+            .pointerInput(zoomFactor) {
                 detectDragGestures { _, dragAmount ->
                     val pixelSize = 32.dp.toPx() * zoomFactor
                     val imageWidth = imagePixelWidth * pixelSize
@@ -108,7 +107,7 @@ private fun PixelCanvas(
                         .cap(minImageDeltaY, maxImageDeltaY)
                 }
             }
-            .pointerInput(Unit) {
+            .pointerInput(zoomFactor) {
                 detectTapGestures { tapOffset ->
                     val pixelSize = 32.dp.toPx() * zoomFactor
                     val xPixel = ((imageDeltaX.floatValue + tapOffset.x) / pixelSize).toInt()
@@ -119,13 +118,46 @@ private fun PixelCanvas(
 
                     onPixelTap(xPixel, yPixel)
                 }
-            }
-        ,
+            },
     ) {
         val canvasHeight = size.height
         val canvasWidth = size.width
-        val pixelSize = 32.dp.toPx() * zoomFactor
+        val pixelSize = (32.dp.toPx() * zoomFactor).toInt()
+        val imageWidth = imagePixelWidth * pixelSize
+        val imageHeight = imagePixelHeight * pixelSize
         val halfPixelSize = pixelSize / 2
+        val twoThirdsPixelSize = pixelSize * 2 / 3
+
+        val coordinateTextTemplate = "%s,%s"
+        val maxVisibleCoordinateTextSize = textMeasurer.measure(
+            text = String.format(coordinateTextTemplate, imagePixelWidth, imagePixelHeight)
+        ).size
+        val isShowCoordinates =
+            isShowCoordinatesEnabled &&
+            maxVisibleCoordinateTextSize.width < twoThirdsPixelSize &&
+            maxVisibleCoordinateTextSize.height < twoThirdsPixelSize
+
+        if (imageDeltaX.floatValue > 0) {
+            if (imageWidth <= canvasWidth) {
+                imageDeltaX.floatValue = 0F
+            } else {
+                val deltaXSurplus = canvasWidth + imageDeltaX.floatValue - imageWidth
+                if (deltaXSurplus > 0) {
+                    imageDeltaX.floatValue -= deltaXSurplus
+                }
+            }
+        }
+
+        if (imageDeltaY.floatValue > 0) {
+            if (imageHeight <= canvasHeight) {
+                imageDeltaY.floatValue = 0F
+            } else {
+                val deltaYSurplus = canvasHeight + imageDeltaY.floatValue - imageHeight
+                if (deltaYSurplus > 0) {
+                    imageDeltaY.floatValue -= deltaYSurplus
+                }
+            }
+        }
 
         var y = 0F
         while (y < canvasHeight) {
@@ -135,7 +167,7 @@ private fun PixelCanvas(
             val pixelRectHeight = if (y > 0F || imageDeltaY.floatValue == 0F) {
                 pixelSize
             } else {
-                pixelSize - imageDeltaY.floatValue % pixelSize
+                pixelSize - imageDeltaY.floatValue.toInt() % pixelSize
             }
 
             var x = 0F
@@ -146,7 +178,7 @@ private fun PixelCanvas(
                 val pixelRectWidth = if (x > 0F || imageDeltaX.floatValue == 0F) {
                     pixelSize
                 } else {
-                    pixelSize - imageDeltaX.floatValue % pixelSize
+                    pixelSize - imageDeltaX.floatValue.toInt() % pixelSize
                 }
 
                 val pixel = pixelImage.getPixelAt(
@@ -156,7 +188,7 @@ private fun PixelCanvas(
                 val pixelColor = pixelImage.getColor(pixel)
 
                 val pixelRectOffset = Offset(x, y)
-                val pixelRectSize = Size(pixelRectWidth, pixelRectHeight)
+                val pixelRectSize = Size(pixelRectWidth.toFloat(), pixelRectHeight.toFloat())
 
                 drawRect(
                     color = pixelColor,
@@ -169,13 +201,14 @@ private fun PixelCanvas(
 
                 if (isShowCoordinates) {
                     val coordinateText = "$xPixelMatrix,$yPixelMatrix"
-                    val textColor = invertedPalette.getColor(pixel)
                     val textSize = textMeasurer.measure(
                         text = coordinateText
                     ).size
+
+                    val textColor = invertedPalette.getColor(pixel)
                     val coordinateTextOffset = pixelRectOffset + Offset(
-                        x = pixelRectWidth - pixelSize + halfPixelSize - textSize.width / 2,
-                        y = pixelRectHeight - pixelSize + halfPixelSize - textSize.height / 2,
+                        x = pixelRectWidth - halfPixelSize.toFloat() - textSize.width / 2,
+                        y = pixelRectHeight - halfPixelSize.toFloat() - textSize.height / 2,
                     )
 
                     drawText(
