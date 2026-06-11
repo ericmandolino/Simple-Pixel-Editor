@@ -5,9 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
+import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
+import com.swirlfist.simplepixel.presentation.main.section.ActionSectionEvent
 import com.swirlfist.simplepixel.presentation.main.section.CanvasSectionEvent
 import com.swirlfist.simplepixel.presentation.main.section.createCheckersPixelImage
 import com.swirlfist.simplepixel.presentation.main.state.ActionsSectionState
@@ -24,6 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val updatePixelColorUseCase: UpdatePixelColorUseCase,
+    private val getNextZoomFactorUseCase: GetNextZoomFactorUseCase,
 ) : ViewModel() {
     private val _mainScreenState = MutableStateFlow(
         value = MainScreenState(
@@ -39,12 +42,12 @@ class MainViewModel @Inject constructor(
             mainScreenState.copy(
                 canvasSectionState = mainScreenState.canvasSectionState.copy(
                     pixelImageModel = createCheckersPixelImage(
-                        width = 5,
-                        height = 3,
+                        width = 32,
+                        height = 32,
                         color1 = palette.colors[0],
                         color2 = palette.colors[1],
                     ),
-                    zoomFactor = 4F,
+                    zoomFactor = 1F,
                     isShowCoordinatesEnabled = true,
                 ),
                 actionsSectionState = mainScreenState.actionsSectionState.copy(
@@ -91,6 +94,17 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun onActionsSectionEvent(event: ActionSectionEvent) {
+        when (event) {
+            ActionSectionEvent.OpenPaletteButtonClicked -> {}
+            is ActionSectionEvent.PickPaletteColorButtonClicked -> {}
+            ActionSectionEvent.RedoButtonClicked -> {}
+            ActionSectionEvent.UndoButtonClicked -> {}
+            ActionSectionEvent.ZoomInButtonClicked -> onZoom(isZoomIn = true)
+            ActionSectionEvent.ZoomOutButtonClicked -> onZoom(isZoomIn = false)
+        }
+    }
+
     private fun onPixelTap(event: CanvasSectionEvent.PixelTap) {
         val pixelImage = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
         val x = event.x
@@ -116,6 +130,30 @@ class MainViewModel @Inject constructor(
                     x = x,
                     y = y,
                     paletteIndex = newPaletteIndex,
+                ),
+            )
+        }
+    }
+
+    private fun onZoom(
+        isZoomIn: Boolean,
+    ) {
+        viewModelScope.launch {
+            getNextZoomFactorUseCase.execute(
+                successBlock = { zoomFactor ->
+                    _mainScreenState.update { mainScreenState ->
+                        val canvasSectionState = mainScreenState.canvasSectionState
+                        mainScreenState.copy(
+                            canvasSectionState = canvasSectionState.copy(
+                                zoomFactor = zoomFactor,
+                            ),
+                        )
+                    }
+                },
+                failureBlock = { },
+                params = GetNextZoomFactorUseCase.Params(
+                    currentZoomFactor = _mainScreenState.value.canvasSectionState.zoomFactor,
+                    isZoomIn = isZoomIn,
                 ),
             )
         }

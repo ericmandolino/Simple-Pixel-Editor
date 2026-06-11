@@ -48,7 +48,7 @@ fun MainScreen() {
         supportingPane = {
             SupportingPane(
                 actionsSectionState = mainScreenState.actionsSectionState,
-                onActionsSectionEvent = {},// TODO in viewmodel
+                onActionsSectionEvent = viewModel::onActionsSectionEvent,
             )
         },
         mainPane = {
