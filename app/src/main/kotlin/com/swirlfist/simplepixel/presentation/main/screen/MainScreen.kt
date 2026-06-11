@@ -22,10 +22,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swirlfist.simplepixel.presentation.main.section.ActionSectionEvent
 import com.swirlfist.simplepixel.presentation.main.section.ActionsSection
-import com.swirlfist.simplepixel.presentation.main.section.ImageSection
-import com.swirlfist.simplepixel.presentation.main.section.ImageSectionEvent
+import com.swirlfist.simplepixel.presentation.main.section.CanvasSection
+import com.swirlfist.simplepixel.presentation.main.section.CanvasSectionEvent
 import com.swirlfist.simplepixel.presentation.main.state.ActionsSectionState
-import com.swirlfist.simplepixel.presentation.main.state.ImageSectionState
+import com.swirlfist.simplepixel.presentation.main.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.main.state.MainScreenState
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -53,8 +53,8 @@ fun MainScreen() {
         },
         mainPane = {
             MainPane(
-                imageSectionState = mainScreenState.imageSectionState,
-                onImageSectionEvent = viewModel::onImageSectionEvent
+                canvasSectionState = mainScreenState.canvasSectionState,
+                onCanvasSectionEvent = viewModel::onCanvasSectionEvent
             )
         },
         paneExpansionState = rememberPaneExpansionState(navigator.scaffoldValue),
@@ -77,15 +77,15 @@ fun MainScreen() {
 @Composable
 fun ThreePaneScaffoldPaneScope.MainPane(
     modifier: Modifier = Modifier,
-    imageSectionState: ImageSectionState,
-    onImageSectionEvent: (ImageSectionEvent) -> Unit,
+    canvasSectionState: CanvasSectionState,
+    onCanvasSectionEvent: (CanvasSectionEvent) -> Unit,
 ) {
     AnimatedPane(
         modifier = modifier.safeContentPadding(),
     ) {
-        ImageSection(
-            state = imageSectionState,
-            onEvent = onImageSectionEvent,
+        CanvasSection(
+            state = canvasSectionState,
+            onEvent = onCanvasSectionEvent,
         )
     }
 }

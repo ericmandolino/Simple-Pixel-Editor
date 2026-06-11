@@ -29,16 +29,16 @@ import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.getPixelHeight
 import com.swirlfist.simplepixel.presentation.getPixelWidth
 import com.swirlfist.simplepixel.presentation.invert
-import com.swirlfist.simplepixel.presentation.main.state.ImageSectionState
+import com.swirlfist.simplepixel.presentation.main.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import kotlin.math.max
 import kotlin.math.min
 
 @Composable
-fun ImageSection(
+fun CanvasSection(
     modifier: Modifier = Modifier,
-    state: ImageSectionState,
-    onEvent: (ImageSectionEvent) -> Unit,
+    state: CanvasSectionState,
+    onEvent: (CanvasSectionEvent) -> Unit,
 ) {
     val pixelImage = state.pixelImageModel
 
@@ -48,7 +48,7 @@ fun ImageSection(
             pixelImage = pixelImage,
             zoomFactor = state.zoomFactor,
             isShowCoordinatesEnabled = state.isShowCoordinatesEnabled,
-            onPixelTap = { x, y -> onEvent(ImageSectionEvent.PixelTap(x, y)) },
+            onPixelTap = { x, y -> onEvent(CanvasSectionEvent.PixelTap(x, y)) },
         )
     }
 }
@@ -197,11 +197,11 @@ private fun PixelCanvas(
 
 @Preview(showBackground = true, widthDp = 320, heightDp = 320)
 @Composable
-fun ImageSectionPreview() {
+fun CanvasSectionPreview() {
     SimplePixelTheme {
-        ImageSection(
+        CanvasSection(
             modifier = Modifier.fillMaxSize(),
-            state = ImageSectionState().copy(
+            state = CanvasSectionState().copy(
                 pixelImageModel = createCheckersPixelImage(
                     width = 5,
                     height = 3,
@@ -212,7 +212,7 @@ fun ImageSectionPreview() {
                 isShowCoordinatesEnabled = true,
             )
         ) { event ->
-            android.util.Log.d("ImageSection", "event: $event")
+            android.util.Log.d("CanvasSection", "event: $event")
         }
     }
 }

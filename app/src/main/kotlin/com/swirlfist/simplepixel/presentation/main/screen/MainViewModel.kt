@@ -8,10 +8,10 @@ import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
-import com.swirlfist.simplepixel.presentation.main.section.ImageSectionEvent
+import com.swirlfist.simplepixel.presentation.main.section.CanvasSectionEvent
 import com.swirlfist.simplepixel.presentation.main.section.createCheckersPixelImage
 import com.swirlfist.simplepixel.presentation.main.state.ActionsSectionState
-import com.swirlfist.simplepixel.presentation.main.state.ImageSectionState
+import com.swirlfist.simplepixel.presentation.main.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.main.state.MainScreenState
 import com.swirlfist.simplepixel.presentation.model.ActionButtonModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,7 +27,7 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
     private val _mainScreenState = MutableStateFlow(
         value = MainScreenState(
-            imageSectionState = ImageSectionState(),
+            canvasSectionState = CanvasSectionState(),
             actionsSectionState = ActionsSectionState(),
         )
     )
@@ -37,7 +37,7 @@ class MainViewModel @Inject constructor(
         _mainScreenState.update { mainScreenState ->
             val palette = PaletteModel(colors = listOf(Color.Black, Color.Yellow))
             mainScreenState.copy(
-                imageSectionState = mainScreenState.imageSectionState.copy(
+                canvasSectionState = mainScreenState.canvasSectionState.copy(
                     pixelImageModel = createCheckersPixelImage(
                         width = 5,
                         height = 3,
@@ -85,14 +85,14 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun onImageSectionEvent(event: ImageSectionEvent) {
+    fun onCanvasSectionEvent(event: CanvasSectionEvent) {
         when (event) {
-            is ImageSectionEvent.PixelTap -> onPixelTap(event)
+            is CanvasSectionEvent.PixelTap -> onPixelTap(event)
         }
     }
 
-    private fun onPixelTap(event: ImageSectionEvent.PixelTap) {
-        val pixelImage = _mainScreenState.value.imageSectionState.pixelImageModel ?: return
+    private fun onPixelTap(event: CanvasSectionEvent.PixelTap) {
+        val pixelImage = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
         val x = event.x
         val y = event.y
         val pixel = pixelImage.getPixelAt(x, y)
@@ -102,9 +102,9 @@ class MainViewModel @Inject constructor(
             updatePixelColorUseCase.execute(
                 successBlock = { updatedPixelImage ->
                     _mainScreenState.update { mainScreenState ->
-                        val imageSectionState = mainScreenState.imageSectionState
+                        val canvasSectionState = mainScreenState.canvasSectionState
                         mainScreenState.copy(
-                            imageSectionState = imageSectionState.copy(
+                            canvasSectionState = canvasSectionState.copy(
                                 pixelImageModel = updatedPixelImage,
                             ),
                         )
