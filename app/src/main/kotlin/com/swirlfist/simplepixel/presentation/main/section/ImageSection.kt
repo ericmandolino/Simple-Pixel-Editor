@@ -6,6 +6,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -13,6 +14,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -30,10 +32,11 @@ import com.swirlfist.simplepixel.presentation.invert
 import com.swirlfist.simplepixel.presentation.main.state.ImageSectionState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import kotlin.math.max
+import kotlin.math.min
 
 @Composable
 fun ImageSection(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     state: ImageSectionState,
     onEvent: (ImageSectionEvent) -> Unit,
 ) {
@@ -45,13 +48,13 @@ fun ImageSection(
             pixelImage = pixelImage,
             zoomFactor = state.zoomFactor,
             isShowCoordinatesEnabled = state.isShowCoordinatesEnabled,
-            onPixelTap = { x, y -> onEvent(ImageSectionEvent.PixelTap(x, y)) }
+            onPixelTap = { x, y -> onEvent(ImageSectionEvent.PixelTap(x, y)) },
         )
     }
 }
 
 @Composable
-fun PixelCanvas(
+private fun PixelCanvas(
     modifier: Modifier,
     pixelImage: PixelImageModel,
     zoomFactor: Float = 1F,
@@ -65,9 +68,30 @@ fun PixelCanvas(
     val isShowCoordinates = remember { isShowCoordinatesEnabled && zoomFactor >= 1F }
     val imageDeltaX = rememberSaveable { mutableFloatStateOf(0F) }
     val imageDeltaY = rememberSaveable { mutableFloatStateOf(0F) }
+    val lastCanvasWidth = rememberSaveable { mutableIntStateOf(-1) }
+    val lastCanvasHeight = rememberSaveable { mutableIntStateOf(-1) }
 
     Canvas(
         modifier = modifier
+            .onSizeChanged { size ->
+                val lastWidth = lastCanvasWidth.intValue
+                val lastHeight = lastCanvasHeight.intValue
+                val currentWidth = size.width
+                val currentHeight = size.height
+
+                if ((lastWidth >= 0) && (currentWidth > lastWidth)) {
+                    val widthIncrease = currentWidth - lastWidth
+                    imageDeltaX.floatValue = max(0F, imageDeltaX.floatValue - widthIncrease)
+                }
+
+                if ((lastHeight >= 0) && (currentHeight > lastHeight)) {
+                    val heightIncrease = currentHeight - lastHeight
+                    imageDeltaY.floatValue = max(0F, imageDeltaY.floatValue - heightIncrease)
+                }
+
+                lastCanvasWidth.intValue = currentWidth
+                lastCanvasHeight.intValue = currentHeight
+            }
             .pointerInput(Unit) {
                 detectDragGestures { _, dragAmount ->
                     val pixelSize = 32.dp.toPx() * zoomFactor
@@ -137,7 +161,10 @@ fun PixelCanvas(
                 drawRect(
                     color = pixelColor,
                     topLeft = pixelRectOffset,
-                    size = pixelRectSize,
+                    size = Size(
+                        width = min(pixelRectSize.width, canvasWidth - pixelRectOffset.x),
+                        height = min(pixelRectSize.height, canvasHeight - pixelRectOffset.y),
+                    ),
                 )
 
                 if (isShowCoordinates) {
@@ -170,20 +197,23 @@ fun PixelCanvas(
 
 @Preview(showBackground = true, widthDp = 320, heightDp = 320)
 @Composable
-fun PixelCanvasPreview() {
+fun ImageSectionPreview() {
     SimplePixelTheme {
-        PixelCanvas(
+        ImageSection(
             modifier = Modifier.fillMaxSize(),
-            pixelImage = createCheckersPixelImage(
-                width = 5,
-                height = 3,
-                color1 = Color.Black,
-                color2 = Color.Yellow,
-            ),
-            zoomFactor = 4F,
-            isShowCoordinatesEnabled = true,
-            onPixelTap = { x, y -> android.util.Log.d("PixelCanvas", "onPixelTap: $x,$y") },
-        )
+            state = ImageSectionState().copy(
+                pixelImageModel = createCheckersPixelImage(
+                    width = 5,
+                    height = 3,
+                    color1 = Color.Black,
+                    color2 = Color.Yellow,
+                ),
+                zoomFactor = 4F,
+                isShowCoordinatesEnabled = true,
+            )
+        ) { event ->
+            android.util.Log.d("ImageSection", "event: $event")
+        }
     }
 }
 
