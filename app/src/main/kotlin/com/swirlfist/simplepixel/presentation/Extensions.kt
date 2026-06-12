@@ -36,5 +36,3 @@ fun PixelImageModel.getPixelAt(x: Int, y: Int): PixelModel = pixelMatrixModel.co
 fun PixelImageModel.getPixelWidth(): Int = pixelMatrixModel.width()
 
 fun PixelImageModel.getPixelHeight(): Int = pixelMatrixModel.height()
-
-fun PixelImageModel.getColor(pixel: PixelModel): Color? = paletteModel.getColor(pixel)
