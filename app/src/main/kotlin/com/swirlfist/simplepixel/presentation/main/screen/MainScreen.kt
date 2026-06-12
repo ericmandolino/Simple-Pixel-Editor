@@ -35,10 +35,6 @@ fun MainScreen() {
     val mainScreenState: MainScreenState = viewModel.mainScreenState.collectAsStateWithLifecycle().value
     val navigator = rememberSupportingPaneScaffoldNavigator()
 
-    LaunchedEffect(null) {
-        viewModel.init()
-    }
-
     SupportingPaneScaffold(
         modifier = Modifier
             .fillMaxSize()

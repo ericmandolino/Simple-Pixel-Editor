@@ -17,7 +17,15 @@ fun PaletteModel.invert(): PaletteModel = PaletteModel(
     }
 )
 
-fun PaletteModel.getColor(pixel: PixelModel): Color = colors[pixel.paletteIndex]
+fun PaletteModel.getColor(pixel: PixelModel): Color? {
+    val paletteIndex = pixel.paletteIndex
+
+    return if (paletteIndex in colors.indices) {
+        colors[paletteIndex]
+    } else {
+        null
+    }
+}
 
 fun PixelMatrixModel.width() : Int = if (content.isEmpty()) 0 else content.first().size
 
@@ -29,4 +37,4 @@ fun PixelImageModel.getPixelWidth(): Int = pixelMatrixModel.width()
 
 fun PixelImageModel.getPixelHeight(): Int = pixelMatrixModel.height()
 
-fun PixelImageModel.getColor(pixel: PixelModel): Color = paletteModel.colors[pixel.paletteIndex]
+fun PixelImageModel.getColor(pixel: PixelModel): Color? = paletteModel.getColor(pixel)

@@ -47,6 +47,7 @@ fun CanvasSection(
             modifier = modifier,
             pixelImage = pixelImage,
             zoomFactor = state.zoomFactor,
+            isShowGridEnabled = state.isShowGridEnabled,
             isShowCoordinatesEnabled = state.isShowCoordinatesEnabled,
             onPixelTap = { x, y -> onEvent(CanvasSectionEvent.PixelTap(x, y)) },
         )
@@ -58,6 +59,7 @@ private fun PixelCanvas(
     modifier: Modifier,
     pixelImage: PixelImageModel,
     zoomFactor: Float = 1F,
+    isShowGridEnabled: Boolean = true,
     isShowCoordinatesEnabled: Boolean = false,
     onPixelTap: (xPixel: Int, yPixel: Int) -> Unit,
 ) {
@@ -127,6 +129,7 @@ private fun PixelCanvas(
         val imageHeight = imagePixelHeight * pixelSize
         val halfPixelSize = pixelSize / 2
         val twoThirdsPixelSize = pixelSize * 2 / 3
+        val gridLineWidth = 1.dp.toPx()
 
         val coordinateTextTemplate = "%s,%s"
         val maxVisibleCoordinateTextSize = textMeasurer.measure(
@@ -160,10 +163,9 @@ private fun PixelCanvas(
         }
 
         var y = 0F
-        while (y < canvasHeight) {
-            val yPixelMatrix = imagePixelHeight - 1 - ((imageDeltaY.floatValue + y) / pixelSize).toInt()
-            if (yPixelMatrix < 0) break
-
+        var yPixelMatrix = imagePixelHeight - 1 - ((imageDeltaY.floatValue + y) / pixelSize).toInt()
+        while (y < canvasHeight && yPixelMatrix >= 0) {
+            val isYPixelMatrixEven = yPixelMatrix % 2 == 0
             val pixelRectHeight = if (y > 0F || imageDeltaY.floatValue == 0F) {
                 pixelSize
             } else {
@@ -171,10 +173,9 @@ private fun PixelCanvas(
             }
 
             var x = 0F
-            while (x < canvasWidth) {
-                val xPixelMatrix = ((imageDeltaX.floatValue + x) / pixelSize).toInt()
-                if (xPixelMatrix > imagePixelWidth - 1) break
-
+            var xPixelMatrix = ((imageDeltaX.floatValue + x) / pixelSize).toInt()
+            while (x < canvasWidth && xPixelMatrix < imagePixelWidth) {
+                val isXPixelMatrixEven = xPixelMatrix % 2 == 0
                 val pixelRectWidth = if (x > 0F || imageDeltaX.floatValue == 0F) {
                     pixelSize
                 } else {
@@ -185,7 +186,12 @@ private fun PixelCanvas(
                     x = xPixelMatrix,
                     y = yPixelMatrix
                 )
-                val pixelColor = pixelImage.getColor(pixel)
+                val pixelColor = pixelImage.getColor(pixel) ?:
+                if ((isXPixelMatrixEven && !isYPixelMatrixEven) || (!isXPixelMatrixEven && isYPixelMatrixEven)) {
+                    Color.Gray
+                } else {
+                    Color.LightGray
+                }
 
                 val pixelRectOffset = Offset(x, y)
                 val pixelRectSize = Size(pixelRectWidth.toFloat(), pixelRectHeight.toFloat())
@@ -200,12 +206,17 @@ private fun PixelCanvas(
                 )
 
                 if (isShowCoordinates) {
-                    val coordinateText = "$xPixelMatrix,$yPixelMatrix"
+                    val coordinateText = coordinateTextTemplate.format(xPixelMatrix + 1, yPixelMatrix + 1)
                     val textSize = textMeasurer.measure(
                         text = coordinateText
                     ).size
 
-                    val textColor = invertedPalette.getColor(pixel)
+                    val textColor = invertedPalette.getColor(pixel) ?:
+                        if ((isXPixelMatrixEven && !isYPixelMatrixEven) || (!isXPixelMatrixEven && isYPixelMatrixEven)) {
+                            Color.LightGray
+                        } else {
+                            Color.Gray
+                        }
                     val coordinateTextOffset = pixelRectOffset + Offset(
                         x = pixelRectWidth - halfPixelSize.toFloat() - textSize.width / 2,
                         y = pixelRectHeight - halfPixelSize.toFloat() - textSize.height / 2,
@@ -221,9 +232,49 @@ private fun PixelCanvas(
                         softWrap = false,
                     )
                 }
+
+                if (isShowGridEnabled) {
+                    drawLine(
+                        color = Color.DarkGray,
+                        start = Offset(x, 0F),
+                        end = Offset(x, min(canvasHeight, imageHeight.toFloat())),
+                        strokeWidth = gridLineWidth,
+                    )
+                }
+
                 x += pixelRectWidth
+                xPixelMatrix++
             }
+
+            if (isShowGridEnabled && xPixelMatrix == imagePixelWidth) {
+                drawLine(
+                    color = Color.DarkGray,
+                    start = Offset(x, 0F),
+                    end = Offset(x, min(canvasHeight, imageHeight.toFloat())),
+                    strokeWidth = gridLineWidth,
+                )
+            }
+
+            if (isShowGridEnabled) {
+                drawLine(
+                    color = Color.DarkGray,
+                    start = Offset(0F, y),
+                    end = Offset(min(canvasWidth, imageWidth.toFloat()), y),
+                    strokeWidth = gridLineWidth,
+                )
+            }
+
             y += pixelRectHeight
+            yPixelMatrix--
+        }
+
+        if (isShowGridEnabled && yPixelMatrix == -1) {
+            drawLine(
+                color = Color.DarkGray,
+                start = Offset(0F, y),
+                end = Offset(min(canvasWidth, imageWidth.toFloat()), y),
+                strokeWidth = gridLineWidth,
+            )
         }
     }
 }
@@ -242,6 +293,28 @@ fun CanvasSectionPreview() {
                     color2 = Color.Yellow,
                 ),
                 zoomFactor = 4F,
+                isShowCoordinatesEnabled = true,
+            )
+        ) { event ->
+            android.util.Log.d("CanvasSection", "event: $event")
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 320)
+@Composable
+fun CanvasSectionEmptyImagePreview() {
+    SimplePixelTheme {
+        CanvasSection(
+            modifier = Modifier.fillMaxSize(),
+            state = CanvasSectionState().copy(
+                pixelImageModel = createEmptyPixelImage(
+                    width = 4,
+                    height = 4,
+                    color1 = Color.Black,
+                    color2 = Color.Yellow,
+                ),
+                zoomFactor = 1F,
                 isShowCoordinatesEnabled = true,
             )
         ) { event ->
@@ -270,6 +343,31 @@ fun createCheckersPixelImage(
             val isYEven = y % 2 == 0
             row.add(
                 PixelModel(if ((isXEven && !isYEven) || (!isXEven && isYEven)) 0 else 1)
+            )
+        }
+        rows.add(row)
+    }
+
+    return PixelImageModel(
+        pixelMatrixModel = PixelMatrixModel(
+            content = rows
+        ),
+        paletteModel = PaletteModel(listOf(color1, color2)),
+    )
+}
+
+fun createEmptyPixelImage(
+    width: Int,
+    height: Int,
+    color1: Color,
+    color2: Color,
+): PixelImageModel {
+    val rows = mutableListOf<List<PixelModel>>()
+    repeat(height) {
+        val row = mutableListOf<PixelModel>()
+        repeat(width) {
+            row.add(
+                PixelModel(-1)
             )
         }
         rows.add(row)

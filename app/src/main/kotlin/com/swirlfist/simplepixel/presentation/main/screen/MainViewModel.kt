@@ -11,7 +11,7 @@ import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
 import com.swirlfist.simplepixel.presentation.main.section.ActionSectionEvent
 import com.swirlfist.simplepixel.presentation.main.section.CanvasSectionEvent
-import com.swirlfist.simplepixel.presentation.main.section.createCheckersPixelImage
+import com.swirlfist.simplepixel.presentation.main.section.createEmptyPixelImage
 import com.swirlfist.simplepixel.presentation.main.state.ActionsSectionState
 import com.swirlfist.simplepixel.presentation.main.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.main.state.MainScreenState
@@ -36,12 +36,12 @@ class MainViewModel @Inject constructor(
     )
     val mainScreenState = _mainScreenState as StateFlow<MainScreenState>
 
-    fun init() {
+    init {
         _mainScreenState.update { mainScreenState ->
             val palette = PaletteModel(colors = listOf(Color.Black, Color.Yellow))
             mainScreenState.copy(
                 canvasSectionState = mainScreenState.canvasSectionState.copy(
-                    pixelImageModel = createCheckersPixelImage(
+                    pixelImageModel = createEmptyPixelImage(
                         width = 32,
                         height = 32,
                         color1 = palette.colors[0],
@@ -110,7 +110,11 @@ class MainViewModel @Inject constructor(
         val x = event.x
         val y = event.y
         val pixel = pixelImage.getPixelAt(x, y)
-        val newPaletteIndex = (pixel.paletteIndex + 1) % pixelImage.paletteModel.colors.size
+        val newPaletteIndex = if (pixel.paletteIndex == pixelImage.paletteModel.colors.size - 1) {
+            -1
+        } else {
+            (pixel.paletteIndex + 1) % pixelImage.paletteModel.colors.size
+        }
 
         viewModelScope.launch {
             updatePixelColorUseCase.execute(
