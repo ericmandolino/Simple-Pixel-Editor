@@ -27,7 +27,7 @@ fun ActionsSection(
     state: ActionsSectionState,
     onEvent: (ActionSectionEvent) -> Unit
 ) {
-    val actionButtonModels = state.actionButtonModels
+    val actionButtonModels = state.actionButtonModels.values
     FlowRow(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -79,8 +79,8 @@ fun ActionsSectionPreview() {
         ActionsSection(
             modifier = Modifier.fillMaxSize(),
             state = ActionsSectionState().copy(
-                actionButtonModels = listOf(
-                    ActionButtonModel(
+                actionButtonModels = mapOf(
+                    ActionButtonType.OpenPaletteActionButtonType to ActionButtonModel(
                         actionType = ActionButtonType.OpenPaletteActionButtonType,
                         enabled = true,
                         childActionTypes = listOf(
@@ -102,19 +102,19 @@ fun ActionsSectionPreview() {
                             ),
                         ),
                     ),
-                    ActionButtonModel(
+                    ActionButtonType.UndoActionButtonType to ActionButtonModel(
                         actionType = ActionButtonType.UndoActionButtonType,
                         enabled = true,
                     ),
-                    ActionButtonModel(
+                    ActionButtonType.RedoActionButtonType to ActionButtonModel(
                         actionType = ActionButtonType.RedoActionButtonType,
                         enabled = false,
                     ),
-                    ActionButtonModel(
+                    ActionButtonType.ZoomInActionButtonType to ActionButtonModel(
                         actionType = ActionButtonType.ZoomInActionButtonType,
                         enabled = true,
                     ),
-                    ActionButtonModel(
+                    ActionButtonType.ZoomOutActionButtonType to ActionButtonModel(
                         actionType = ActionButtonType.ZoomOutActionButtonType,
                         enabled = true,
                     ),

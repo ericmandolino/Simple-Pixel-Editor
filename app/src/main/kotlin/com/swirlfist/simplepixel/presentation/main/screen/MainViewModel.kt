@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
+import com.swirlfist.simplepixel.domain.usecase.MAX_ZOOM_FACTOR
+import com.swirlfist.simplepixel.domain.usecase.MIN_ZOOM_FACTOR
 import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
@@ -39,20 +41,21 @@ class MainViewModel @Inject constructor(
     init {
         _mainScreenState.update { mainScreenState ->
             val palette = PaletteModel(colors = listOf(Color.Black, Color.Yellow))
+            val zoomFactor = 1F
             mainScreenState.copy(
                 canvasSectionState = mainScreenState.canvasSectionState.copy(
                     pixelImageModel = createEmptyPixelImage(
-                        width = 32,
-                        height = 32,
+                        width = 16,
+                        height = 16,
                         color1 = palette.colors[0],
                         color2 = palette.colors[1],
                     ),
-                    zoomFactor = 1F,
+                    zoomFactor = zoomFactor,
                     isShowCoordinatesEnabled = true,
                 ),
                 actionsSectionState = mainScreenState.actionsSectionState.copy(
-                    actionButtonModels = listOf(
-                        ActionButtonModel(
+                    actionButtonModels = mapOf(
+                        ActionButtonType.OpenPaletteActionButtonType to ActionButtonModel(
                             actionType = ActionButtonType.OpenPaletteActionButtonType,
                             enabled = true,
                             childActionTypes = listOf(
@@ -66,21 +69,21 @@ class MainViewModel @Inject constructor(
                                 ),
                             ),
                         ),
-                        ActionButtonModel(
+                        ActionButtonType.UndoActionButtonType to ActionButtonModel(
                             actionType = ActionButtonType.UndoActionButtonType,
                             enabled = false,
                         ),
-                        ActionButtonModel(
+                        ActionButtonType.RedoActionButtonType to ActionButtonModel(
                             actionType = ActionButtonType.RedoActionButtonType,
                             enabled = false,
                         ),
-                        ActionButtonModel(
+                        ActionButtonType.ZoomInActionButtonType to ActionButtonModel(
                             actionType = ActionButtonType.ZoomInActionButtonType,
-                            enabled = true,
+                            enabled = zoomFactor < MAX_ZOOM_FACTOR,
                         ),
-                        ActionButtonModel(
+                        ActionButtonType.ZoomOutActionButtonType to ActionButtonModel(
                             actionType = ActionButtonType.ZoomOutActionButtonType,
-                            enabled = true,
+                            enabled = zoomFactor > MIN_ZOOM_FACTOR,
                         ),
                     )
                 )
@@ -147,10 +150,12 @@ class MainViewModel @Inject constructor(
                 successBlock = { zoomFactor ->
                     _mainScreenState.update { mainScreenState ->
                         val canvasSectionState = mainScreenState.canvasSectionState
+                        val actionsSectionState = mainScreenState.actionsSectionState
                         mainScreenState.copy(
                             canvasSectionState = canvasSectionState.copy(
                                 zoomFactor = zoomFactor,
                             ),
+                            actionsSectionState = actionsSectionState.updateZoomButtonState(zoomFactor)
                         )
                     }
                 },
@@ -162,4 +167,33 @@ class MainViewModel @Inject constructor(
             )
         }
     }
+}
+
+private fun ActionsSectionState.updateZoomButtonState(
+    zoomFactor: Float,
+): ActionsSectionState {
+    return updateButtonEnabled(
+        ActionButtonType.ZoomInActionButtonType,
+        isEnabled = zoomFactor < MAX_ZOOM_FACTOR,
+    ).updateButtonEnabled(
+        ActionButtonType.ZoomOutActionButtonType,
+        isEnabled = zoomFactor > MIN_ZOOM_FACTOR,
+    )
+}
+
+private fun ActionsSectionState.updateButtonEnabled(
+    actionButtonType: ActionButtonType,
+    isEnabled: Boolean,
+): ActionsSectionState {
+    val buttonModel = actionButtonModels[actionButtonType] ?: return this
+
+    if (buttonModel.enabled == isEnabled) {
+        return this
+    }
+
+    return copy(
+        actionButtonModels = actionButtonModels.toMutableMap().also {  buttonModels ->
+            buttonModels[actionButtonType] = buttonModel.copy(enabled = isEnabled)
+        }
+    )
 }

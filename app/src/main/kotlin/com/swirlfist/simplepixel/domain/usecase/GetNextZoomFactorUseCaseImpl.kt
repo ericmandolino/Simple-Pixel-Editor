@@ -4,9 +4,6 @@ import javax.inject.Inject
 import kotlin.math.max
 import kotlin.math.min
 
-private const val MAX_ZOOM_FACTOR = 4F
-private const val MIN_ZOOM_FACTOR = 0.1F
-
 class GetNextZoomFactorUseCaseImpl @Inject constructor() : GetNextZoomFactorUseCase {
     override suspend fun invoke(params: GetNextZoomFactorUseCase.Params): Result<Float> {
         return Result.success(
