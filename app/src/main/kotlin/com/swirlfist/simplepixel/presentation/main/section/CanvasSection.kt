@@ -5,6 +5,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableFloatState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -13,12 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
@@ -33,6 +37,8 @@ import com.swirlfist.simplepixel.presentation.main.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import kotlin.math.max
 import kotlin.math.min
+
+private const val COORDINATE_TEXT_FORMAT = "%s,%s"
 
 @Composable
 fun CanvasSection(
@@ -67,8 +73,8 @@ private fun PixelCanvas(
     val invertedPalette = remember {  pixelImage.paletteModel.invert() }
     val imagePixelWidth = remember { pixelImage.getPixelWidth() }
     val imagePixelHeight = remember { pixelImage.getPixelHeight() }
-    val imageDeltaX = rememberSaveable { mutableFloatStateOf(0F) }
-    val imageDeltaY = rememberSaveable { mutableFloatStateOf(0F) }
+    val imageOffsetX = rememberSaveable { mutableFloatStateOf(0F) }
+    val imageOffsetY = rememberSaveable { mutableFloatStateOf(0F) }
     val lastCanvasWidth = rememberSaveable { mutableIntStateOf(-1) }
     val lastCanvasHeight = rememberSaveable { mutableIntStateOf(-1) }
 
@@ -82,12 +88,12 @@ private fun PixelCanvas(
 
                 if ((lastWidth >= 0) && (currentWidth > lastWidth)) {
                     val widthIncrease = currentWidth - lastWidth
-                    imageDeltaX.floatValue = max(0F, imageDeltaX.floatValue - widthIncrease)
+                    imageOffsetX.floatValue = max(0F, imageOffsetX.floatValue - widthIncrease)
                 }
 
                 if ((lastHeight >= 0) && (currentHeight > lastHeight)) {
                     val heightIncrease = currentHeight - lastHeight
-                    imageDeltaY.floatValue = max(0F, imageDeltaY.floatValue - heightIncrease)
+                    imageOffsetY.floatValue = max(0F, imageOffsetY.floatValue - heightIncrease)
                 }
 
                 lastCanvasWidth.intValue = currentWidth
@@ -95,40 +101,45 @@ private fun PixelCanvas(
             }
             .pointerInput(zoomFactor) {
                 detectDragGestures { _, dragAmount ->
-                    val pixelSize = 32.dp.toPx() * zoomFactor
-                    val imageWidth = imagePixelWidth * pixelSize
-                    val imageHeight = imagePixelHeight * pixelSize
-                    val minImageDeltaX = 0F
-                    val minImageDeltaY = 0F
-                    val maxImageDeltaX = max(imageWidth - size.width, 0F)
-                    val maxImageDeltaY = max(imageHeight - size.height, 0F)
+                    val pixelSizeInt = getPixelSizeInt(zoomFactor)
+                    val imageWidthInt = imagePixelWidth * pixelSizeInt
+                    val imageHeightInt = imagePixelHeight * pixelSizeInt
+                    val minImageOffset = Offset(
+                        x = 0F,
+                        y = 0F,
+                    )
+                    val maxImageOffset = Offset(
+                        x = max(imageWidthInt - size.width, 0).toFloat(),
+                        y = max(imageHeightInt - size.height, 0).toFloat(),
+                    )
 
-                    imageDeltaX.floatValue = (imageDeltaX.floatValue - dragAmount.x)
-                        .cap(minImageDeltaX, maxImageDeltaX)
-                    imageDeltaY.floatValue = (imageDeltaY.floatValue - dragAmount.y)
-                        .cap(minImageDeltaY, maxImageDeltaY)
+                    imageOffsetX.floatValue = (imageOffsetX.floatValue - dragAmount.x)
+                        .cap(minImageOffset.x, maxImageOffset.x)
+                    imageOffsetY.floatValue = (imageOffsetY.floatValue - dragAmount.y)
+                        .cap(minImageOffset.y, maxImageOffset.y)
                 }
             }
             .pointerInput(zoomFactor) {
                 detectTapGestures { tapOffset ->
-                    val pixelSize = 32.dp.toPx() * zoomFactor
-                    val xPixel = ((imageDeltaX.floatValue + tapOffset.x) / pixelSize).toInt()
-                    val yPixel =  imagePixelHeight - 1 - ((imageDeltaY.floatValue + tapOffset.y) / pixelSize).toInt()
+                    val pixelSizeInt = getPixelSizeInt(zoomFactor)
+                    val xPixel = ((imageOffsetX.floatValue + tapOffset.x) / pixelSizeInt).toInt()
+                    val yPixel = imagePixelHeight - 1 - ((imageOffsetY.floatValue + tapOffset.y) / pixelSizeInt).toInt()
 
-                    if (xPixel !in 0 ..< imagePixelWidth) return@detectTapGestures
-                    if (yPixel !in 0 ..< imagePixelHeight) return@detectTapGestures
+                    if (xPixel !in 0..<imagePixelWidth) return@detectTapGestures
+                    if (yPixel !in 0..<imagePixelHeight) return@detectTapGestures
 
                     onPixelTap(xPixel, yPixel)
                 }
             },
     ) {
-        val canvasHeight = size.height
-        val canvasWidth = size.width
-        val pixelSize = (32.dp.toPx() * zoomFactor).toInt()
-        val imageWidth = imagePixelWidth * pixelSize
-        val imageHeight = imagePixelHeight * pixelSize
-        val halfPixelSize = pixelSize / 2
-        val twoThirdsPixelSize = pixelSize * 2 / 3
+        val canvasSize = Size(size.width, size.height)
+        val pixelSizeInt = getPixelSizeInt(zoomFactor)
+        val imageSize = Size(
+            width = (imagePixelWidth * pixelSizeInt).toFloat(),
+            height = (imagePixelHeight * pixelSizeInt).toFloat(),
+        )
+        val halfPixelSize = pixelSizeInt / 2F
+        val twoThirdsPixelSize = pixelSizeInt * 2F / 3F
         val gridLineWidth = 1.dp.toPx()
 
         val coordinateTextTemplate = "%s,%s"
@@ -140,142 +151,255 @@ private fun PixelCanvas(
             maxVisibleCoordinateTextSize.width < twoThirdsPixelSize &&
             maxVisibleCoordinateTextSize.height < twoThirdsPixelSize
 
-        if (imageDeltaX.floatValue > 0) {
-            if (imageWidth <= canvasWidth) {
-                imageDeltaX.floatValue = 0F
-            } else {
-                val deltaXSurplus = canvasWidth + imageDeltaX.floatValue - imageWidth
-                if (deltaXSurplus > 0) {
-                    imageDeltaX.floatValue -= deltaXSurplus
-                }
-            }
-        }
-
-        if (imageDeltaY.floatValue > 0) {
-            if (imageHeight <= canvasHeight) {
-                imageDeltaY.floatValue = 0F
-            } else {
-                val deltaYSurplus = canvasHeight + imageDeltaY.floatValue - imageHeight
-                if (deltaYSurplus > 0) {
-                    imageDeltaY.floatValue -= deltaYSurplus
-                }
-            }
-        }
+        adjustImageOffset(imageOffsetX, imageOffsetY, canvasSize, imageSize)
 
         var y = 0F
-        var yPixelMatrix = imagePixelHeight - 1 - ((imageDeltaY.floatValue + y) / pixelSize).toInt()
-        while (y < canvasHeight && yPixelMatrix >= 0) {
-            val isYPixelMatrixEven = yPixelMatrix % 2 == 0
-            val pixelRectHeight = if (y > 0F || imageDeltaY.floatValue == 0F) {
-                pixelSize
+        var yMatrixCoordinate = imagePixelHeight - 1 - ((imageOffsetY.floatValue + y) / pixelSizeInt).toInt()
+        while (y < canvasSize.height && yMatrixCoordinate >= 0) {
+            val pixelHeight = if (y > 0F || imageOffsetY.floatValue == 0F) {
+                pixelSizeInt
             } else {
-                pixelSize - imageDeltaY.floatValue.toInt() % pixelSize
+                pixelSizeInt - imageOffsetY.floatValue.toInt() % pixelSizeInt
             }
 
             var x = 0F
-            var xPixelMatrix = ((imageDeltaX.floatValue + x) / pixelSize).toInt()
-            while (x < canvasWidth && xPixelMatrix < imagePixelWidth) {
-                val isXPixelMatrixEven = xPixelMatrix % 2 == 0
-                val pixelRectWidth = if (x > 0F || imageDeltaX.floatValue == 0F) {
-                    pixelSize
+            var xMatrixCoordinate = ((imageOffsetX.floatValue + x) / pixelSizeInt).toInt()
+            while (x < canvasSize.width && xMatrixCoordinate < imagePixelWidth) {
+                val pixelWidth = if (x > 0F || imageOffsetX.floatValue == 0F) {
+                    pixelSizeInt
                 } else {
-                    pixelSize - imageDeltaX.floatValue.toInt() % pixelSize
+                    pixelSizeInt - imageOffsetX.floatValue.toInt() % pixelSizeInt
                 }
 
                 val pixel = pixelImage.getPixelAt(
-                    x = xPixelMatrix,
-                    y = yPixelMatrix
-                )
-                val pixelColor = pixelImage.getColor(pixel) ?:
-                if ((isXPixelMatrixEven && !isYPixelMatrixEven) || (!isXPixelMatrixEven && isYPixelMatrixEven)) {
-                    Color.Gray
-                } else {
-                    Color.LightGray
-                }
-
-                val pixelRectOffset = Offset(x, y)
-                val pixelRectSize = Size(pixelRectWidth.toFloat(), pixelRectHeight.toFloat())
-
-                drawRect(
-                    color = pixelColor,
-                    topLeft = pixelRectOffset,
-                    size = Size(
-                        width = min(pixelRectSize.width, canvasWidth - pixelRectOffset.x),
-                        height = min(pixelRectSize.height, canvasHeight - pixelRectOffset.y),
-                    ),
+                    x = xMatrixCoordinate,
+                    y = yMatrixCoordinate
                 )
 
-                if (isShowCoordinates) {
-                    val coordinateText = coordinateTextTemplate.format(xPixelMatrix + 1, yPixelMatrix + 1)
-                    val textSize = textMeasurer.measure(
-                        text = coordinateText
-                    ).size
-
-                    val textColor = invertedPalette.getColor(pixel) ?:
-                        if ((isXPixelMatrixEven && !isYPixelMatrixEven) || (!isXPixelMatrixEven && isYPixelMatrixEven)) {
-                            Color.LightGray
-                        } else {
-                            Color.Gray
-                        }
-                    val coordinateTextOffset = pixelRectOffset + Offset(
-                        x = pixelRectWidth - halfPixelSize.toFloat() - textSize.width / 2,
-                        y = pixelRectHeight - halfPixelSize.toFloat() - textSize.height / 2,
-                    )
-
-                    drawText(
-                        textMeasurer,
-                        topLeft = coordinateTextOffset,
-                        text = coordinateText,
-                        style = TextStyle.Default.copy(
-                            color = textColor,
-                        ),
-                        softWrap = false,
-                    )
-                }
+                drawPixel(
+                    pixel,
+                    palette = pixelImage.paletteModel,
+                    width = pixelWidth,
+                    height = pixelHeight,
+                    xMatrixCoordinate,
+                    yMatrixCoordinate,
+                    offset = Offset(x, y),
+                    canvasSize,
+                    isShowCoordinates,
+                    textMeasurer,
+                    coordinateTextPalette = invertedPalette,
+                    halfPixelSize,
+                )
 
                 if (isShowGridEnabled) {
-                    drawLine(
-                        color = Color.DarkGray,
-                        start = Offset(x, 0F),
-                        end = Offset(x, min(canvasHeight, imageHeight.toFloat())),
-                        strokeWidth = gridLineWidth,
-                    )
+                    drawVerticalGridLine(x, canvasSize, imageSize, gridLineWidth)
                 }
 
-                x += pixelRectWidth
-                xPixelMatrix++
+                x += pixelWidth
+                xMatrixCoordinate++
             }
 
-            if (isShowGridEnabled && xPixelMatrix == imagePixelWidth) {
-                drawLine(
-                    color = Color.DarkGray,
-                    start = Offset(x, 0F),
-                    end = Offset(x, min(canvasHeight, imageHeight.toFloat())),
-                    strokeWidth = gridLineWidth,
-                )
+            if (isShowGridEnabled && xMatrixCoordinate == imagePixelWidth) {
+                drawVerticalGridLine(x, canvasSize, imageSize, gridLineWidth)
             }
 
             if (isShowGridEnabled) {
-                drawLine(
-                    color = Color.DarkGray,
-                    start = Offset(0F, y),
-                    end = Offset(min(canvasWidth, imageWidth.toFloat()), y),
-                    strokeWidth = gridLineWidth,
-                )
+                drawHorizontalGridLine(y, canvasSize, imageSize, gridLineWidth)
             }
 
-            y += pixelRectHeight
-            yPixelMatrix--
+            y += pixelHeight
+            yMatrixCoordinate--
         }
 
-        if (isShowGridEnabled && yPixelMatrix == -1) {
-            drawLine(
-                color = Color.DarkGray,
-                start = Offset(0F, y),
-                end = Offset(min(canvasWidth, imageWidth.toFloat()), y),
-                strokeWidth = gridLineWidth,
-            )
+        if (isShowGridEnabled && yMatrixCoordinate == -1) {
+            drawHorizontalGridLine(y, canvasSize, imageSize, gridLineWidth)
         }
+    }
+}
+
+private fun Density.getPixelSizeInt(
+    zoomFactor: Float,
+) = (32.dp.toPx() * zoomFactor).toInt()
+
+private fun adjustImageOffset(
+    imageOffsetX: MutableFloatState,
+    imageOffsetY: MutableFloatState,
+    canvasSize: Size,
+    imageSize: Size,
+) {
+    if (imageOffsetX.floatValue > 0) {
+        val canvasWidth = canvasSize.width
+        val imageWidth = imageSize.width
+
+        if (imageWidth <= canvasWidth) {
+            imageOffsetX.floatValue = 0F
+        } else {
+            val xOffsetSurplus = canvasWidth + imageOffsetX.floatValue - imageWidth
+            if (xOffsetSurplus > 0) {
+                imageOffsetX.floatValue -= xOffsetSurplus
+            }
+        }
+    }
+
+    if (imageOffsetY.floatValue > 0) {
+        val canvasHeight = canvasSize.height
+        val imageHeight = imageSize.height
+
+        if (imageHeight <= canvasHeight) {
+            imageOffsetY.floatValue = 0F
+        } else {
+            val deltaYSurplus = canvasHeight + imageOffsetY.floatValue - imageHeight
+            if (deltaYSurplus > 0) {
+                imageOffsetY.floatValue -= deltaYSurplus
+            }
+        }
+    }
+}
+
+private fun DrawScope.drawPixel(
+    pixel: PixelModel,
+    palette: PaletteModel,
+    width: Int,
+    height: Int,
+    xMatrixCoordinate: Int,
+    yMatrixCoordinate: Int,
+    offset: Offset,
+    canvasSize: Size,
+    isShowCoordinates: Boolean,
+    textMeasurer: TextMeasurer,
+    coordinateTextPalette: PaletteModel,
+    halfPixelSize: Float,
+) {
+    val isXMatrixCoordinateEven = xMatrixCoordinate % 2 == 0
+    val isYMatrixCoordinateEven = yMatrixCoordinate % 2 == 0
+    val pixelColor = getColor(
+        pixel,
+        palette,
+        isXMatrixCoordinateEven,
+        isYMatrixCoordinateEven,
+        Pair(Color.Gray, Color.LightGray),
+    )
+    val pixelRectSize = Size(width.toFloat(), height.toFloat())
+
+    drawRect(
+        color = pixelColor,
+        topLeft = offset,
+        size = Size(
+            width = min(pixelRectSize.width, canvasSize.width - offset.x),
+            height = min(pixelRectSize.height, canvasSize.height - offset.y),
+        ),
+    )
+
+    if (isShowCoordinates) {
+        val coordinateText = COORDINATE_TEXT_FORMAT.format(
+            xMatrixCoordinate + 1, yMatrixCoordinate + 1)
+        val textSize = textMeasurer.measure(
+            text = coordinateText
+        ).size
+
+        val textColor = getColor(
+            pixel,
+            coordinateTextPalette,
+            isXMatrixCoordinateEven,
+            isYMatrixCoordinateEven,
+            Pair(Color.LightGray, Color.Gray),
+        )
+        val coordinateTextOffset = offset + Offset(
+            x = width - halfPixelSize - textSize.width / 2,
+            y = height - halfPixelSize - textSize.height / 2,
+        )
+
+        drawText(
+            textMeasurer,
+            topLeft = coordinateTextOffset,
+            text = coordinateText,
+            style = TextStyle.Default.copy(
+                color = textColor,
+            ),
+            softWrap = false,
+        )
+    }
+}
+
+private fun DrawScope.drawHorizontalGridLine(
+    y: Float,
+    canvasSize: Size,
+    imageSize: Size,
+    width: Float,
+) {
+    drawGridLine(
+        isVertical = false,
+        dimension = y,
+        canvasSize,
+        imageSize,
+        width,
+    )
+}
+
+private fun DrawScope.drawVerticalGridLine(
+    x: Float,
+    canvasSize: Size,
+    imageSize: Size,
+    width: Float,
+) {
+    drawGridLine(
+        isVertical = true,
+        dimension = x,
+        canvasSize,
+        imageSize,
+        width,
+    )
+}
+
+private fun DrawScope.drawGridLine(
+    isVertical: Boolean,
+    dimension: Float,
+    canvasSize: Size,
+    imageSize: Size,
+    width: Float,
+) {
+    val start: Offset
+    val end: Offset
+
+    if (isVertical) {
+        start = Offset(
+            dimension,
+            0F,
+        )
+        end = Offset(
+            dimension,
+            min(canvasSize.height, imageSize.height),
+        )
+    } else {
+        start = Offset(
+            0F,
+            dimension,
+        )
+        end = Offset(
+            min(canvasSize.width, imageSize.width),
+            dimension,
+        )
+    }
+
+    drawLine(Color.DarkGray, start, end, width)
+}
+
+private fun getColor(
+    pixel: PixelModel,
+    palette: PaletteModel,
+    isXMatrixCoordinateEven: Boolean,
+    isYMatrixCoordinateEven: Boolean,
+    defaultColors: Pair<Color, Color>,
+): Color {
+    palette.getColor(pixel)?.let { color -> return color }
+
+    return if (
+        (isXMatrixCoordinateEven && !isYMatrixCoordinateEven) ||
+        (!isXMatrixCoordinateEven && isYMatrixCoordinateEven)
+    ) {
+        defaultColors.first
+    } else {
+        defaultColors.second
     }
 }
 
