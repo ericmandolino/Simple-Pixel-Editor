@@ -136,6 +136,6 @@ fun ActionButtonType.toActionsSectionEvent(): ActionSectionEvent = when(this) {
     is ActionButtonType.PickPaletteColorActionButtonType -> ActionSectionEvent.PickPaletteColorButtonClicked(
         paletteIndex = paletteIndex,
     )
-
     ActionButtonType.SavePixelImageActionButtonType -> ActionSectionEvent.SavePixelImageButtonClicked
+    ActionButtonType.OpenPixelImageActionButtonType -> ActionSectionEvent.OpenPixelImageButtonClicked
 }

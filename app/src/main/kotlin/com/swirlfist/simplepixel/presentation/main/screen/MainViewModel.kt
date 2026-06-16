@@ -102,6 +102,10 @@ class MainViewModel @Inject constructor(
                             actionType = ActionButtonType.SavePixelImageActionButtonType,
                             enabled = true,
                         ),
+                        ActionButtonType.OpenPixelImageActionButtonType to ActionButtonModel(
+                            actionType = ActionButtonType.OpenPixelImageActionButtonType,
+                            enabled = true,
+                        ),
                     )
                 )
             )
@@ -123,6 +127,7 @@ class MainViewModel @Inject constructor(
             ActionSectionEvent.ZoomInButtonClicked -> zoom(isZoomIn = true)
             ActionSectionEvent.ZoomOutButtonClicked -> zoom(isZoomIn = false)
             ActionSectionEvent.SavePixelImageButtonClicked -> selectSavePixelImageLocation()
+            ActionSectionEvent.OpenPixelImageButtonClicked -> { } // TODO
         }
     }
 

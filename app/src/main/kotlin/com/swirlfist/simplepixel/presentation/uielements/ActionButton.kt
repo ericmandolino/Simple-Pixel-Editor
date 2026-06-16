@@ -41,6 +41,7 @@ fun ActionButton(
         ActionButtonType.ZoomOutActionButtonType,
         ActionButtonType.OpenPaletteActionButtonType,
         ActionButtonType.SavePixelImageActionButtonType,
+        ActionButtonType.OpenPixelImageActionButtonType,
             -> {
                 ActionIconButton(
                     modifier = modifier,

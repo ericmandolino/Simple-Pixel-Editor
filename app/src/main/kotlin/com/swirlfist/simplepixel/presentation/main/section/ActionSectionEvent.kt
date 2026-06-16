@@ -17,4 +17,6 @@ sealed interface ActionSectionEvent {
     ) : ActionSectionEvent
 
     data object SavePixelImageButtonClicked : ActionSectionEvent
+
+    data object OpenPixelImageButtonClicked : ActionSectionEvent
 }

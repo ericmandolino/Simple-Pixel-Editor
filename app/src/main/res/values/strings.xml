@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">SimplePixel</string>
     <string name="cd_actions_section_button_open_palette">Open palette</string>
+    <string name="cd_actions_section_button_open_pixel_image">Open pixel image</string>
     <string name="cd_actions_section_button_pick_palette_color">Pick palette color %d</string>
     <string name="cd_actions_section_button_redo">Redo last action</string>
     <string name="cd_actions_section_button_save_pixel_image">Save pixel image</string>
