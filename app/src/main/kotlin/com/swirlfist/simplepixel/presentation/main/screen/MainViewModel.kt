@@ -14,6 +14,7 @@ import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.MAX_ZOOM_FACTOR
 import com.swirlfist.simplepixel.domain.usecase.MIN_ZOOM_FACTOR
+import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.getPixelAt
@@ -32,10 +33,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val DEFAULT_ZOOM_FACTOR = 1F
+
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val getNextZoomFactorUseCase: GetNextZoomFactorUseCase,
     private val savePixelImageUseCase: SavePixelImageUseCase,
+    private val openPixelImageUseCase: OpenPixelImageUseCase,
+    private val getNextZoomFactorUseCase: GetNextZoomFactorUseCase,
     private val updatePixelColorUseCase: UpdatePixelColorUseCase,
 ) : ViewModel() {
     private val _mainScreenState = MutableStateFlow(
@@ -54,7 +58,7 @@ class MainViewModel @Inject constructor(
     init {
         _mainScreenState.update { mainScreenState ->
             val palette = PaletteModel(colors = listOf(Color.Black.toColorLong(), Color.Yellow.toColorLong()))
-            val zoomFactor = 1F
+            val zoomFactor = DEFAULT_ZOOM_FACTOR
             mainScreenState.copy(
                 canvasSectionState = mainScreenState.canvasSectionState.copy(
                     pixelImageModel = createEmptyPixelImage(
@@ -222,17 +226,19 @@ class MainViewModel @Inject constructor(
 
         when (interaction) {
             is MainViewModelInteraction.SelectSavePixelImageLocationInteraction
-                -> onSelectSaveLocationInteractionResult(
+                -> onSelectSavePixelImageLocationInteractionResult(
                     interaction,
                     interactionResult as MainViewModelInteractionResult.SelectSavePixelImageLocationInteractionResult,
                 )
 
             MainViewModelInteraction.SelectOpenPixelImageLocationInteraction
-                -> android.util.Log.e("gus", "$interaction")
+                -> onSelectOpenPixelImageLocationInteractionResult(
+                    interactionResult as MainViewModelInteractionResult.SelectOpenPixelImageLocationInteractionResult,
+                )
         }
     }
 
-    private fun onSelectSaveLocationInteractionResult(
+    private fun onSelectSavePixelImageLocationInteractionResult(
         interaction: MainViewModelInteraction.SelectSavePixelImageLocationInteraction,
         interactionResult: MainViewModelInteractionResult.SelectSavePixelImageLocationInteractionResult,
     ) {
@@ -256,6 +262,42 @@ class MainViewModel @Inject constructor(
                 failureBlock = { }, // TODO
                 params = SavePixelImageUseCase.Params(
                     pixelImageModel,
+                    uri,
+                ),
+            )
+        }
+    }
+
+    private fun onSelectOpenPixelImageLocationInteractionResult(
+        interactionResult: MainViewModelInteractionResult.SelectOpenPixelImageLocationInteractionResult,
+    ) {
+        interactionResult.result.fold(
+            onSuccess = { uri ->
+                openPixelImage(uri)
+            },
+            onFailure = {
+                // TODO
+            }
+        )
+    }
+
+    private fun openPixelImage(
+        uri: Uri,
+    ) {
+        viewModelScope.launch {
+            openPixelImageUseCase.execute(
+                successBlock = { pixelImage ->
+                    _mainScreenState.update { mainScreenState ->
+                        mainScreenState.copy(
+                            canvasSectionState = mainScreenState.canvasSectionState.copy(
+                                pixelImageModel = pixelImage,
+                                zoomFactor = DEFAULT_ZOOM_FACTOR,
+                            )
+                        )
+                    }
+                },
+                failureBlock = { }, // TODO
+                params = OpenPixelImageUseCase.Params(
                     uri,
                 ),
             )

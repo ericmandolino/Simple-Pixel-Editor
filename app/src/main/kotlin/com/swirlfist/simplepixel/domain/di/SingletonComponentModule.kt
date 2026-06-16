@@ -4,6 +4,8 @@ import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCaseImpl
 import dagger.Binds
@@ -29,4 +31,9 @@ abstract class SingletonComponentModule {
     abstract fun bindSavePixelImageUseCase(
         impl: SavePixelImageUseCaseImpl,
     ) : SavePixelImageUseCase
+
+    @Binds
+    abstract fun bindOpenPixelImageUseCase(
+        impl: OpenPixelImageUseCaseImpl,
+    ) : OpenPixelImageUseCase
 }
