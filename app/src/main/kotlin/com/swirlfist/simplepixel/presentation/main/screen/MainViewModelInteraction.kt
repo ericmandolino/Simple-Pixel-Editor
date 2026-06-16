@@ -7,7 +7,10 @@ import kotlinx.serialization.Serializable
 sealed interface MainViewModelInteraction {
 
     @Serializable
-    data class SelectSaveLocationInteraction(
+    data class SelectSavePixelImageLocationInteraction(
         val pixelImage: PixelImageModel,
     ) : MainViewModelInteraction
+
+    @Serializable
+    object SelectOpenPixelImageLocationInteraction : MainViewModelInteraction
 }

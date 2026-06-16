@@ -13,6 +13,7 @@ import com.swirlfist.simplepixel.presentation.main.screen.MainScreen
 import com.swirlfist.simplepixel.presentation.main.screen.MainViewModel
 import com.swirlfist.simplepixel.presentation.main.screen.MainViewModelInteraction
 import com.swirlfist.simplepixel.presentation.main.screen.MainViewModelInteractionResult
+import com.swirlfist.simplepixel.presentation.main.screen.SelectOpenPixelImageLocationError
 import com.swirlfist.simplepixel.presentation.main.screen.SelectSavePixelImageLocationError
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,16 +31,21 @@ class MainActivity : ComponentActivity() {
     private var currentInteraction: MainViewModelInteraction? = null
     private var pendingInteractionResult: MainViewModelInteractionResult? = null
 
-    private val startSelectSaveLocationForResult = registerForActivityResult(
+    private val startSelectSavePixelImageLocationForResult = registerForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
-        callback = ::selectSaveLocationCallback,
+        callback = ::selectSavePixelImageLocationCallback,
+    )
+
+    private val startSelectOpenPixelImageLocationForResult = registerForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        callback = ::selectOpenPixelImageLocationCallback,
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         currentInteraction = savedInstanceState?.getString(KEY_CURRENT_INTERACTION)?.let { value ->
-            Json.decodeFromString<MainViewModelInteraction.SelectSaveLocationInteraction>(value)
+            Json.decodeFromString<MainViewModelInteraction>(value)
         }
 
         enableEdgeToEdge()
@@ -61,7 +67,7 @@ class MainActivity : ComponentActivity() {
         outState.putString(
             KEY_CURRENT_INTERACTION,
             currentInteraction?.let { value ->
-                Json.encodeToString(value as MainViewModelInteraction.SelectSaveLocationInteraction)
+                Json.encodeToString(value)
             }
         )
     }
@@ -75,8 +81,11 @@ class MainActivity : ComponentActivity() {
         currentInteraction = interaction
 
         when (interaction) {
-            is MainViewModelInteraction.SelectSaveLocationInteraction
-                -> selectSaveLocation()
+            is MainViewModelInteraction.SelectSavePixelImageLocationInteraction
+                -> selectSavePixelImageLocation()
+
+            MainViewModelInteraction.SelectOpenPixelImageLocationInteraction
+                -> selectOpenPixelImageLocation()
         }
     }
 
@@ -92,17 +101,17 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun selectSaveLocation() {
+    private fun selectSavePixelImageLocation() {
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "*/*"
             putExtra(Intent.EXTRA_TITLE, DEFAULT_FILE_NAME)
         }
 
-        startSelectSaveLocationForResult.launch(intent)
+        startSelectSavePixelImageLocationForResult.launch(intent)
     }
 
-    private fun selectSaveLocationCallback(
+    private fun selectSavePixelImageLocationCallback(
         activityResult: ActivityResult,
     ) {
         val interactionResult = when (activityResult.resultCode) {
@@ -117,6 +126,35 @@ class MainActivity : ComponentActivity() {
         }
         consumeInteraction(
             MainViewModelInteractionResult.SelectSavePixelImageLocationInteractionResult(
+                interactionResult
+            )
+        )
+    }
+
+    private fun selectOpenPixelImageLocation() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+        }
+
+        startSelectOpenPixelImageLocationForResult.launch(intent)
+    }
+
+    private fun selectOpenPixelImageLocationCallback(
+        activityResult: ActivityResult,
+    ) {
+        val interactionResult = when (activityResult.resultCode) {
+            RESULT_OK
+                -> activityResult.data?.data?.let { uri ->
+                Result.success(uri)
+            } ?: Result.failure(SelectOpenPixelImageLocationError(false))
+            RESULT_CANCELED
+                -> Result.failure(SelectOpenPixelImageLocationError(true))
+            else
+                -> Result.failure(SelectOpenPixelImageLocationError(false))
+        }
+        consumeInteraction(
+            MainViewModelInteractionResult.SelectOpenPixelImageLocationInteractionResult(
                 interactionResult
             )
         )

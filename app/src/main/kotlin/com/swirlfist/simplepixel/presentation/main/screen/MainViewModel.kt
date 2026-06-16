@@ -127,7 +127,7 @@ class MainViewModel @Inject constructor(
             ActionSectionEvent.ZoomInButtonClicked -> zoom(isZoomIn = true)
             ActionSectionEvent.ZoomOutButtonClicked -> zoom(isZoomIn = false)
             ActionSectionEvent.SavePixelImageButtonClicked -> selectSavePixelImageLocation()
-            ActionSectionEvent.OpenPixelImageButtonClicked -> { } // TODO
+            ActionSectionEvent.OpenPixelImageButtonClicked -> selectOpenPixelImageLocation()
         }
     }
 
@@ -195,9 +195,15 @@ class MainViewModel @Inject constructor(
         val pixelImageModel = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
 
         addInteraction(
-            MainViewModelInteraction.SelectSaveLocationInteraction(
+            MainViewModelInteraction.SelectSavePixelImageLocationInteraction(
                 pixelImageModel,
             )
+        )
+    }
+
+    private fun selectOpenPixelImageLocation() {
+        addInteraction(
+            MainViewModelInteraction.SelectOpenPixelImageLocationInteraction
         )
     }
 
@@ -215,16 +221,19 @@ class MainViewModel @Inject constructor(
         _interactions.value = interactions.minus(interaction)
 
         when (interaction) {
-            is MainViewModelInteraction.SelectSaveLocationInteraction
+            is MainViewModelInteraction.SelectSavePixelImageLocationInteraction
                 -> onSelectSaveLocationInteractionResult(
                     interaction,
                     interactionResult as MainViewModelInteractionResult.SelectSavePixelImageLocationInteractionResult,
                 )
+
+            MainViewModelInteraction.SelectOpenPixelImageLocationInteraction
+                -> android.util.Log.e("gus", "$interaction")
         }
     }
 
     private fun onSelectSaveLocationInteractionResult(
-        interaction: MainViewModelInteraction.SelectSaveLocationInteraction,
+        interaction: MainViewModelInteraction.SelectSavePixelImageLocationInteraction,
         interactionResult: MainViewModelInteractionResult.SelectSavePixelImageLocationInteractionResult,
     ) {
         interactionResult.result.fold(

@@ -7,4 +7,8 @@ sealed interface MainViewModelInteractionResult {
     data class SelectSavePixelImageLocationInteractionResult(
         val result: Result<Uri>,
     ) : MainViewModelInteractionResult
+
+    data class SelectOpenPixelImageLocationInteractionResult(
+        val result: Result<Uri>,
+    ) : MainViewModelInteractionResult
 }
