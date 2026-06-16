@@ -11,6 +11,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.fromColorLong
+import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -37,15 +39,17 @@ fun ActionButton(
         ActionButtonType.RedoActionButtonType,
         ActionButtonType.ZoomInActionButtonType,
         ActionButtonType.ZoomOutActionButtonType,
-        ActionButtonType.OpenPaletteActionButtonType -> {
-            ActionIconButton(
-                modifier = modifier,
-                actionIconButtonType = actionButtonType as ActionIconButtonType,
-                size = size,
-                enabled = enabled,
-                onClick = onClick,
-            )
-        }
+        ActionButtonType.OpenPaletteActionButtonType,
+        ActionButtonType.SavePixelImageActionButtonType,
+            -> {
+                ActionIconButton(
+                    modifier = modifier,
+                    actionIconButtonType = actionButtonType as ActionIconButtonType,
+                    size = size,
+                    enabled = enabled,
+                    onClick = onClick,
+                )
+            }
         is ActionButtonType.PickPaletteColorActionButtonType -> ActionPickPaletteColorButton(
             modifier = modifier,
             pickPaletteColorActionButtonType = actionButtonType,
@@ -121,8 +125,8 @@ private fun ActionPickPaletteColorButton(
         shape =  RoundedCornerShape(4.dp),
         enabled = enabled,
         colors = ButtonDefaults.buttonColors().copy(
-            containerColor = color,
-            contentColor = color,
+            containerColor = Color.fromColorLong(color),
+            contentColor = Color.fromColorLong(color),
         ),
     ) {
     }
@@ -165,7 +169,7 @@ fun ActionPickPaletteColorButtonPreview() {
         ActionPickPaletteColorButton(
             pickPaletteColorActionButtonType = ActionButtonType.PickPaletteColorActionButtonType(
                 paletteIndex = 0,
-                palette = PaletteModel(colors = listOf(Color.Blue, Color.Red)),
+                palette = PaletteModel(colors = listOf(Color.Blue.toColorLong(), Color.Red.toColorLong())),
             ),
             size = 40.dp,
             enabled = true,

@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.swirlfist.simplepixel.domain.model.PaletteModel
@@ -68,11 +69,11 @@ fun ActionsSection(
 fun ActionsSectionPreview() {
     val palette = PaletteModel(
         colors = listOf(
-            Color.Black,
-            Color.Yellow,
-            Color.Red,
-            Color.Blue,
-            Color.Green,
+            Color.Black.toColorLong(),
+            Color.Yellow.toColorLong(),
+            Color.Red.toColorLong(),
+            Color.Blue.toColorLong(),
+            Color.Green.toColorLong(),
         )
     )
     SimplePixelTheme {
@@ -135,4 +136,6 @@ fun ActionButtonType.toActionsSectionEvent(): ActionSectionEvent = when(this) {
     is ActionButtonType.PickPaletteColorActionButtonType -> ActionSectionEvent.PickPaletteColorButtonClicked(
         paletteIndex = paletteIndex,
     )
+
+    ActionButtonType.SavePixelImageActionButtonType -> ActionSectionEvent.SavePixelImageButtonClicked
 }

@@ -1,7 +1,7 @@
 package com.swirlfist.simplepixel.domain.usecase
 
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
-import com.swirlfist.simplepixel.domain.usecase.error.UpdatePixelException
+import com.swirlfist.simplepixel.domain.error.UpdatePixelError
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import javax.inject.Inject
 
@@ -17,7 +17,7 @@ class UpdatePixelColorUseCaseImpl @Inject constructor() : UpdatePixelColorUseCas
                 )
             )
         } catch (exception: Exception) {
-            Result.failure(UpdatePixelException(exception))
+            Result.failure(UpdatePixelError(exception))
         }
     }
 

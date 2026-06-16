@@ -36,6 +36,11 @@ sealed interface ActionButtonType {
         val paletteIndex: Int,
         val palette: PaletteModel,
     ) : ActionButtonType
+
+    data object SavePixelImageActionButtonType : ActionIconButtonType(
+        icon = R.drawable.ic_actions_section_save_pixel_image_24dp,
+        contentDescription = R.string.cd_actions_section_button_save_pixel_image,
+    ), ActionButtonType
 }
 
 abstract class ActionIconButtonType(

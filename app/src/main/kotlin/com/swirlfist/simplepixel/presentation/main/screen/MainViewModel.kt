@@ -1,13 +1,20 @@
 package com.swirlfist.simplepixel.presentation.main.screen
 
+import android.net.Uri
+import androidx.annotation.MainThread
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toColorLong
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swirlfist.simplepixel.domain.model.PaletteModel
+import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.MAX_ZOOM_FACTOR
 import com.swirlfist.simplepixel.domain.usecase.MIN_ZOOM_FACTOR
+import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
@@ -27,8 +34,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val updatePixelColorUseCase: UpdatePixelColorUseCase,
     private val getNextZoomFactorUseCase: GetNextZoomFactorUseCase,
+    private val savePixelImageUseCase: SavePixelImageUseCase,
+    private val updatePixelColorUseCase: UpdatePixelColorUseCase,
 ) : ViewModel() {
     private val _mainScreenState = MutableStateFlow(
         value = MainScreenState(
@@ -38,9 +46,14 @@ class MainViewModel @Inject constructor(
     )
     val mainScreenState = _mainScreenState as StateFlow<MainScreenState>
 
+    private val _interactions = MutableLiveData(
+        listOf<MainViewModelInteraction>()
+    )
+    val interactions = _interactions as LiveData<List<MainViewModelInteraction>>
+
     init {
         _mainScreenState.update { mainScreenState ->
-            val palette = PaletteModel(colors = listOf(Color.Black, Color.Yellow))
+            val palette = PaletteModel(colors = listOf(Color.Black.toColorLong(), Color.Yellow.toColorLong()))
             val zoomFactor = 1F
             mainScreenState.copy(
                 canvasSectionState = mainScreenState.canvasSectionState.copy(
@@ -85,6 +98,10 @@ class MainViewModel @Inject constructor(
                             actionType = ActionButtonType.ZoomOutActionButtonType,
                             enabled = zoomFactor > MIN_ZOOM_FACTOR,
                         ),
+                        ActionButtonType.SavePixelImageActionButtonType to ActionButtonModel(
+                            actionType = ActionButtonType.SavePixelImageActionButtonType,
+                            enabled = true,
+                        ),
                     )
                 )
             )
@@ -93,7 +110,7 @@ class MainViewModel @Inject constructor(
 
     fun onCanvasSectionEvent(event: CanvasSectionEvent) {
         when (event) {
-            is CanvasSectionEvent.PixelTap -> onPixelTap(event)
+            is CanvasSectionEvent.PixelTap -> updatePixel(event)
         }
     }
 
@@ -103,12 +120,13 @@ class MainViewModel @Inject constructor(
             is ActionSectionEvent.PickPaletteColorButtonClicked -> {}
             ActionSectionEvent.RedoButtonClicked -> {}
             ActionSectionEvent.UndoButtonClicked -> {}
-            ActionSectionEvent.ZoomInButtonClicked -> onZoom(isZoomIn = true)
-            ActionSectionEvent.ZoomOutButtonClicked -> onZoom(isZoomIn = false)
+            ActionSectionEvent.ZoomInButtonClicked -> zoom(isZoomIn = true)
+            ActionSectionEvent.ZoomOutButtonClicked -> zoom(isZoomIn = false)
+            ActionSectionEvent.SavePixelImageButtonClicked -> selectSavePixelImageLocation()
         }
     }
 
-    private fun onPixelTap(event: CanvasSectionEvent.PixelTap) {
+    private fun updatePixel(event: CanvasSectionEvent.PixelTap) {
         val pixelImage = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
         val x = event.x
         val y = event.y
@@ -142,7 +160,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun onZoom(
+    private fun zoom(
         isZoomIn: Boolean,
     ) {
         viewModelScope.launch {
@@ -163,6 +181,68 @@ class MainViewModel @Inject constructor(
                 params = GetNextZoomFactorUseCase.Params(
                     currentZoomFactor = _mainScreenState.value.canvasSectionState.zoomFactor,
                     isZoomIn = isZoomIn,
+                ),
+            )
+        }
+    }
+
+    private fun selectSavePixelImageLocation() {
+        val pixelImageModel = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
+
+        addInteraction(
+            MainViewModelInteraction.SelectSaveLocationInteraction(
+                pixelImageModel,
+            )
+        )
+    }
+
+    private fun addInteraction(interaction: MainViewModelInteraction) {
+        val interactions = _interactions.value ?: return
+        _interactions.value = interactions + interaction
+    }
+
+    @MainThread
+    fun onInteractionResult(
+        interaction: MainViewModelInteraction,
+        interactionResult: MainViewModelInteractionResult,
+    ) {
+        val interactions = _interactions.value ?: return
+        _interactions.value = interactions.minus(interaction)
+
+        when (interaction) {
+            is MainViewModelInteraction.SelectSaveLocationInteraction
+                -> onSelectSaveLocationInteractionResult(
+                    interaction,
+                    interactionResult as MainViewModelInteractionResult.SelectSavePixelImageLocationInteractionResult,
+                )
+        }
+    }
+
+    private fun onSelectSaveLocationInteractionResult(
+        interaction: MainViewModelInteraction.SelectSaveLocationInteraction,
+        interactionResult: MainViewModelInteractionResult.SelectSavePixelImageLocationInteractionResult,
+    ) {
+        interactionResult.result.fold(
+            onSuccess = { uri ->
+                savePixelImage(interaction.pixelImage, uri)
+            },
+            onFailure = {
+                // TODO
+            }
+        )
+    }
+
+    private fun savePixelImage(
+        pixelImageModel: PixelImageModel,
+        uri: Uri,
+    ) {
+        viewModelScope.launch {
+            savePixelImageUseCase.execute(
+                successBlock = { }, // TODO
+                failureBlock = { }, // TODO
+                params = SavePixelImageUseCase.Params(
+                    pixelImageModel,
+                    uri,
                 ),
             )
         }

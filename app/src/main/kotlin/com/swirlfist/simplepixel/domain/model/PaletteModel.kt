@@ -1,7 +1,9 @@
 package com.swirlfist.simplepixel.domain.model
 
-import androidx.compose.ui.graphics.Color
+import androidx.annotation.ColorLong
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class PaletteModel(
-    val colors: List<Color>
+    @ColorLong val colors: List<Long>
 )

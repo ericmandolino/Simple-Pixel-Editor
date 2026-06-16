@@ -4,6 +4,8 @@ import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -11,15 +13,20 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class UseCaseModule {
+abstract class SingletonComponentModule {
 
     @Binds
     abstract fun bindUpdatePixelColorUseCase(
-        useCaseImpl: UpdatePixelColorUseCaseImpl
+        impl: UpdatePixelColorUseCaseImpl,
     ) : UpdatePixelColorUseCase
 
     @Binds
     abstract fun bindGetNextZoomFactorUseCase(
-        useCaseImpl: GetNextZoomFactorUseCaseImpl,
+        impl: GetNextZoomFactorUseCaseImpl,
     ) : GetNextZoomFactorUseCase
+
+    @Binds
+    abstract fun bindSavePixelImageUseCase(
+        impl: SavePixelImageUseCaseImpl,
+    ) : SavePixelImageUseCase
 }

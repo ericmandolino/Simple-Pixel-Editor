@@ -15,4 +15,6 @@ sealed interface ActionSectionEvent {
     data class PickPaletteColorButtonClicked(
         val paletteIndex: Int,
     ) : ActionSectionEvent
+
+    data object SavePixelImageButtonClicked : ActionSectionEvent
 }

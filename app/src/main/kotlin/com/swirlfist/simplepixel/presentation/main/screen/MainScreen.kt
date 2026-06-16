@@ -29,8 +29,9 @@ import com.swirlfist.simplepixel.presentation.main.state.MainScreenState
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun MainScreen() {
-    val viewModel: MainViewModel = hiltViewModel()
+fun MainScreen(
+    viewModel: MainViewModel = hiltViewModel()
+) {
     val mainScreenState: MainScreenState = viewModel.mainScreenState.collectAsStateWithLifecycle().value
     val navigator = rememberSupportingPaneScaffoldNavigator()
 

@@ -15,6 +15,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.fromColorLong
+import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.TextMeasurer
@@ -32,7 +34,7 @@ import com.swirlfist.simplepixel.presentation.getColor
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.getPixelHeight
 import com.swirlfist.simplepixel.presentation.getPixelWidth
-import com.swirlfist.simplepixel.presentation.invert
+import com.swirlfist.simplepixel.presentation.invertColors
 import com.swirlfist.simplepixel.presentation.main.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import kotlin.math.max
@@ -70,7 +72,8 @@ private fun PixelCanvas(
     onPixelTap: (xPixel: Int, yPixel: Int) -> Unit,
 ) {
     val textMeasurer = rememberTextMeasurer()
-    val invertedPalette = remember {  pixelImage.paletteModel.invert() }
+    val palette = remember { pixelImage.paletteModel.colors.map { color -> Color.fromColorLong(color) } }
+    val invertedPalette = remember {  palette.invertColors() }
     val imagePixelWidth = remember { pixelImage.getPixelWidth() }
     val imagePixelHeight = remember { pixelImage.getPixelHeight() }
     val imageOffsetX = rememberSaveable { mutableFloatStateOf(0F) }
@@ -178,7 +181,7 @@ private fun PixelCanvas(
 
                 drawPixel(
                     pixel,
-                    palette = pixelImage.paletteModel,
+                    palette = palette,
                     width = pixelWidth,
                     height = pixelHeight,
                     xMatrixCoordinate,
@@ -258,7 +261,7 @@ private fun adjustImageOffset(
 
 private fun DrawScope.drawPixel(
     pixel: PixelModel,
-    palette: PaletteModel,
+    palette: List<Color>,
     width: Int,
     height: Int,
     xMatrixCoordinate: Int,
@@ -267,7 +270,7 @@ private fun DrawScope.drawPixel(
     canvasSize: Size,
     isShowCoordinates: Boolean,
     textMeasurer: TextMeasurer,
-    coordinateTextPalette: PaletteModel,
+    coordinateTextPalette: List<Color>,
     halfPixelSize: Float,
 ) {
     val isXMatrixCoordinateEven = xMatrixCoordinate % 2 == 0
@@ -386,7 +389,7 @@ private fun DrawScope.drawGridLine(
 
 private fun getColor(
     pixel: PixelModel,
-    palette: PaletteModel,
+    palette: List<Color>,
     isXMatrixCoordinateEven: Boolean,
     isYMatrixCoordinateEven: Boolean,
     defaultColors: Pair<Color, Color>,
@@ -413,8 +416,8 @@ fun CanvasSectionPreview() {
                 pixelImageModel = createCheckersPixelImage(
                     width = 5,
                     height = 3,
-                    color1 = Color.Black,
-                    color2 = Color.Yellow,
+                    color1 = Color.Black.toColorLong(),
+                    color2 = Color.Yellow.toColorLong(),
                 ),
                 zoomFactor = 4F,
                 isShowCoordinatesEnabled = true,
@@ -435,8 +438,8 @@ fun CanvasSectionEmptyImagePreview() {
                 pixelImageModel = createEmptyPixelImage(
                     width = 4,
                     height = 4,
-                    color1 = Color.Black,
-                    color2 = Color.Yellow,
+                    color1 = Color.Black.toColorLong(),
+                    color2 = Color.Yellow.toColorLong(),
                 ),
                 zoomFactor = 1F,
                 isShowCoordinatesEnabled = true,
@@ -456,8 +459,8 @@ private fun Float.cap(min: Float, max: Float): Float = when {
 fun createCheckersPixelImage(
     width: Int,
     height: Int,
-    color1: Color,
-    color2: Color,
+    color1: Long,
+    color2: Long,
 ): PixelImageModel {
     val rows = mutableListOf<List<PixelModel>>()
     for (y in 0..< height) {
@@ -483,8 +486,8 @@ fun createCheckersPixelImage(
 fun createEmptyPixelImage(
     width: Int,
     height: Int,
-    color1: Color,
-    color2: Color,
+    color1: Long,
+    color2: Long,
 ): PixelImageModel {
     val rows = mutableListOf<List<PixelModel>>()
     repeat(height) {

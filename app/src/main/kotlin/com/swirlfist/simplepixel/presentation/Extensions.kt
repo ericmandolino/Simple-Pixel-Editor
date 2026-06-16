@@ -1,27 +1,24 @@
 package com.swirlfist.simplepixel.presentation
 
 import androidx.compose.ui.graphics.Color
-import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
 import kotlin.collections.map
 
-fun PaletteModel.invert(): PaletteModel = PaletteModel(
-    colors.map { color ->
-        color.copy(
-            red = 1F - color.red,
-            green = 1F - color.green,
-            blue = 1F - color.blue,
-        )
-    }
-)
+fun List<Color>.invertColors(): List<Color> = map { color ->
+    color.copy(
+        red = 1F - color.red,
+        green = 1F - color.green,
+        blue = 1F - color.blue,
+    )
+}
 
-fun PaletteModel.getColor(pixel: PixelModel): Color? {
+fun List<Color>.getColor(pixel: PixelModel): Color? {
     val paletteIndex = pixel.paletteIndex
 
-    return if (paletteIndex in colors.indices) {
-        colors[paletteIndex]
+    return if (paletteIndex in indices) {
+        get(paletteIndex)
     } else {
         null
     }
