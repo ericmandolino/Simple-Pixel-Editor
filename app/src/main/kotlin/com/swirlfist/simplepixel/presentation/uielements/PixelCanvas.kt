@@ -1,13 +1,14 @@
 package com.swirlfist.simplepixel.presentation.uielements
 
+import android.util.SizeF
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableFloatState
-import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -52,35 +53,33 @@ fun PixelCanvas(
     onPixelTap: (xPixel: Int, yPixel: Int) -> Unit,
 ) {
     val textMeasurer = rememberTextMeasurer()
-    val imageOffsetX = rememberSaveable { mutableFloatStateOf(0F) }
-    val imageOffsetY = rememberSaveable { mutableFloatStateOf(0F) }
-    val marginX = rememberSaveable { mutableFloatStateOf(0F) }
-    val marginY = rememberSaveable { mutableFloatStateOf(0F) }
-    val lastCanvasWidth = rememberSaveable { mutableIntStateOf(-1) }
-    val lastCanvasHeight = rememberSaveable { mutableIntStateOf(-1) }
+    val offsetSaver = createOffsetSaver()
+    val intSizeSaver = createIntSizeSaver()
+    val imageOffset = rememberSaveable(stateSaver = offsetSaver) { mutableStateOf(Offset(0F, 0F)) }
+    val margin = rememberSaveable(stateSaver = offsetSaver) { mutableStateOf(Offset(0F, 0F)) }
+    val lastCanvasSize = rememberSaveable(stateSaver = intSizeSaver) { mutableStateOf(IntSize(-1, -1)) }
 
-    val imagePixelWidth = pixelImage.getPixelWidth()
-    val imagePixelHeight = pixelImage.getPixelHeight()
+    val imagePixelSize = IntSize(pixelImage.getPixelWidth(), pixelImage.getPixelHeight())
 
     Canvas(
         modifier = modifier
             .onSizeChanged { size ->
-                onCanvasSizeChanged(size, lastCanvasWidth, lastCanvasHeight, imageOffsetX , imageOffsetY)
+                onCanvasSizeChanged(size, lastCanvasSize, imageOffset)
             }
             .pointerInput(zoomFactor) {
                 detectDragGestures { _, dragAmount ->
                     val pixelSizeDp = PIXEL_SIZE_DP_CANVAS
-                    onCanvasDrag(dragAmount, pixelSizeDp, imagePixelWidth, imagePixelHeight, zoomFactor, imageOffsetX, imageOffsetY)
+                    onCanvasDrag(dragAmount, pixelSizeDp, imagePixelSize, zoomFactor, imageOffset)
                 }
             }
             .pointerInput(zoomFactor) {
                 detectTapGestures { tapOffset ->
                     val pixelSizeDp = PIXEL_SIZE_DP_CANVAS
                     val canvasSize = Size(
-                        lastCanvasWidth.intValue.toFloat(),
-                        lastCanvasHeight.intValue.toFloat()
+                        lastCanvasSize.value.width.toFloat(),
+                        lastCanvasSize.value.height.toFloat()
                     )
-                    onCanvasTap(tapOffset, pixelSizeDp, imagePixelWidth, imagePixelHeight, zoomFactor, canvasSize, imageOffsetX, imageOffsetY, marginX, marginY, onPixelTap)
+                    onCanvasTap(tapOffset, pixelSizeDp, imagePixelSize, zoomFactor, canvasSize, imageOffset.value, margin.value, onPixelTap)
                 }
             },
     ) {
@@ -89,7 +88,7 @@ fun PixelCanvas(
 
         val coordinateTextTemplate = "%s,%s"
         val maxVisibleCoordinateTextSize = textMeasurer.measure(
-            text = String.format(coordinateTextTemplate, imagePixelWidth, imagePixelHeight)
+            text = String.format(coordinateTextTemplate, imagePixelSize.width, imagePixelSize.height)
         ).size
         val isShowCoordinates =
             isShowCoordinatesEnabled &&
@@ -99,12 +98,9 @@ fun PixelCanvas(
         drawCanvas(
             pixelImage,
             pixelSizeInt,
-            imagePixelWidth,
-            imagePixelHeight,
-            imageOffsetX,
-            imageOffsetY,
-            marginX,
-            marginY,
+            imagePixelSize,
+            imageOffset,
+            margin,
             isShowGridEnabled,
             isShowCoordinates,
             textMeasurer,
@@ -119,33 +115,31 @@ fun PixelCanvasSnapshot(
     isFitAvailableSpace: Boolean = false,
 ) {
     val textMeasurer = rememberTextMeasurer()
-    val imageOffsetX = rememberSaveable { mutableFloatStateOf(0F) }
-    val imageOffsetY = rememberSaveable { mutableFloatStateOf(0F) }
-    val marginX = rememberSaveable { mutableFloatStateOf(0F) }
-    val marginY = rememberSaveable { mutableFloatStateOf(0F) }
-    val lastCanvasWidth = rememberSaveable { mutableIntStateOf(-1) }
-    val lastCanvasHeight = rememberSaveable { mutableIntStateOf(-1) }
+    val offsetSaver = createOffsetSaver()
+    val intSizeSaver = createIntSizeSaver()
+    val imageOffset = rememberSaveable(stateSaver = offsetSaver) { mutableStateOf(Offset(0F, 0F)) }
+    val margin = rememberSaveable(stateSaver = offsetSaver) { mutableStateOf(Offset(0F, 0F)) }
+    val lastCanvasSize = rememberSaveable(stateSaver = intSizeSaver) { mutableStateOf(IntSize(-1, -1)) }
     val zoomFactor = rememberSaveable { mutableFloatStateOf(NO_ZOOM_FACTOR) }
 
-    val imagePixelWidth = pixelImage.getPixelWidth()
-    val imagePixelHeight = pixelImage.getPixelHeight()
+    val imagePixelSize = IntSize(pixelImage.getPixelWidth(), pixelImage.getPixelHeight())
 
     Canvas(
         modifier = modifier
             .onSizeChanged { size ->
-                onCanvasSizeChanged(size, lastCanvasWidth, lastCanvasHeight, imageOffsetX , imageOffsetY)
+                onCanvasSizeChanged(size, lastCanvasSize, imageOffset)
             }
             .pointerInput(zoomFactor.floatValue) {
                 detectDragGestures { _, dragAmount ->
                     val pixelSizeDp = PIXEL_SIZE_DP_PREVIEW
-                    onCanvasDrag(dragAmount, pixelSizeDp, imagePixelWidth, imagePixelHeight, zoomFactor.floatValue, imageOffsetX, imageOffsetY)
+                    onCanvasDrag(dragAmount, pixelSizeDp, imagePixelSize, zoomFactor.floatValue, imageOffset)
                 }
             },
     ) {
         zoomFactor.floatValue = if (isFitAvailableSpace) {
             val pixelSizeNoZoom = PIXEL_SIZE_DP_PREVIEW.dp.toPx()
-            val fitWidthZoomFactor = (size.width / (imagePixelWidth * pixelSizeNoZoom)).toInt()
-            val fitHeightZoomFactor = (size.height / (imagePixelHeight * pixelSizeNoZoom)).toInt()
+            val fitWidthZoomFactor = (size.width / (imagePixelSize.width * pixelSizeNoZoom)).toInt()
+            val fitHeightZoomFactor = (size.height / (imagePixelSize.height * pixelSizeNoZoom)).toInt()
             max(NO_ZOOM_FACTOR, min(fitWidthZoomFactor, fitHeightZoomFactor).toFloat())
         } else {
             NO_ZOOM_FACTOR
@@ -155,12 +149,9 @@ fun PixelCanvasSnapshot(
         drawCanvas(
             pixelImage,
             pixelSizeInt,
-            imagePixelWidth,
-            imagePixelHeight,
-            imageOffsetX,
-            imageOffsetY,
-            marginX,
-            marginY,
+            imagePixelSize,
+            imageOffset,
+            margin,
             isShowGridEnabled = false,
             isShowCoordinates = false,
             textMeasurer,
@@ -170,42 +161,45 @@ fun PixelCanvasSnapshot(
 
 private fun onCanvasSizeChanged(
     size: IntSize,
-    lastCanvasWidth: MutableIntState,
-    lastCanvasHeight: MutableIntState,
-    imageOffsetX: MutableFloatState,
-    imageOffsetY: MutableFloatState,
+    lastCanvasSize: MutableState<IntSize>,
+    imageOffset: MutableState<Offset>,
 ) {
-    val lastWidth = lastCanvasWidth.intValue
-    val lastHeight = lastCanvasHeight.intValue
+    val lastWidth = lastCanvasSize.value.width
+    val lastHeight = lastCanvasSize.value.height
     val currentWidth = size.width
     val currentHeight = size.height
 
     if ((lastWidth >= 0) && (currentWidth > lastWidth)) {
         val widthIncrease = currentWidth - lastWidth
-        imageOffsetX.floatValue = max(0F, imageOffsetX.floatValue - widthIncrease)
+        val imageOffsetX = imageOffset.value.x
+        imageOffset.value = Offset(
+            max(0F, imageOffsetX - widthIncrease),
+            imageOffset.value.y,
+        )
     }
 
     if ((lastHeight >= 0) && (currentHeight > lastHeight)) {
         val heightIncrease = currentHeight - lastHeight
-        imageOffsetY.floatValue = max(0F, imageOffsetY.floatValue - heightIncrease)
+        val imageOffsetY = imageOffset.value.y
+        imageOffset.value = Offset(
+            imageOffset.value.x,
+            max(0F, imageOffsetY - heightIncrease),
+        )
     }
 
-    lastCanvasWidth.intValue = currentWidth
-    lastCanvasHeight.intValue = currentHeight
+    lastCanvasSize.value = IntSize(currentWidth, currentHeight)
 }
 
 private fun PointerInputScope.onCanvasDrag(
     dragAmount: Offset,
     pixelSizeDp: Int,
-    imagePixelWidth: Int,
-    imagePixelHeight: Int,
+    imagePixelSize: IntSize,
     zoomFactor: Float,
-    imageOffsetX: MutableFloatState,
-    imageOffsetY: MutableFloatState,
+    imageOffset: MutableState<Offset>,
 ) {
     val pixelSizeInt = getPixelSizeInt(pixelSizeDp, zoomFactor)
-    val imageWidthInt = imagePixelWidth * pixelSizeInt
-    val imageHeightInt = imagePixelHeight * pixelSizeInt
+    val imageWidthInt = imagePixelSize.width * pixelSizeInt
+    val imageHeightInt = imagePixelSize.height * pixelSizeInt
 
     val minImageOffset = Offset(
         x = 0F,
@@ -216,36 +210,36 @@ private fun PointerInputScope.onCanvasDrag(
         y = max(imageHeightInt - size.height, 0).toFloat(),
     )
 
-    imageOffsetX.floatValue = (imageOffsetX.floatValue - dragAmount.x)
-        .cap(minImageOffset.x, maxImageOffset.x)
-    imageOffsetY.floatValue = (imageOffsetY.floatValue - dragAmount.y)
-        .cap(minImageOffset.y, maxImageOffset.y)
+    val imageOffsetX = imageOffset.value.x
+    val imageOffsetY = imageOffset.value.y
+
+    imageOffset.value = Offset(
+        (imageOffsetX - dragAmount.x).cap(minImageOffset.x, maxImageOffset.x),
+        (imageOffsetY - dragAmount.y).cap(minImageOffset.y, maxImageOffset.y),
+    )
 }
 
 private fun PointerInputScope.onCanvasTap(
     tapOffset: Offset,
     pixelSizeDp: Int,
-    imagePixelWidth: Int,
-    imagePixelHeight: Int,
+    imagePixelSize: IntSize,
     zoomFactor: Float,
     canvasSize: Size,
-    imageOffsetX: MutableFloatState,
-    imageOffsetY: MutableFloatState,
-    marginX: MutableFloatState,
-    marginY: MutableFloatState,
+    imageOffset: Offset,
+    margin: Offset,
     onPixelTap: (Int, Int) -> Unit,
 ) {
-    if (tapOffset.x - marginX.floatValue !in 0F..canvasSize.width ||
-        tapOffset.y - marginY.floatValue !in 0F..canvasSize.height) {
+    if (tapOffset.x - margin.x !in 0F..canvasSize.width ||
+        tapOffset.y - margin.y !in 0F..canvasSize.height) {
         return
     }
 
     val pixelSizeInt = getPixelSizeInt(pixelSizeDp, zoomFactor)
-    val xPixel = ((imageOffsetX.floatValue + tapOffset.x - marginX.floatValue) / pixelSizeInt).toInt()
-    val yPixel = imagePixelHeight - 1 - ((imageOffsetY.floatValue + tapOffset.y - marginY.floatValue) / pixelSizeInt).toInt()
+    val xPixel = ((imageOffset.x + tapOffset.x - margin.x) / pixelSizeInt).toInt()
+    val yPixel = imagePixelSize.height - 1 - ((imageOffset.y + tapOffset.y - margin.y) / pixelSizeInt).toInt()
 
-    if (xPixel !in 0..<imagePixelWidth) return
-    if (yPixel !in 0..<imagePixelHeight) return
+    if (xPixel !in 0..<imagePixelSize.width) return
+    if (yPixel !in 0..<imagePixelSize.height) return
 
     onPixelTap(xPixel, yPixel)
 }
@@ -256,97 +250,105 @@ private fun Density.getPixelSizeInt(
 ) = (dpSize.dp.toPx() * zoomFactor).toInt()
 
 private fun adjustImageOffset(
-    imageOffsetX: MutableFloatState,
-    imageOffsetY: MutableFloatState,
-    marginX: MutableFloatState,
-    marginY: MutableFloatState,
+    imageOffset: MutableState<Offset>,
+    margin: MutableState<Offset>,
     canvasSize: Size,
     imageSize: Size,
 ) {
-    if (canvasSize.width > imageSize.width) {
-        imageOffsetX.floatValue = 0F
-        marginX.floatValue = (canvasSize.width - imageSize.width) / 2
-    } else {
-        marginX.floatValue = 0F
+    var imageOffsetX = imageOffset.value.x
+    var imageOffsetY = imageOffset.value.y
+    val marginX: Float
+    val marginY: Float
 
-        if (imageOffsetX.floatValue > 0) {
+    if (canvasSize.width > imageSize.width) {
+        imageOffsetX = 0F
+        marginX = (canvasSize.width - imageSize.width) / 2
+    } else {
+        marginX = 0F
+
+        if (imageOffsetX > 0) {
             val canvasWidth = canvasSize.width
             val imageWidth = imageSize.width
 
             if (imageWidth <= canvasWidth) {
-                imageOffsetX.floatValue = 0F
+                imageOffsetX = 0F
             } else {
-                val xOffsetSurplus = canvasWidth + imageOffsetX.floatValue - imageWidth
+                val xOffsetSurplus = canvasWidth + imageOffsetX - imageWidth
                 if (xOffsetSurplus > 0) {
-                    imageOffsetX.floatValue -= xOffsetSurplus
+                    imageOffsetX -= xOffsetSurplus
                 }
             }
         }
     }
 
     if (canvasSize.height > imageSize.height) {
-        imageOffsetY.floatValue = 0F
-        marginY.floatValue = (canvasSize.height - imageSize.height) / 2
+        imageOffsetY = 0F
+        marginY = (canvasSize.height - imageSize.height) / 2
     } else {
-        marginY.floatValue = 0F
+        marginY = 0F
 
-        if (imageOffsetY.floatValue > 0) {
+        if (imageOffsetY > 0) {
             val canvasHeight = canvasSize.height
             val imageHeight = imageSize.height
 
             if (imageHeight <= canvasHeight) {
-                imageOffsetY.floatValue = 0F
+                imageOffsetY = 0F
             } else {
-                val deltaYSurplus = canvasHeight + imageOffsetY.floatValue - imageHeight
+                val deltaYSurplus = canvasHeight + imageOffsetY - imageHeight
                 if (deltaYSurplus > 0) {
-                    imageOffsetY.floatValue -= deltaYSurplus
+                    imageOffsetY -= deltaYSurplus
                 }
             }
         }
     }
+
+    imageOffset.value = Offset(imageOffsetX, imageOffsetY)
+    margin.value = Offset(marginX, marginY)
 }
 
 private fun DrawScope.drawCanvas(
     pixelImage: PixelImageModel,
     pixelSizeInt: Int,
-    imagePixelWidth: Int,
-    imagePixelHeight: Int,
-    imageOffsetX: MutableFloatState,
-    imageOffsetY: MutableFloatState,
-    marginX: MutableFloatState,
-    marginY: MutableFloatState,
+    imagePixelSize: IntSize,
+    imageOffset: MutableState<Offset>,
+    margin: MutableState<Offset>,
     isShowGridEnabled: Boolean,
     isShowCoordinates: Boolean,
     textMeasurer: TextMeasurer,
 ) {
     val canvasSize = Size(size.width, size.height)
     val imageSize = Size(
-        width = (imagePixelWidth * pixelSizeInt).toFloat(),
-        height = (imagePixelHeight * pixelSizeInt).toFloat(),
+        width = (imagePixelSize.width * pixelSizeInt).toFloat(),
+        height = (imagePixelSize.height * pixelSizeInt).toFloat(),
     )
     val halfPixelSize = pixelSizeInt / 2F
     val gridLineWidth = 1.dp.toPx()
     val palette = pixelImage.paletteModel.colors.map { color -> Color.fromColorLong(color) }
     val invertedPalette = palette.invertColors()
 
-    adjustImageOffset(imageOffsetX, imageOffsetY, marginX, marginY, canvasSize, imageSize)
+    adjustImageOffset(imageOffset, margin, canvasSize, imageSize)
 
-    var y = marginY.floatValue
-    var yMatrixCoordinate = imagePixelHeight - 1 - ((imageOffsetY.floatValue + y - marginY.floatValue) / pixelSizeInt).toInt()
+    val imageOffsetX = imageOffset.value.x
+    val imageOffsetY = imageOffset.value.y
+    val marginX = margin.value.x
+    val marginY = margin.value.y
+
+    var y = marginY
+    var yMatrixCoordinate = imagePixelSize.height - 1 - ((imageOffsetY + y - marginY) / pixelSizeInt).toInt()
     while (y < canvasSize.height && yMatrixCoordinate >= 0) {
-        val pixelHeight = if (y - marginY.floatValue > 0F || imageOffsetY.floatValue == 0F) {
+        val pixelHeight = if (y - marginY > 0F || imageOffsetY == 0F) {
             pixelSizeInt
         } else {
-            pixelSizeInt - imageOffsetY.floatValue.toInt() % pixelSizeInt
+            pixelSizeInt - imageOffsetY.toInt() % pixelSizeInt
         }
 
-        var x = marginX.floatValue
-        var xMatrixCoordinate = ((imageOffsetX.floatValue + x - marginX.floatValue) / pixelSizeInt).toInt()
-        while (x < canvasSize.width && xMatrixCoordinate < imagePixelWidth) {
-            val pixelWidth = if (x - marginX.floatValue > 0F || imageOffsetX.floatValue == 0F) {
+        var x = marginX
+        var xMatrixCoordinate = ((imageOffsetX + x - marginX) / pixelSizeInt).toInt()
+        while (x < canvasSize.width && xMatrixCoordinate < imagePixelSize.width) {
+            val pixelWidth = if (x - marginX > 0F || imageOffsetX == 0F) {
                 pixelSizeInt
             } else {
-                pixelSizeInt - imageOffsetX.floatValue.toInt() % pixelSizeInt
+                pixelSizeInt - imageOffsetX.toInt() % pixelSizeInt
             }
 
             val pixel = pixelImage.getPixelAt(
@@ -370,19 +372,19 @@ private fun DrawScope.drawCanvas(
             )
 
             if (isShowGridEnabled) {
-                drawVerticalGridLine(x, canvasSize, imageSize, gridLineWidth, marginY.floatValue)
+                drawVerticalGridLine(x, canvasSize, imageSize, gridLineWidth, marginY)
             }
 
             x += pixelWidth
             xMatrixCoordinate++
         }
 
-        if (isShowGridEnabled && xMatrixCoordinate == imagePixelWidth) {
-            drawVerticalGridLine(x, canvasSize, imageSize, gridLineWidth, marginY.floatValue)
+        if (isShowGridEnabled && xMatrixCoordinate == imagePixelSize.width) {
+            drawVerticalGridLine(x, canvasSize, imageSize, gridLineWidth, marginY)
         }
 
         if (isShowGridEnabled) {
-            drawHorizontalGridLine(y, canvasSize, imageSize, gridLineWidth, marginX.floatValue)
+            drawHorizontalGridLine(y, canvasSize, imageSize, gridLineWidth, marginX)
         }
 
         y += pixelHeight
@@ -390,7 +392,7 @@ private fun DrawScope.drawCanvas(
     }
 
     if (isShowGridEnabled && yMatrixCoordinate == -1) {
-        drawHorizontalGridLine(y, canvasSize, imageSize, gridLineWidth, marginX.floatValue)
+        drawHorizontalGridLine(y, canvasSize, imageSize, gridLineWidth, marginX)
     }
 }
 
@@ -545,6 +547,16 @@ private fun getColor(
         defaultColors.second
     }
 }
+
+private fun createOffsetSaver() = Saver<Offset, SizeF>(
+    save = { offset -> SizeF(offset.x, offset.y) },
+    restore = { sizeF -> Offset(sizeF.width, sizeF.height) },
+)
+
+private fun createIntSizeSaver() = Saver<IntSize, android.util.Size>(
+    save = { intSize -> android.util.Size(intSize.width, intSize.height) },
+    restore = { size -> IntSize(size.width, size.height) },
+)
 
 private fun Float.cap(min: Float, max: Float): Float = when {
     this < min -> min
