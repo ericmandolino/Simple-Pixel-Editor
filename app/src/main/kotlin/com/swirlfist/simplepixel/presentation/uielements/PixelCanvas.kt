@@ -249,63 +249,6 @@ private fun Density.getPixelSizeInt(
     zoomFactor: Float,
 ) = (dpSize.dp.toPx() * zoomFactor).toInt()
 
-private fun adjustImageOffset(
-    imageOffset: MutableState<Offset>,
-    margin: MutableState<Offset>,
-    canvasSize: Size,
-    imageSize: Size,
-) {
-    var imageOffsetX = imageOffset.value.x
-    var imageOffsetY = imageOffset.value.y
-    val marginX: Float
-    val marginY: Float
-
-    if (canvasSize.width > imageSize.width) {
-        imageOffsetX = 0F
-        marginX = (canvasSize.width - imageSize.width) / 2
-    } else {
-        marginX = 0F
-
-        if (imageOffsetX > 0) {
-            val canvasWidth = canvasSize.width
-            val imageWidth = imageSize.width
-
-            if (imageWidth <= canvasWidth) {
-                imageOffsetX = 0F
-            } else {
-                val xOffsetSurplus = canvasWidth + imageOffsetX - imageWidth
-                if (xOffsetSurplus > 0) {
-                    imageOffsetX -= xOffsetSurplus
-                }
-            }
-        }
-    }
-
-    if (canvasSize.height > imageSize.height) {
-        imageOffsetY = 0F
-        marginY = (canvasSize.height - imageSize.height) / 2
-    } else {
-        marginY = 0F
-
-        if (imageOffsetY > 0) {
-            val canvasHeight = canvasSize.height
-            val imageHeight = imageSize.height
-
-            if (imageHeight <= canvasHeight) {
-                imageOffsetY = 0F
-            } else {
-                val deltaYSurplus = canvasHeight + imageOffsetY - imageHeight
-                if (deltaYSurplus > 0) {
-                    imageOffsetY -= deltaYSurplus
-                }
-            }
-        }
-    }
-
-    imageOffset.value = Offset(imageOffsetX, imageOffsetY)
-    margin.value = Offset(marginX, marginY)
-}
-
 private fun DrawScope.drawCanvas(
     pixelImage: PixelImageModel,
     pixelSizeInt: Int,
@@ -394,6 +337,63 @@ private fun DrawScope.drawCanvas(
     if (isShowGridEnabled && yMatrixCoordinate == -1) {
         drawHorizontalGridLine(y, canvasSize, imageSize, gridLineWidth, marginX)
     }
+}
+
+private fun adjustImageOffset(
+    imageOffset: MutableState<Offset>,
+    margin: MutableState<Offset>,
+    canvasSize: Size,
+    imageSize: Size,
+) {
+    var imageOffsetX = imageOffset.value.x
+    var imageOffsetY = imageOffset.value.y
+    val marginX: Float
+    val marginY: Float
+
+    if (canvasSize.width > imageSize.width) {
+        imageOffsetX = 0F
+        marginX = (canvasSize.width - imageSize.width) / 2
+    } else {
+        marginX = 0F
+
+        if (imageOffsetX > 0) {
+            val canvasWidth = canvasSize.width
+            val imageWidth = imageSize.width
+
+            if (imageWidth <= canvasWidth) {
+                imageOffsetX = 0F
+            } else {
+                val xOffsetSurplus = canvasWidth + imageOffsetX - imageWidth
+                if (xOffsetSurplus > 0) {
+                    imageOffsetX -= xOffsetSurplus
+                }
+            }
+        }
+    }
+
+    if (canvasSize.height > imageSize.height) {
+        imageOffsetY = 0F
+        marginY = (canvasSize.height - imageSize.height) / 2
+    } else {
+        marginY = 0F
+
+        if (imageOffsetY > 0) {
+            val canvasHeight = canvasSize.height
+            val imageHeight = imageSize.height
+
+            if (imageHeight <= canvasHeight) {
+                imageOffsetY = 0F
+            } else {
+                val deltaYSurplus = canvasHeight + imageOffsetY - imageHeight
+                if (deltaYSurplus > 0) {
+                    imageOffsetY -= deltaYSurplus
+                }
+            }
+        }
+    }
+
+    imageOffset.value = Offset(imageOffsetX, imageOffsetY)
+    margin.value = Offset(marginX, marginY)
 }
 
 private fun DrawScope.drawPixel(
