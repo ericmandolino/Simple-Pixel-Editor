@@ -21,11 +21,11 @@ import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
 import com.swirlfist.simplepixel.presentation.main.section.ActionSectionEvent
 import com.swirlfist.simplepixel.presentation.main.section.CanvasSectionEvent
-import com.swirlfist.simplepixel.presentation.main.section.createEmptyPixelImage
 import com.swirlfist.simplepixel.presentation.main.state.ActionsSectionState
 import com.swirlfist.simplepixel.presentation.main.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.main.state.MainScreenState
 import com.swirlfist.simplepixel.presentation.model.ActionButtonModel
+import com.swirlfist.simplepixel.presentation.uielements.createEmptyPixelImage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -69,6 +69,7 @@ class MainViewModel @Inject constructor(
                     ),
                     zoomFactor = zoomFactor,
                     isShowCoordinatesEnabled = true,
+                    isShowGridEnabled = true,
                 ),
                 actionsSectionState = mainScreenState.actionsSectionState.copy(
                     actionButtonModels = mapOf(
