@@ -24,6 +24,7 @@ import com.swirlfist.simplepixel.presentation.main.section.CanvasSectionEvent
 import com.swirlfist.simplepixel.presentation.main.state.ActionsSectionState
 import com.swirlfist.simplepixel.presentation.main.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.main.state.MainScreenState
+import com.swirlfist.simplepixel.presentation.main.state.PixelImagePreviewSectionState
 import com.swirlfist.simplepixel.presentation.model.ActionButtonModel
 import com.swirlfist.simplepixel.presentation.uielements.createEmptyPixelImage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -46,6 +47,7 @@ class MainViewModel @Inject constructor(
         value = MainScreenState(
             canvasSectionState = CanvasSectionState(),
             actionsSectionState = ActionsSectionState(),
+            pixelImagePreviewSectionState = PixelImagePreviewSectionState(),
         )
     )
     val mainScreenState = _mainScreenState as StateFlow<MainScreenState>
@@ -58,15 +60,16 @@ class MainViewModel @Inject constructor(
     init {
         _mainScreenState.update { mainScreenState ->
             val palette = PaletteModel(colors = listOf(Color.Black.toColorLong(), Color.Yellow.toColorLong()))
+            val pixelImageModel = createEmptyPixelImage(
+                width = 16,
+                height = 16,
+                color1 = palette.colors[0],
+                color2 = palette.colors[1],
+            )
             val zoomFactor = DEFAULT_ZOOM_FACTOR
             mainScreenState.copy(
                 canvasSectionState = mainScreenState.canvasSectionState.copy(
-                    pixelImageModel = createEmptyPixelImage(
-                        width = 16,
-                        height = 16,
-                        color1 = palette.colors[0],
-                        color2 = palette.colors[1],
-                    ),
+                    pixelImageModel = pixelImageModel,
                     zoomFactor = zoomFactor,
                     isShowCoordinatesEnabled = true,
                     isShowGridEnabled = true,
@@ -112,6 +115,10 @@ class MainViewModel @Inject constructor(
                             enabled = true,
                         ),
                     )
+                ),
+                pixelImagePreviewSectionState = mainScreenState.pixelImagePreviewSectionState.copy(
+                    pixelImageModel = pixelImageModel,
+                    isFitAvailableSpace = true,
                 )
             )
         }
@@ -152,8 +159,12 @@ class MainViewModel @Inject constructor(
                 successBlock = { updatedPixelImage ->
                     _mainScreenState.update { mainScreenState ->
                         val canvasSectionState = mainScreenState.canvasSectionState
+                        val pixelImagePreviewSectionState = mainScreenState.pixelImagePreviewSectionState
                         mainScreenState.copy(
                             canvasSectionState = canvasSectionState.copy(
+                                pixelImageModel = updatedPixelImage,
+                            ),
+                            pixelImagePreviewSectionState = pixelImagePreviewSectionState.copy(
                                 pixelImageModel = updatedPixelImage,
                             ),
                         )
@@ -293,6 +304,9 @@ class MainViewModel @Inject constructor(
                             canvasSectionState = mainScreenState.canvasSectionState.copy(
                                 pixelImageModel = pixelImage,
                                 zoomFactor = DEFAULT_ZOOM_FACTOR,
+                            ),
+                            pixelImagePreviewSectionState = mainScreenState.pixelImagePreviewSectionState.copy(
+                                pixelImageModel = pixelImage,
                             )
                         )
                     }
