@@ -513,7 +513,7 @@ private fun DrawScope.drawGridLine(
         )
         end = Offset(
             dimension,
-            min(canvasSize.height, imageSize.height + margin),
+            min(canvasSize.height - margin, imageSize.height + margin),
         )
     } else {
         start = Offset(
@@ -521,7 +521,7 @@ private fun DrawScope.drawGridLine(
             dimension,
         )
         end = Offset(
-            min(canvasSize.width, imageSize.width + margin),
+            min(canvasSize.width - margin, imageSize.width + margin),
             dimension,
         )
     }
