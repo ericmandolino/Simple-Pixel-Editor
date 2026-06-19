@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel.presentation.model
+package com.swirlfist.simplepixel.domain.model
 
 import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
 
@@ -7,4 +7,3 @@ data class ActionButtonModel(
     val enabled: Boolean,
     val childActionTypes: List<ActionButtonType> = listOf(),
 )
-

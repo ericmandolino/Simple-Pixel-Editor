@@ -18,7 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.presentation.main.state.ActionsSectionState
-import com.swirlfist.simplepixel.presentation.model.ActionButtonModel
+import com.swirlfist.simplepixel.domain.model.ActionButtonModel
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import com.swirlfist.simplepixel.presentation.uielements.ActionButton
 
