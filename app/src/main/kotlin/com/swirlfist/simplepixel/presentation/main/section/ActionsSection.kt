@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,7 +32,8 @@ fun ActionsSection(
 ) {
     val actionButtonModels = state.actionButtonModels.values
     FlowRow(
-        modifier = modifier,
+        modifier = modifier
+            .verticalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -64,7 +67,8 @@ fun ActionsSection(
     }
 }
 
-@Preview(showBackground = true, widthDp = 320, heightDp = 320)
+@Preview(name = "no-scroll-actions-section", showBackground = true, widthDp = 320, heightDp = 320)
+@Preview(name = "scroll-actions-section", showBackground = true, widthDp = 200, heightDp = 120)
 @Composable
 fun ActionsSectionPreview() {
     val palette = PaletteModel(
@@ -117,6 +121,14 @@ fun ActionsSectionPreview() {
                     ),
                     ActionButtonType.ZoomOutActionButtonType to ActionButtonModel(
                         actionType = ActionButtonType.ZoomOutActionButtonType,
+                        enabled = true,
+                    ),
+                    ActionButtonType.SavePixelImageActionButtonType to ActionButtonModel(
+                        actionType = ActionButtonType.SavePixelImageActionButtonType,
+                        enabled = true,
+                    ),
+                    ActionButtonType.OpenPixelImageActionButtonType to ActionButtonModel(
+                        actionType = ActionButtonType.OpenPixelImageActionButtonType,
                         enabled = true,
                     ),
                 )
