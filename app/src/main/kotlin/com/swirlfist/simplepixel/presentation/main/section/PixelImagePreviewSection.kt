@@ -10,6 +10,7 @@ import com.swirlfist.simplepixel.presentation.main.state.PixelImagePreviewSectio
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import com.swirlfist.simplepixel.presentation.uielements.PixelCanvasSnapshot
 import com.swirlfist.simplepixel.presentation.uielements.createCheckersPixelImage
+import com.swirlfist.simplepixel.presentation.uielements.createEmptyPixelImage
 
 @Composable
 fun PixelImagePreviewSection(
@@ -54,6 +55,25 @@ fun PixelImagePreviewSectionNoFitPreview() {
             modifier = Modifier.fillMaxSize(),
             state = PixelImagePreviewSectionState().copy(
                 pixelImageModel = createCheckersPixelImage(
+                    width = 64,
+                    height = 64,
+                    color1 = Color.Black.toColorLong(),
+                    color2 = Color.Yellow.toColorLong(),
+                ),
+                isFitAvailableSpace = false,
+            ),
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 96, heightDp = 96)
+@Composable
+fun PixelImagePreviewSectionEmptyNoFitPreview() {
+    SimplePixelTheme {
+        PixelImagePreviewSection(
+            modifier = Modifier.fillMaxSize(),
+            state = PixelImagePreviewSectionState().copy(
+                pixelImageModel = createEmptyPixelImage(
                     width = 64,
                     height = 64,
                     color1 = Color.Black.toColorLong(),

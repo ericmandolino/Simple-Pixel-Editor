@@ -34,6 +34,7 @@ import com.swirlfist.simplepixel.presentation.getColor
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.getPixelHeight
 import com.swirlfist.simplepixel.presentation.getPixelWidth
+import com.swirlfist.simplepixel.presentation.invert
 import com.swirlfist.simplepixel.presentation.invertColors
 import kotlin.math.max
 import kotlin.math.min
@@ -50,6 +51,8 @@ fun PixelCanvas(
     zoomFactor: Float = NO_ZOOM_FACTOR,
     isShowGridEnabled: Boolean = true,
     isShowCoordinatesEnabled: Boolean = false,
+    backgroundColor: Color? = null,
+    backGroundCheckersColors: Pair<Color, Color>? = Pair(Color.Gray, Color.LightGray),
     onPixelTap: (xPixel: Int, yPixel: Int) -> Unit,
 ) {
     val textMeasurer = rememberTextMeasurer()
@@ -101,8 +104,11 @@ fun PixelCanvas(
             imagePixelSize,
             imageOffset,
             margin,
+            isShowBorderEnabled = false,
             isShowGridEnabled,
             isShowCoordinates,
+            backgroundColor,
+            backGroundCheckersColors,
             textMeasurer,
         )
     }
@@ -113,6 +119,7 @@ fun PixelCanvasSnapshot(
     modifier: Modifier,
     pixelImage: PixelImageModel,
     isFitAvailableSpace: Boolean = false,
+    backgroundColor: Color? = Color.White,
 ) {
     val textMeasurer = rememberTextMeasurer()
     val offsetSaver = createOffsetSaver()
@@ -152,8 +159,11 @@ fun PixelCanvasSnapshot(
             imagePixelSize,
             imageOffset,
             margin,
+            isShowBorderEnabled = true,
             isShowGridEnabled = false,
             isShowCoordinates = false,
+            backgroundColor,
+            backGroundCheckersColors = null,
             textMeasurer,
         )
     }
@@ -255,8 +265,11 @@ private fun DrawScope.drawCanvas(
     imagePixelSize: IntSize,
     imageOffset: MutableState<Offset>,
     margin: MutableState<Offset>,
+    isShowBorderEnabled: Boolean,
     isShowGridEnabled: Boolean,
     isShowCoordinates: Boolean,
+    backgroundColor: Color?,
+    backGroundCheckersColors: Pair<Color, Color>?,
     textMeasurer: TextMeasurer,
 ) {
     val canvasSize = Size(size.width, size.height)
@@ -308,6 +321,8 @@ private fun DrawScope.drawCanvas(
                 yMatrixCoordinate,
                 offset = Offset(x, y),
                 canvasSize,
+                backgroundColor,
+                backGroundCheckersColors,
                 isShowCoordinates,
                 textMeasurer,
                 coordinateTextPalette = invertedPalette,
@@ -336,6 +351,17 @@ private fun DrawScope.drawCanvas(
 
     if (isShowGridEnabled && yMatrixCoordinate == -1) {
         drawHorizontalGridLine(y, canvasSize, imageSize, gridLineWidth, marginX)
+    }
+
+    if (isShowBorderEnabled) {
+        if (marginX >= 0) {
+            drawVerticalGridLine(marginX, canvasSize, imageSize, gridLineWidth, marginY)
+            drawVerticalGridLine(canvasSize.width - marginX, canvasSize, imageSize, gridLineWidth, marginY)
+        }
+        if (marginY >= 0) {
+            drawHorizontalGridLine(marginY, canvasSize, imageSize, gridLineWidth, marginX)
+            drawHorizontalGridLine(canvasSize.height - marginY, canvasSize, imageSize, gridLineWidth, marginX)
+        }
     }
 }
 
@@ -405,6 +431,8 @@ private fun DrawScope.drawPixel(
     yMatrixCoordinate: Int,
     offset: Offset,
     canvasSize: Size,
+    backgroundColor: Color?,
+    backGroundCheckersColors: Pair<Color, Color>?,
     isShowCoordinates: Boolean,
     textMeasurer: TextMeasurer,
     coordinateTextPalette: List<Color>,
@@ -417,47 +445,57 @@ private fun DrawScope.drawPixel(
         palette,
         isXMatrixCoordinateEven,
         isYMatrixCoordinateEven,
-        Pair(Color.Gray, Color.LightGray),
+        backGroundCheckersColors,
     )
-    val pixelRectSize = Size(width.toFloat(), height.toFloat())
 
-    drawRect(
-        color = pixelColor,
-        topLeft = offset,
-        size = Size(
-            width = min(pixelRectSize.width, canvasSize.width - offset.x),
-            height = min(pixelRectSize.height, canvasSize.height - offset.y),
-        ),
-    )
+    pixelColor?.let { color ->
+        val pixelRectSize = Size(width.toFloat(), height.toFloat())
+        drawRect(
+            color,
+            topLeft = offset,
+            size = Size(
+                width = min(pixelRectSize.width, canvasSize.width - offset.x),
+                height = min(pixelRectSize.height, canvasSize.height - offset.y),
+            ),
+        )
+    }
 
     if (isShowCoordinates) {
-        val coordinateText = COORDINATE_TEXT_FORMAT.format(
-            xMatrixCoordinate + 1, yMatrixCoordinate + 1)
-        val textSize = textMeasurer.measure(
-            text = coordinateText
-        ).size
-
         val textColor = getColor(
             pixel,
             coordinateTextPalette,
             isXMatrixCoordinateEven,
             isYMatrixCoordinateEven,
-            Pair(Color.LightGray, Color.Gray),
-        )
-        val coordinateTextOffset = offset + Offset(
-            x = width - halfPixelSize - textSize.width / 2,
-            y = height - halfPixelSize - textSize.height / 2,
-        )
+            backGroundCheckersColors?.let { checkerBackgroundColors ->
+                Pair(
+                    checkerBackgroundColors.second,
+                    checkerBackgroundColors.first,
+                )
+            },
+        ) ?: backgroundColor?.invert()
 
-        drawText(
-            textMeasurer,
-            topLeft = coordinateTextOffset,
-            text = coordinateText,
-            style = TextStyle.Default.copy(
-                color = textColor,
-            ),
-            softWrap = false,
-        )
+        textColor?.let { color ->
+            val coordinateText = COORDINATE_TEXT_FORMAT.format(
+                xMatrixCoordinate + 1, yMatrixCoordinate + 1)
+            val textSize = textMeasurer.measure(
+                text = coordinateText
+            ).size
+
+            val coordinateTextOffset = offset + Offset(
+                x = width - halfPixelSize - textSize.width / 2,
+                y = height - halfPixelSize - textSize.height / 2,
+            )
+
+            drawText(
+                textMeasurer,
+                topLeft = coordinateTextOffset,
+                text = coordinateText,
+                style = TextStyle.Default.copy(
+                    color = color,
+                ),
+                softWrap = false,
+            )
+        }
     }
 }
 
@@ -534,18 +572,19 @@ private fun getColor(
     palette: List<Color>,
     isXMatrixCoordinateEven: Boolean,
     isYMatrixCoordinateEven: Boolean,
-    defaultColors: Pair<Color, Color>,
-): Color {
-    palette.getColor(pixel)?.let { color -> return color }
-
-    return if (
-        (isXMatrixCoordinateEven && !isYMatrixCoordinateEven) ||
-        (!isXMatrixCoordinateEven && isYMatrixCoordinateEven)
-    ) {
-        defaultColors.first
-    } else {
-        defaultColors.second
-    }
+    checkerBackgroundColors: Pair<Color, Color>?,
+): Color? {
+    return palette.getColor(pixel)
+        ?: checkerBackgroundColors?.let { (first, second) ->
+            if (
+                (isXMatrixCoordinateEven && !isYMatrixCoordinateEven) ||
+                (!isXMatrixCoordinateEven && isYMatrixCoordinateEven)
+            ) {
+                first
+            } else {
+                second
+            }
+        }
 }
 
 private fun createOffsetSaver() = Saver<Offset, SizeF>(

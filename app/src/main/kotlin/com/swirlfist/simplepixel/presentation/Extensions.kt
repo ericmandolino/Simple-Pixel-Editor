@@ -7,12 +7,14 @@ import com.swirlfist.simplepixel.domain.model.PixelModel
 import kotlin.collections.map
 
 fun List<Color>.invertColors(): List<Color> = map { color ->
-    color.copy(
-        red = 1F - color.red,
-        green = 1F - color.green,
-        blue = 1F - color.blue,
-    )
+    color.invert()
 }
+
+fun Color.invert() = copy(
+    red = 1F - red,
+    green = 1F - green,
+    blue = 1F - blue
+)
 
 fun List<Color>.getColor(pixel: PixelModel): Color? {
     val paletteIndex = pixel.paletteIndex
