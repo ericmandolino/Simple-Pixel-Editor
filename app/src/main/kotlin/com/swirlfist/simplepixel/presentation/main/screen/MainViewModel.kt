@@ -19,7 +19,6 @@ import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.createPaletteButtons
-import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
 import com.swirlfist.simplepixel.presentation.main.section.ActionSectionEvent
 import com.swirlfist.simplepixel.presentation.main.section.CanvasSectionEvent
@@ -36,6 +35,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val DEFAULT_ZOOM_FACTOR = 1F
+private const val ERASER_TOOL_PALETTE_INDEX = -1
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -62,8 +62,8 @@ class MainViewModel @Inject constructor(
         _mainScreenState.update { mainScreenState ->
             val palette = PaletteModel(colors = listOf(Color.Black.toColorLong(), Color.White.toColorLong()))
             val pixelImageModel = createEmptyPixelImage(
-                width = 16,
-                height = 16,
+                width = 32,
+                height = 32,
                 color1 = palette.colors[0],
                 color2 = palette.colors[1],
             )
@@ -170,12 +170,7 @@ class MainViewModel @Inject constructor(
         val pixelImage = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
         val x = event.x
         val y = event.y
-        val pixel = pixelImage.getPixelAt(x, y)
-        val newPaletteIndex = if (pixel.paletteIndex == pixelImage.paletteModel.colors.size - 1) {
-            -1
-        } else {
-            (pixel.paletteIndex + 1) % pixelImage.paletteModel.colors.size
-        }
+        val paletteIndex = _mainScreenState.value.getPaletteIndex()
 
         viewModelScope.launch {
             updatePixelColorUseCase.execute(
@@ -198,7 +193,7 @@ class MainViewModel @Inject constructor(
                     pixelImageModel = pixelImage,
                     x = x,
                     y = y,
-                    paletteIndex = newPaletteIndex,
+                    paletteIndex,
                 ),
             )
         }
@@ -214,6 +209,9 @@ class MainViewModel @Inject constructor(
                     pickPaletteColorActionButtonType,
                 )
             )
+        }
+        if (_mainScreenState.value.isEraserSelected()) {
+            toggleSelectableActionButton(ActionButtonType.InkEraserActionButtonType)
         }
     }
 
@@ -498,4 +496,24 @@ private fun ActionsSectionState.updatePaletteButtons(
             )
         }
     )
+}
+
+private fun MainScreenState.getPaletteIndex(): Int {
+    return if (isEraserSelected()) {
+        ERASER_TOOL_PALETTE_INDEX
+    } else {
+        actionsSectionState.getPaletteIndex()
+    }
+}
+
+private fun MainScreenState.isEraserSelected() = actionsSectionState.isEraserSelected()
+
+private fun ActionsSectionState.isEraserSelected(): Boolean {
+    return (actionModels[ActionButtonType.InkEraserActionButtonType] as ActionModel.ButtonActionModel).isSelected
+}
+
+private fun ActionsSectionState.getPaletteIndex(): Int {
+    return ((actionModels[ActionButtonType.OpenPaletteActionButtonType] as ActionModel.SelectableButtonGroupActionModel).childButtonActionModels.first { child ->
+        child.isSelected
+    }.actionType as ActionButtonType.PickPaletteColorActionButtonType).paletteIndex
 }
