@@ -197,6 +197,10 @@ fun ActionsSectionPreview() {
 }
 
 fun ActionButtonType.toActionsSectionEvent(): ActionSectionEvent = when (this) {
+    ActionButtonType.InkBucketActionButtonType -> ActionSectionEvent.InkBucketButtonClicked
+    ActionButtonType.InkEraserActionButtonType -> ActionSectionEvent.InkEraserButtonClicked
+    ActionButtonType.InkPenActionButtonType -> ActionSectionEvent.InkPenButtonClicked
+    ActionButtonType.OpenToolsActionButtonType -> ActionSectionEvent.OpenToolsButtonClicked
     ActionButtonType.UndoActionButtonType -> ActionSectionEvent.UndoButtonClicked
     ActionButtonType.RedoActionButtonType -> ActionSectionEvent.RedoButtonClicked
     ActionButtonType.ZoomInActionButtonType -> ActionSectionEvent.ZoomInButtonClicked

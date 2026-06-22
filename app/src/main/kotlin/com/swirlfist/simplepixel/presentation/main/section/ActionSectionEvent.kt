@@ -2,6 +2,14 @@ package com.swirlfist.simplepixel.presentation.main.section
 
 sealed interface ActionSectionEvent {
 
+    data object InkBucketButtonClicked : ActionSectionEvent
+
+    data object InkPenButtonClicked : ActionSectionEvent
+
+    data object InkEraserButtonClicked : ActionSectionEvent
+
+    data object OpenToolsButtonClicked : ActionSectionEvent
+
     data object UndoButtonClicked : ActionSectionEvent
 
     data object RedoButtonClicked : ActionSectionEvent

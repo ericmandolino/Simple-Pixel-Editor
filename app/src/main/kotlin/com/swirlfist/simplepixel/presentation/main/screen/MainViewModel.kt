@@ -83,6 +83,25 @@ class MainViewModel @Inject constructor(
                             childButtonActionModels = palette.createPaletteButtons(),
                             selectedIndex = 0,
                         ),
+                        ActionButtonType.OpenToolsActionButtonType to ActionModel.SelectableButtonGroupActionModel(
+                            actionType = ActionButtonType.OpenToolsActionButtonType,
+                            isEnabled = true,
+                            childButtonActionModels = listOf(
+                                ActionModel.ButtonActionModel(
+                                    actionType = ActionButtonType.InkPenActionButtonType,
+                                    isEnabled = true,
+                                ),
+                                ActionModel.ButtonActionModel(
+                                    actionType = ActionButtonType.InkBucketActionButtonType,
+                                    isEnabled = true,
+                                ),
+                            ),
+                            selectedIndex = 0,
+                        ),
+                        ActionButtonType.InkEraserActionButtonType to ActionModel.ButtonActionModel(
+                            actionType = ActionButtonType.InkEraserActionButtonType,
+                            isEnabled = true,
+                        ),
                         ActionButtonType.UndoActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.UndoActionButtonType,
                             isEnabled = false,
@@ -138,6 +157,10 @@ class MainViewModel @Inject constructor(
                 -> selectSavePixelImageLocation()
             ActionSectionEvent.OpenPixelImageButtonClicked
                 -> selectOpenPixelImageLocation()
+            ActionSectionEvent.InkBucketButtonClicked -> {}
+            ActionSectionEvent.InkEraserButtonClicked -> {}
+            ActionSectionEvent.InkPenButtonClicked -> {}
+            ActionSectionEvent.OpenToolsButtonClicked -> {}
         }
     }
 

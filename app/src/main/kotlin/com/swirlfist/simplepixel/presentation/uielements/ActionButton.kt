@@ -48,6 +48,10 @@ fun ActionButton(
             ),
     ) {
         when (actionButtonType) {
+            ActionButtonType.InkBucketActionButtonType,
+            ActionButtonType.InkEraserActionButtonType,
+            ActionButtonType.InkPenActionButtonType,
+            ActionButtonType.OpenToolsActionButtonType,
             ActionButtonType.UndoActionButtonType,
             ActionButtonType.RedoActionButtonType,
             ActionButtonType.ZoomInActionButtonType,
