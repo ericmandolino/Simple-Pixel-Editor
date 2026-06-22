@@ -42,10 +42,11 @@ fun PixelImageModel.getPixelHeight(): Int = pixelMatrixModel.height()
 fun PaletteModel.createPaletteButtons(): List<ActionModel.ButtonActionModel> {
     return colors.indices.map { index ->
         ActionModel.ButtonActionModel(
-            ActionButtonType.PickPaletteColorActionButtonType(
+            actionType = ActionButtonType.PickPaletteColorActionButtonType(
                 paletteIndex = index,
                 palette = this,
-            )
+            ),
+            isSelected = index == 0,
         )
     }
 }

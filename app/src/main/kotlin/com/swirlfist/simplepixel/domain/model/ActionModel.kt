@@ -7,13 +7,13 @@ sealed interface ActionModel {
     data class ButtonActionModel(
         val actionType: ActionButtonType,
         val isEnabled: Boolean = true,
+        val isSelected: Boolean = false,
     ) : ActionModel
 
     data class SelectableButtonGroupActionModel(
         val actionType: ActionButtonType,
         val isEnabled: Boolean = true,
         val childButtonActionModels: List<ButtonActionModel> = listOf(),
-        val selectedIndex: Int = -1,
     ) : ActionModel
 }
 

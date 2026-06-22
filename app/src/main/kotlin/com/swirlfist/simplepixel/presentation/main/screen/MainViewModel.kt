@@ -81,7 +81,6 @@ class MainViewModel @Inject constructor(
                             actionType = ActionButtonType.OpenPaletteActionButtonType,
                             isEnabled = true,
                             childButtonActionModels = palette.createPaletteButtons(),
-                            selectedIndex = 0,
                         ),
                         ActionButtonType.OpenToolsActionButtonType to ActionModel.SelectableButtonGroupActionModel(
                             actionType = ActionButtonType.OpenToolsActionButtonType,
@@ -90,13 +89,13 @@ class MainViewModel @Inject constructor(
                                 ActionModel.ButtonActionModel(
                                     actionType = ActionButtonType.InkPenActionButtonType,
                                     isEnabled = true,
+                                    isSelected = true,
                                 ),
                                 ActionModel.ButtonActionModel(
                                     actionType = ActionButtonType.InkBucketActionButtonType,
                                     isEnabled = true,
                                 ),
                             ),
-                            selectedIndex = 0,
                         ),
                         ActionButtonType.InkEraserActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.InkEraserActionButtonType,
@@ -157,9 +156,12 @@ class MainViewModel @Inject constructor(
                 -> selectSavePixelImageLocation()
             ActionSectionEvent.OpenPixelImageButtonClicked
                 -> selectOpenPixelImageLocation()
-            ActionSectionEvent.InkBucketButtonClicked -> {}
-            ActionSectionEvent.InkEraserButtonClicked -> {}
-            ActionSectionEvent.InkPenButtonClicked -> {}
+            ActionSectionEvent.InkEraserButtonClicked
+                -> toggleSelectableActionButton(ActionButtonType.InkEraserActionButtonType)
+            ActionSectionEvent.InkBucketButtonClicked,
+                -> updateSelectedTool(ActionButtonType.InkBucketActionButtonType)
+            ActionSectionEvent.InkPenButtonClicked,
+                -> updateSelectedTool(ActionButtonType.InkPenActionButtonType)
             ActionSectionEvent.OpenToolsButtonClicked -> {}
         }
     }
@@ -205,12 +207,37 @@ class MainViewModel @Inject constructor(
     private fun updateSelectedPaletteIndex(
         pickPaletteColorActionButtonType: ActionButtonType.PickPaletteColorActionButtonType,
     ) {
-        // TODO: update palette color used to draw
         _mainScreenState.update { mainScreenState ->
             val actionsSectionState = mainScreenState.actionsSectionState
             mainScreenState.copy(
                 actionsSectionState = actionsSectionState.updateSelectedChildButton(
                     pickPaletteColorActionButtonType,
+                )
+            )
+        }
+    }
+
+    private fun toggleSelectableActionButton(
+        actionButtonType: ActionButtonType,
+    ) {
+        _mainScreenState.update { mainScreenState ->
+            val actionsSectionState = mainScreenState.actionsSectionState
+            mainScreenState.copy(
+                actionsSectionState = actionsSectionState.toggleSelectableButton(
+                    actionButtonType,
+                )
+            )
+        }
+    }
+
+    private fun updateSelectedTool(
+        selectToolActionButtonType: ActionButtonType,
+    ) {
+        _mainScreenState.update { mainScreenState ->
+            val actionsSectionState = mainScreenState.actionsSectionState
+            mainScreenState.copy(
+                actionsSectionState = actionsSectionState.updateSelectedChildButton(
+                    selectToolActionButtonType,
                 )
             )
         }
@@ -402,6 +429,27 @@ private fun ActionsSectionState.updateButtonEnabled(
     }
 }
 
+private fun ActionsSectionState.toggleSelectableButton(
+    actionButtonType: ActionButtonType,
+): ActionsSectionState {
+    val actionModel = actionModels[actionButtonType] ?: return this
+
+    return when (actionModel) {
+        is ActionModel.ButtonActionModel -> copy(
+            actionModels = actionModels.toMutableMap().apply {
+                put(
+                    actionModel.actionType,
+                    actionModel.copy(
+                        isSelected = !actionModel.isSelected,
+                    )
+                )
+            }
+        )
+
+        is ActionModel.SelectableButtonGroupActionModel -> this
+    }
+}
+
 private fun ActionsSectionState.updateSelectedChildButton(
     actionButtonType: ActionButtonType,
 ): ActionsSectionState {
@@ -417,18 +465,20 @@ private fun ActionsSectionState.updateSelectedChildButton(
             this
         }
         is ActionModel.SelectableButtonGroupActionModel -> {
-            val selectedIndex = parentActionModel.childButtonActionModels.indexOfFirst { child ->
-                child.actionType == actionButtonType
-            }
-            if (selectedIndex == -1 || parentActionModel.selectedIndex == selectedIndex) {
-                this
-            } else {
-                copy(
-                    actionModels = actionModels.toMutableMap().also { actionModels ->
-                        actionModels[parentActionModel.actionType] = parentActionModel.copy(selectedIndex = selectedIndex)
-                    }
-                )
-            }
+            copy(
+                actionModels = actionModels.toMutableMap().apply {
+                    put(
+                        parentActionModel.actionType,
+                        parentActionModel.copy(
+                            childButtonActionModels = parentActionModel.childButtonActionModels.map { child ->
+                                child.copy(
+                                    isSelected = child.actionType == actionButtonType,
+                                )
+                            }
+                        )
+                    )
+                }
+            )
         }
     }
 }
@@ -444,7 +494,6 @@ private fun ActionsSectionState.updatePaletteButtons(
                 ActionButtonType.OpenPaletteActionButtonType,
                 openPaletteActionModel.copy(
                     childButtonActionModels = palette.createPaletteButtons(),
-                    selectedIndex = 0,
                 )
             )
         }

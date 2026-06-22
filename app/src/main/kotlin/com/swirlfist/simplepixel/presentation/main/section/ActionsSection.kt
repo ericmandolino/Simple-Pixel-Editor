@@ -49,7 +49,6 @@ fun ActionsSection(
                 is ActionModel.ButtonActionModel
                     -> ButtonAction(
                     buttonActionModel = actionModel,
-                    isSelected = false,
                     onEvent = onEvent,
                 )
 
@@ -66,14 +65,13 @@ fun ActionsSection(
 @Composable
 private fun ButtonAction(
     buttonActionModel: ActionModel.ButtonActionModel,
-    isSelected: Boolean = false,
     onEvent: (ActionSectionEvent) -> Unit,
 ) {
     ActionButton(
         actionButtonType = buttonActionModel.actionType,
         size = BUTTON_SIZE_DP.dp,
         isEnabled = buttonActionModel.isEnabled,
-        isSelected = isSelected,
+        isSelected = buttonActionModel.isSelected,
         onClick = { onEvent(buttonActionModel.actionType.toActionsSectionEvent()) },
     )
 }
@@ -96,10 +94,9 @@ private fun SelectableButtonGroupAction(
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            selectableButtonGroupActionModel.childButtonActionModels.forEachIndexed { index, buttonActionModel ->
+            selectableButtonGroupActionModel.childButtonActionModels.forEach { buttonActionModel ->
                 ButtonAction(
                     buttonActionModel,
-                    isSelected = index == selectableButtonGroupActionModel.selectedIndex,
                     onEvent = onEvent,
                 )
             }
@@ -110,7 +107,6 @@ private fun SelectableButtonGroupAction(
                 selectableButtonGroupActionModel.actionType,
                 selectableButtonGroupActionModel.isEnabled,
             ),
-            isSelected = false,
             onEvent = onEvent,
         )
     }
