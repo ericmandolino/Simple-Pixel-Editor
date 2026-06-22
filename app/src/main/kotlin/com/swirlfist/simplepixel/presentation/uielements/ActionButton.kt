@@ -2,12 +2,17 @@ package com.swirlfist.simplepixel.presentation.uielements
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,33 +36,43 @@ fun ActionButton(
     modifier: Modifier = Modifier,
     actionButtonType: ActionButtonType,
     size: Dp = 48.dp,
-    enabled: Boolean,
+    isEnabled: Boolean,
+    isSelected: Boolean,
     onClick: () -> Unit,
 ) {
-    when (actionButtonType) {
-        ActionButtonType.UndoActionButtonType,
-        ActionButtonType.RedoActionButtonType,
-        ActionButtonType.ZoomInActionButtonType,
-        ActionButtonType.ZoomOutActionButtonType,
-        ActionButtonType.OpenPaletteActionButtonType,
-        ActionButtonType.SavePixelImageActionButtonType,
-        ActionButtonType.OpenPixelImageActionButtonType,
-            -> {
+    Box (
+        modifier = modifier
+            .selectedButtonModifier(
+                isSelected,
+                IconButtonDefaults.filledIconButtonColors().containerColor
+            ),
+    ) {
+        when (actionButtonType) {
+            ActionButtonType.UndoActionButtonType,
+            ActionButtonType.RedoActionButtonType,
+            ActionButtonType.ZoomInActionButtonType,
+            ActionButtonType.ZoomOutActionButtonType,
+            ActionButtonType.OpenPaletteActionButtonType,
+            ActionButtonType.SavePixelImageActionButtonType,
+            ActionButtonType.OpenPixelImageActionButtonType,
+                -> {
                 ActionIconButton(
-                    modifier = modifier,
+                    modifier,
                     actionIconButtonType = actionButtonType as ActionIconButtonType,
-                    size = size,
-                    enabled = enabled,
-                    onClick = onClick,
+                    size,
+                    isEnabled,
+                    onClick,
                 )
             }
-        is ActionButtonType.PickPaletteColorActionButtonType -> ActionPickPaletteColorButton(
-            modifier = modifier,
-            pickPaletteColorActionButtonType = actionButtonType,
-            size = size,
-            enabled = enabled,
-            onClick = onClick,
-        )
+
+            is ActionButtonType.PickPaletteColorActionButtonType -> ActionPickPaletteColorButton(
+                modifier,
+                pickPaletteColorActionButtonType = actionButtonType,
+                size,
+                isEnabled,
+                onClick,
+            )
+        }
     }
 }
 
@@ -66,16 +81,16 @@ private fun ActionIconButton(
     modifier: Modifier = Modifier,
     actionIconButtonType: ActionIconButtonType,
     size: Dp,
-    enabled: Boolean = true,
+    isEnabled: Boolean,
     onClick: () -> Unit,
 ) {
     IconButton(
-        modifier = modifier,
+        modifier,
         drawableResId = actionIconButtonType.icon,
         contentDescriptionResId = actionIconButtonType.contentDescription,
-        size = size,
-        enabled = enabled,
-        onClick = onClick,
+        size,
+        isEnabled,
+        onClick,
     )
 }
 
@@ -85,15 +100,15 @@ fun IconButton(
     @DrawableRes drawableResId: Int,
     @StringRes contentDescriptionResId: Int,
     size: Dp,
-    enabled: Boolean = true,
+    isEnabled: Boolean,
     onClick: () -> Unit,
 ) {
     FilledIconButton(
         modifier = modifier
             .size(size),
         onClick = onClick,
-        shape =  RoundedCornerShape(4.dp),
-        enabled = enabled,
+        shape = RoundedCornerShape(4.dp),
+        enabled = isEnabled,
     ) {
         Icon(
             painter = painterResource(drawableResId),
@@ -107,27 +122,35 @@ private fun ActionPickPaletteColorButton(
     modifier: Modifier = Modifier,
     pickPaletteColorActionButtonType: ActionButtonType.PickPaletteColorActionButtonType,
     size: Dp,
-    enabled: Boolean = true,
+    isEnabled: Boolean,
     onClick: () -> Unit,
 ) {
     val paletteIndex = pickPaletteColorActionButtonType.paletteIndex
-    val color = pickPaletteColorActionButtonType.palette.colors[paletteIndex]
+    val color = Color.fromColorLong(pickPaletteColorActionButtonType.palette.colors[paletteIndex])
     val contentDescriptionValue = stringResource(
-    R.string.cd_actions_section_button_pick_palette_color,
-    paletteIndex
+        R.string.cd_actions_section_button_pick_palette_color,
+        paletteIndex
     )
+
     Button(
         modifier = modifier
             .size(size)
+            .border(
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = IconButtonDefaults.filledIconButtonColors().containerColor,
+                ),
+                shape = RoundedCornerShape(4.dp),
+            )
             .semantics {
                 contentDescription = contentDescriptionValue
             },
         onClick = onClick,
-        shape =  RoundedCornerShape(4.dp),
-        enabled = enabled,
+        shape = RoundedCornerShape(4.dp),
+        enabled = isEnabled,
         colors = ButtonDefaults.buttonColors().copy(
-            containerColor = Color.fromColorLong(color),
-            contentColor = Color.fromColorLong(color),
+            containerColor = color,
+            contentColor = color,
         ),
     ) {
     }
@@ -137,11 +160,26 @@ private fun ActionPickPaletteColorButton(
 @Composable
 fun IconButtonEnabledPreview() {
     SimplePixelTheme {
-        IconButton(
-            drawableResId = android.R.drawable.ic_menu_save,
-            contentDescriptionResId = android.R.string.ok,
+        ActionButton(
+            actionButtonType = ActionButtonType.RedoActionButtonType,
             size = 48.dp,
-            enabled = true,
+            isEnabled = true,
+            isSelected = false,
+        ) {
+            android.util.Log.d("ActionIconButton", "clicked!")
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun IconButtonSelectedPreview() {
+    SimplePixelTheme {
+        ActionButton(
+            actionButtonType = ActionButtonType.RedoActionButtonType,
+            size = 48.dp,
+            isEnabled = true,
+            isSelected = true,
         ) {
             android.util.Log.d("ActionIconButton", "clicked!")
         }
@@ -152,13 +190,15 @@ fun IconButtonEnabledPreview() {
 @Composable
 fun IconButtonDisabledPreview() {
     SimplePixelTheme {
-        IconButton(
-            drawableResId = android.R.drawable.ic_menu_save,
-            contentDescriptionResId = android.R.string.ok,
-            size = 48.dp,
-            enabled = false,
-        ) {
-            android.util.Log.d("ActionIconButton", "clicked!")
+        SimplePixelTheme {
+            ActionButton(
+                actionButtonType = ActionButtonType.RedoActionButtonType,
+                size = 48.dp,
+                isEnabled = false,
+                isSelected = false,
+            ) {
+                android.util.Log.d("ActionIconButton", "clicked!")
+            }
         }
     }
 }
@@ -167,15 +207,63 @@ fun IconButtonDisabledPreview() {
 @Composable
 fun ActionPickPaletteColorButtonPreview() {
     SimplePixelTheme {
-        ActionPickPaletteColorButton(
-            pickPaletteColorActionButtonType = ActionButtonType.PickPaletteColorActionButtonType(
+        ActionButton(
+            actionButtonType = ActionButtonType.PickPaletteColorActionButtonType(
                 paletteIndex = 0,
-                palette = PaletteModel(colors = listOf(Color.Blue.toColorLong(), Color.Red.toColorLong())),
+                palette = PaletteModel(
+                    colors = listOf(
+                        Color.Blue.toColorLong(),
+                        Color.Red.toColorLong()
+                    )
+                ),
             ),
-            size = 40.dp,
-            enabled = true,
+            size = 48.dp,
+            isEnabled = true,
+            isSelected = false,
         ) {
             android.util.Log.d("ActionPickPaletteColorButton", "clicked!")
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ActionPickPaletteColorButtonSelectedPreview() {
+    SimplePixelTheme {
+        ActionButton(
+            actionButtonType = ActionButtonType.PickPaletteColorActionButtonType(
+                paletteIndex = 0,
+                palette = PaletteModel(
+                    colors = listOf(
+                        Color.Blue.toColorLong(),
+                        Color.Red.toColorLong()
+                    )
+                ),
+            ),
+            size = 48.dp,
+            isEnabled = true,
+            isSelected = true,
+        ) {
+            android.util.Log.d("ActionPickPaletteColorButton", "clicked!")
+        }
+    }
+}
+
+private fun Modifier.selectedButtonModifier(
+    isSelected: Boolean,
+    selectedColor: Color,
+): Modifier {
+    return if (!isSelected) {
+        this.then( other = Modifier
+            .padding(4.dp)
+        )
+    } else {
+        this.then( other = Modifier
+            .border(
+                border = BorderStroke(width = 2.dp, color = selectedColor),
+                shape = RoundedCornerShape(4.dp),
+            )
+            .padding(4.dp)
+        )
     }
 }

@@ -1,6 +1,7 @@
 package com.swirlfist.simplepixel.presentation.main.section
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
@@ -10,19 +11,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.presentation.main.state.ActionsSectionState
-import com.swirlfist.simplepixel.domain.model.ActionButtonModel
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import com.swirlfist.simplepixel.presentation.uielements.ActionButton
 
-private const val MAX_CHILD_ACTION_BUTTON_RENDER = 4
+private const val MAX_BUTTON_GROUP_RENDER = 4
+private const val BUTTON_SIZE_DP = 48
 
 @Composable
 fun ActionsSection(
@@ -30,40 +35,84 @@ fun ActionsSection(
     state: ActionsSectionState,
     onEvent: (ActionSectionEvent) -> Unit
 ) {
-    val actionButtonModels = state.actionButtonModels.values
+    val actionModels = state.actionModels.values
+
     FlowRow(
         modifier = modifier
             .verticalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        actionButtonModels.forEach { actionButtonModel ->
-            if (actionButtonModel.enabled && actionButtonModel.childActionTypes.size in 2..MAX_CHILD_ACTION_BUTTON_RENDER) {
-                Row(
-                    modifier = Modifier.border(
-                        border = BorderStroke(width = 1.dp, color = Color.Gray),
-                        shape = RoundedCornerShape(4.dp),
-                    ).padding(4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    actionButtonModel.childActionTypes.forEach { childActionButtonType ->
-                        ActionButton(
-                            actionButtonType = childActionButtonType,
-                            size = 40.dp,
-                            enabled = true,
-                            onClick = { onEvent(childActionButtonType.toActionsSectionEvent()) },
-                        )
-                    }
-                }
-            } else {
-                ActionButton(
-                    actionButtonType = actionButtonModel.actionType,
-                    size = 48.dp,
-                    enabled = actionButtonModel.enabled,
-                    onClick = { onEvent(actionButtonModel.actionType.toActionsSectionEvent()) },
+        actionModels.forEach { actionModel ->
+            when (actionModel) {
+                is ActionModel.ButtonActionModel
+                    -> ButtonAction(
+                    buttonActionModel = actionModel,
+                    isSelected = false,
+                    onEvent = onEvent,
+                )
+
+                is ActionModel.SelectableButtonGroupActionModel
+                    -> SelectableButtonGroupAction(
+                    selectableButtonGroupActionModel = actionModel,
+                    onEvent,
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun ButtonAction(
+    buttonActionModel: ActionModel.ButtonActionModel,
+    isSelected: Boolean = false,
+    onEvent: (ActionSectionEvent) -> Unit,
+) {
+    ActionButton(
+        actionButtonType = buttonActionModel.actionType,
+        size = BUTTON_SIZE_DP.dp,
+        isEnabled = buttonActionModel.isEnabled,
+        isSelected = isSelected,
+        onClick = { onEvent(buttonActionModel.actionType.toActionsSectionEvent()) },
+    )
+}
+
+@Composable
+private fun SelectableButtonGroupAction(
+    selectableButtonGroupActionModel: ActionModel.SelectableButtonGroupActionModel,
+    onEvent: (ActionSectionEvent) -> Unit,
+) {
+    if (selectableButtonGroupActionModel.isEnabled &&
+        selectableButtonGroupActionModel.childButtonActionModels.size in 2..MAX_BUTTON_GROUP_RENDER
+    ) {
+        Row(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+                .border(
+                    border = BorderStroke(width = 1.dp, color = IconButtonDefaults.filledIconButtonColors().containerColor),
+                    shape = RoundedCornerShape(4.dp),
+                )
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            selectableButtonGroupActionModel.childButtonActionModels.forEachIndexed { index, buttonActionModel ->
+                ButtonAction(
+                    buttonActionModel,
+                    isSelected = index == selectableButtonGroupActionModel.selectedIndex,
+                    onEvent = onEvent,
+                )
+            }
+        }
+    } else {
+        ButtonAction(
+            buttonActionModel = ActionModel.ButtonActionModel(
+                selectableButtonGroupActionModel.actionType,
+                selectableButtonGroupActionModel.isEnabled,
+            ),
+            isSelected = false,
+            onEvent = onEvent,
+        )
     }
 }
 
@@ -84,52 +133,60 @@ fun ActionsSectionPreview() {
         ActionsSection(
             modifier = Modifier.fillMaxSize(),
             state = ActionsSectionState().copy(
-                actionButtonModels = mapOf(
-                    ActionButtonType.OpenPaletteActionButtonType to ActionButtonModel(
+                actionModels = mapOf(
+                    ActionButtonType.OpenPaletteActionButtonType to ActionModel.SelectableButtonGroupActionModel(
                         actionType = ActionButtonType.OpenPaletteActionButtonType,
-                        enabled = true,
-                        childActionTypes = listOf(
-                            ActionButtonType.PickPaletteColorActionButtonType(
-                                paletteIndex = 0,
-                                palette = palette,
+                        isEnabled = true,
+                        childButtonActionModels = listOf(
+                            ActionModel.ButtonActionModel(
+                                ActionButtonType.PickPaletteColorActionButtonType(
+                                    paletteIndex = 0,
+                                    palette = palette,
+                                ),
                             ),
-                            ActionButtonType.PickPaletteColorActionButtonType(
-                                paletteIndex = 1,
-                                palette = palette,
+                            ActionModel.ButtonActionModel(
+                                ActionButtonType.PickPaletteColorActionButtonType(
+                                    paletteIndex = 1,
+                                    palette = palette,
+                                )
                             ),
-                            ActionButtonType.PickPaletteColorActionButtonType(
-                                paletteIndex = 2,
-                                palette = palette,
+                            ActionModel.ButtonActionModel(
+                                ActionButtonType.PickPaletteColorActionButtonType(
+                                    paletteIndex = 2,
+                                    palette = palette,
+                                )
                             ),
-                            ActionButtonType.PickPaletteColorActionButtonType(
-                                paletteIndex = 3,
-                                palette = palette,
-                            ),
+                            ActionModel.ButtonActionModel(
+                                ActionButtonType.PickPaletteColorActionButtonType(
+                                    paletteIndex = 3,
+                                    palette = palette,
+                                ),
+                            )
                         ),
                     ),
-                    ActionButtonType.UndoActionButtonType to ActionButtonModel(
+                    ActionButtonType.UndoActionButtonType to ActionModel.ButtonActionModel(
                         actionType = ActionButtonType.UndoActionButtonType,
-                        enabled = true,
+                        isEnabled = true,
                     ),
-                    ActionButtonType.RedoActionButtonType to ActionButtonModel(
+                    ActionButtonType.RedoActionButtonType to ActionModel.ButtonActionModel(
                         actionType = ActionButtonType.RedoActionButtonType,
-                        enabled = false,
+                        isEnabled = false,
                     ),
-                    ActionButtonType.ZoomInActionButtonType to ActionButtonModel(
+                    ActionButtonType.ZoomInActionButtonType to ActionModel.ButtonActionModel(
                         actionType = ActionButtonType.ZoomInActionButtonType,
-                        enabled = true,
+                        isEnabled = true,
                     ),
-                    ActionButtonType.ZoomOutActionButtonType to ActionButtonModel(
+                    ActionButtonType.ZoomOutActionButtonType to ActionModel.ButtonActionModel(
                         actionType = ActionButtonType.ZoomOutActionButtonType,
-                        enabled = true,
+                        isEnabled = true,
                     ),
-                    ActionButtonType.SavePixelImageActionButtonType to ActionButtonModel(
+                    ActionButtonType.SavePixelImageActionButtonType to ActionModel.ButtonActionModel(
                         actionType = ActionButtonType.SavePixelImageActionButtonType,
-                        enabled = true,
+                        isEnabled = true,
                     ),
-                    ActionButtonType.OpenPixelImageActionButtonType to ActionButtonModel(
+                    ActionButtonType.OpenPixelImageActionButtonType to ActionModel.ButtonActionModel(
                         actionType = ActionButtonType.OpenPixelImageActionButtonType,
-                        enabled = true,
+                        isEnabled = true,
                     ),
                 )
             ),
@@ -139,14 +196,14 @@ fun ActionsSectionPreview() {
     }
 }
 
-fun ActionButtonType.toActionsSectionEvent(): ActionSectionEvent = when(this) {
+fun ActionButtonType.toActionsSectionEvent(): ActionSectionEvent = when (this) {
     ActionButtonType.UndoActionButtonType -> ActionSectionEvent.UndoButtonClicked
     ActionButtonType.RedoActionButtonType -> ActionSectionEvent.RedoButtonClicked
     ActionButtonType.ZoomInActionButtonType -> ActionSectionEvent.ZoomInButtonClicked
     ActionButtonType.ZoomOutActionButtonType -> ActionSectionEvent.ZoomOutButtonClicked
     ActionButtonType.OpenPaletteActionButtonType -> ActionSectionEvent.OpenPaletteButtonClicked
     is ActionButtonType.PickPaletteColorActionButtonType -> ActionSectionEvent.PickPaletteColorButtonClicked(
-        paletteIndex = paletteIndex,
+        pickPaletteColorActionButtonType = this,
     )
     ActionButtonType.SavePixelImageActionButtonType -> ActionSectionEvent.SavePixelImageButtonClicked
     ActionButtonType.OpenPixelImageActionButtonType -> ActionSectionEvent.OpenPixelImageButtonClicked

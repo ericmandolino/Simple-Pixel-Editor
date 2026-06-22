@@ -1,9 +1,12 @@
 package com.swirlfist.simplepixel.presentation
 
 import androidx.compose.ui.graphics.Color
+import com.swirlfist.simplepixel.domain.model.ActionModel
+import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
+import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
 import kotlin.collections.map
 
 fun List<Color>.invertColors(): List<Color> = map { color ->
@@ -35,3 +38,14 @@ fun PixelImageModel.getPixelAt(x: Int, y: Int): PixelModel = pixelMatrixModel.co
 fun PixelImageModel.getPixelWidth(): Int = pixelMatrixModel.width()
 
 fun PixelImageModel.getPixelHeight(): Int = pixelMatrixModel.height()
+
+fun PaletteModel.createPaletteButtons(): List<ActionModel.ButtonActionModel> {
+    return colors.indices.map { index ->
+        ActionModel.ButtonActionModel(
+            ActionButtonType.PickPaletteColorActionButtonType(
+                paletteIndex = index,
+                palette = this,
+            )
+        )
+    }
+}

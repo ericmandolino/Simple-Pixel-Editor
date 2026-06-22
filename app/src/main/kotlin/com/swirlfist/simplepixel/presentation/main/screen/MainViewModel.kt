@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
@@ -17,6 +18,7 @@ import com.swirlfist.simplepixel.domain.usecase.MIN_ZOOM_FACTOR
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.execute
+import com.swirlfist.simplepixel.presentation.createPaletteButtons
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
 import com.swirlfist.simplepixel.presentation.main.section.ActionSectionEvent
@@ -25,7 +27,6 @@ import com.swirlfist.simplepixel.presentation.main.state.ActionsSectionState
 import com.swirlfist.simplepixel.presentation.main.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.main.state.MainScreenState
 import com.swirlfist.simplepixel.presentation.main.state.PixelImagePreviewSectionState
-import com.swirlfist.simplepixel.domain.model.ActionButtonModel
 import com.swirlfist.simplepixel.presentation.uielements.createEmptyPixelImage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,7 +60,7 @@ class MainViewModel @Inject constructor(
 
     init {
         _mainScreenState.update { mainScreenState ->
-            val palette = PaletteModel(colors = listOf(Color.Black.toColorLong(), Color.Yellow.toColorLong()))
+            val palette = PaletteModel(colors = listOf(Color.Black.toColorLong(), Color.White.toColorLong()))
             val pixelImageModel = createEmptyPixelImage(
                 width = 16,
                 height = 16,
@@ -75,44 +76,36 @@ class MainViewModel @Inject constructor(
                     isShowGridEnabled = true,
                 ),
                 actionsSectionState = mainScreenState.actionsSectionState.copy(
-                    actionButtonModels = mapOf(
-                        ActionButtonType.OpenPaletteActionButtonType to ActionButtonModel(
+                    actionModels = mapOf(
+                        ActionButtonType.OpenPaletteActionButtonType to ActionModel.SelectableButtonGroupActionModel(
                             actionType = ActionButtonType.OpenPaletteActionButtonType,
-                            enabled = true,
-                            childActionTypes = listOf(
-                                ActionButtonType.PickPaletteColorActionButtonType(
-                                    paletteIndex = 0,
-                                    palette = palette,
-                                ),
-                                ActionButtonType.PickPaletteColorActionButtonType(
-                                    paletteIndex = 1,
-                                    palette = palette,
-                                ),
-                            ),
+                            isEnabled = true,
+                            childButtonActionModels = palette.createPaletteButtons(),
+                            selectedIndex = 0,
                         ),
-                        ActionButtonType.UndoActionButtonType to ActionButtonModel(
+                        ActionButtonType.UndoActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.UndoActionButtonType,
-                            enabled = false,
+                            isEnabled = false,
                         ),
-                        ActionButtonType.RedoActionButtonType to ActionButtonModel(
+                        ActionButtonType.RedoActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.RedoActionButtonType,
-                            enabled = false,
+                            isEnabled = false,
                         ),
-                        ActionButtonType.ZoomInActionButtonType to ActionButtonModel(
+                        ActionButtonType.ZoomInActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.ZoomInActionButtonType,
-                            enabled = zoomFactor < MAX_ZOOM_FACTOR,
+                            isEnabled = zoomFactor < MAX_ZOOM_FACTOR,
                         ),
-                        ActionButtonType.ZoomOutActionButtonType to ActionButtonModel(
+                        ActionButtonType.ZoomOutActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.ZoomOutActionButtonType,
-                            enabled = zoomFactor > MIN_ZOOM_FACTOR,
+                            isEnabled = zoomFactor > MIN_ZOOM_FACTOR,
                         ),
-                        ActionButtonType.SavePixelImageActionButtonType to ActionButtonModel(
+                        ActionButtonType.SavePixelImageActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.SavePixelImageActionButtonType,
-                            enabled = true,
+                            isEnabled = true,
                         ),
-                        ActionButtonType.OpenPixelImageActionButtonType to ActionButtonModel(
+                        ActionButtonType.OpenPixelImageActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.OpenPixelImageActionButtonType,
-                            enabled = true,
+                            isEnabled = true,
                         ),
                     )
                 ),
@@ -133,13 +126,18 @@ class MainViewModel @Inject constructor(
     fun onActionsSectionEvent(event: ActionSectionEvent) {
         when (event) {
             ActionSectionEvent.OpenPaletteButtonClicked -> {}
-            is ActionSectionEvent.PickPaletteColorButtonClicked -> {}
+            is ActionSectionEvent.PickPaletteColorButtonClicked
+                -> updateSelectedPaletteIndex(event.pickPaletteColorActionButtonType)
             ActionSectionEvent.RedoButtonClicked -> {}
             ActionSectionEvent.UndoButtonClicked -> {}
-            ActionSectionEvent.ZoomInButtonClicked -> zoom(isZoomIn = true)
-            ActionSectionEvent.ZoomOutButtonClicked -> zoom(isZoomIn = false)
-            ActionSectionEvent.SavePixelImageButtonClicked -> selectSavePixelImageLocation()
-            ActionSectionEvent.OpenPixelImageButtonClicked -> selectOpenPixelImageLocation()
+            ActionSectionEvent.ZoomInButtonClicked
+                -> zoom(isZoomIn = true)
+            ActionSectionEvent.ZoomOutButtonClicked
+                -> zoom(isZoomIn = false)
+            ActionSectionEvent.SavePixelImageButtonClicked
+                -> selectSavePixelImageLocation()
+            ActionSectionEvent.OpenPixelImageButtonClicked
+                -> selectOpenPixelImageLocation()
         }
     }
 
@@ -177,6 +175,20 @@ class MainViewModel @Inject constructor(
                     y = y,
                     paletteIndex = newPaletteIndex,
                 ),
+            )
+        }
+    }
+
+    private fun updateSelectedPaletteIndex(
+        pickPaletteColorActionButtonType: ActionButtonType.PickPaletteColorActionButtonType,
+    ) {
+        // TODO: update palette color used to draw
+        _mainScreenState.update { mainScreenState ->
+            val actionsSectionState = mainScreenState.actionsSectionState
+            mainScreenState.copy(
+                actionsSectionState = actionsSectionState.updateSelectedChildButton(
+                    pickPaletteColorActionButtonType,
+                )
             )
         }
     }
@@ -305,6 +317,9 @@ class MainViewModel @Inject constructor(
                                 pixelImageModel = pixelImage,
                                 zoomFactor = DEFAULT_ZOOM_FACTOR,
                             ),
+                            actionsSectionState = mainScreenState.actionsSectionState.updatePaletteButtons(
+                                palette = pixelImage.paletteModel,
+                            ),
                             pixelImagePreviewSectionState = mainScreenState.pixelImagePreviewSectionState.copy(
                                 pixelImageModel = pixelImage,
                             )
@@ -336,15 +351,79 @@ private fun ActionsSectionState.updateButtonEnabled(
     actionButtonType: ActionButtonType,
     isEnabled: Boolean,
 ): ActionsSectionState {
-    val buttonModel = actionButtonModels[actionButtonType] ?: return this
+    val buttonModel = actionModels[actionButtonType] ?: return this
 
-    if (buttonModel.enabled == isEnabled) {
-        return this
+    return when (buttonModel) {
+        is ActionModel.ButtonActionModel -> {
+            if (buttonModel.isEnabled == isEnabled) {
+                this
+            } else {
+                copy(
+                    actionModels = actionModels.toMutableMap().also { actionModels ->
+                        actionModels[actionButtonType] = buttonModel.copy(isEnabled = isEnabled)
+                    }
+                )
+            }
+        }
+        is ActionModel.SelectableButtonGroupActionModel -> {
+            if (buttonModel.isEnabled == isEnabled) {
+                this
+            } else {
+                copy(
+                    actionModels = actionModels.toMutableMap().also { actionModels ->
+                        actionModels[actionButtonType] = buttonModel.copy(isEnabled = isEnabled)
+                    }
+                )
+            }
+        }
     }
+}
+
+private fun ActionsSectionState.updateSelectedChildButton(
+    actionButtonType: ActionButtonType,
+): ActionsSectionState {
+    val parentActionModel = actionModels.values.find { actionModel ->
+        actionModel is ActionModel.SelectableButtonGroupActionModel &&
+                actionModel.childButtonActionModels.find { childButtonActionModel ->
+                    childButtonActionModel.actionType == actionButtonType
+                } != null
+    } ?: return this
+
+    return when (parentActionModel) {
+        is ActionModel.ButtonActionModel -> {
+            this
+        }
+        is ActionModel.SelectableButtonGroupActionModel -> {
+            val selectedIndex = parentActionModel.childButtonActionModels.indexOfFirst { child ->
+                child.actionType == actionButtonType
+            }
+            if (selectedIndex == -1 || parentActionModel.selectedIndex == selectedIndex) {
+                this
+            } else {
+                copy(
+                    actionModels = actionModels.toMutableMap().also { actionModels ->
+                        actionModels[parentActionModel.actionType] = parentActionModel.copy(selectedIndex = selectedIndex)
+                    }
+                )
+            }
+        }
+    }
+}
+
+private fun ActionsSectionState.updatePaletteButtons(
+    palette: PaletteModel,
+): ActionsSectionState {
+    val openPaletteActionModel = actionModels[ActionButtonType.OpenPaletteActionButtonType] as ActionModel.SelectableButtonGroupActionModel
 
     return copy(
-        actionButtonModels = actionButtonModels.toMutableMap().also {  buttonModels ->
-            buttonModels[actionButtonType] = buttonModel.copy(enabled = isEnabled)
+        actionModels = actionModels.toMutableMap().apply {
+            put(
+                ActionButtonType.OpenPaletteActionButtonType,
+                openPaletteActionModel.copy(
+                    childButtonActionModels = palette.createPaletteButtons(),
+                    selectedIndex = 0,
+                )
+            )
         }
     )
 }
