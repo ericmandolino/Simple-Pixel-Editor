@@ -26,7 +26,7 @@ class UpdatePixelColorUseCaseImpl @Inject constructor() : UpdatePixelColorUseCas
         x: Int,
         y: Int,
         paletteIndex: Int,
-    ) : PixelImageModel {
+    ): PixelImageModel {
         val pixelMatrix = pixelImage.pixelMatrixModel
         val pixel = pixelImage.getPixelAt(x, y)
         val updatedPixel = pixel.copy(

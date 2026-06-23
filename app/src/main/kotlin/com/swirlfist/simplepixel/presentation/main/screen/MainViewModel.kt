@@ -12,6 +12,7 @@ import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
+import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.MAX_ZOOM_FACTOR
@@ -47,6 +48,7 @@ class MainViewModel @Inject constructor(
     private val openPixelImageUseCase: OpenPixelImageUseCase,
     private val getNextZoomFactorUseCase: GetNextZoomFactorUseCase,
     private val updatePixelColorUseCase: UpdatePixelColorUseCase,
+    private val applyBucketUseCase: ApplyBucketUseCase,
     private val moveImageUseCaseImpl: MoveImageUseCaseImpl,
 ) : ViewModel() {
     private val _mainScreenState = MutableStateFlow(
@@ -151,7 +153,7 @@ class MainViewModel @Inject constructor(
 
     fun onCanvasSectionEvent(event: CanvasSectionEvent) {
         when (event) {
-            is CanvasSectionEvent.PixelTap -> updatePixel(event)
+            is CanvasSectionEvent.PixelTap -> onPixelTap(event)
         }
     }
 
@@ -160,39 +162,62 @@ class MainViewModel @Inject constructor(
             ActionSectionEvent.OpenPaletteButtonClicked -> {}
             is ActionSectionEvent.PickPaletteColorButtonClicked
                 -> updateSelectedPaletteIndex(event.pickPaletteColorActionButtonType)
+
             ActionSectionEvent.RedoButtonClicked -> {}
             ActionSectionEvent.UndoButtonClicked -> {}
             ActionSectionEvent.ZoomInButtonClicked
                 -> zoom(isZoomIn = true)
+
             ActionSectionEvent.ZoomOutButtonClicked
                 -> zoom(isZoomIn = false)
+
             ActionSectionEvent.SavePixelImageButtonClicked
                 -> selectSavePixelImageLocation()
+
             ActionSectionEvent.OpenPixelImageButtonClicked
                 -> selectOpenPixelImageLocation()
+
             ActionSectionEvent.InkEraserButtonClicked
                 -> toggleSelectableActionButton(ActionButtonType.InkEraserActionButtonType)
+
             ActionSectionEvent.InkBucketButtonClicked,
                 -> updateSelectedTool(ActionButtonType.InkBucketActionButtonType)
+
             ActionSectionEvent.InkPenButtonClicked,
                 -> updateSelectedTool(ActionButtonType.InkPenActionButtonType)
+
             ActionSectionEvent.OpenToolsButtonClicked -> {}
             ActionSectionEvent.MoveImageActionButtonClicked -> {}
             ActionSectionEvent.MoveImageDownActionButtonClicked
                 -> moveImage(MoveDirection.DOWN)
+
             ActionSectionEvent.MoveImageLeftActionButtonClicked
                 -> moveImage(MoveDirection.LEFT)
+
             ActionSectionEvent.MoveImageRightActionButtonClicked
                 -> moveImage(MoveDirection.RIGHT)
+
             ActionSectionEvent.MoveImageUpActionButtonClicked
                 -> moveImage(MoveDirection.UP)
         }
     }
 
-    private fun updatePixel(event: CanvasSectionEvent.PixelTap) {
-        val pixelImage = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
+    private fun onPixelTap(event: CanvasSectionEvent.PixelTap) {
         val x = event.x
         val y = event.y
+
+        when (_mainScreenState.value.getSelectedPaintTool()) {
+            is ActionButtonType.InkPenActionButtonType -> updatePixelColor(x, y)
+            is ActionButtonType.InkBucketActionButtonType -> applyBucket(x, y)
+            else -> { }
+        }
+    }
+
+    private fun updatePixelColor(
+        x: Int,
+        y: Int,
+    ) {
+        val pixelImage = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
         val paletteIndex = _mainScreenState.value.getPaletteIndex()
 
         viewModelScope.launch {
@@ -200,7 +225,8 @@ class MainViewModel @Inject constructor(
                 successBlock = { updatedPixelImage ->
                     _mainScreenState.update { mainScreenState ->
                         val canvasSectionState = mainScreenState.canvasSectionState
-                        val pixelImagePreviewSectionState = mainScreenState.pixelImagePreviewSectionState
+                        val pixelImagePreviewSectionState =
+                            mainScreenState.pixelImagePreviewSectionState
                         mainScreenState.copy(
                             canvasSectionState = canvasSectionState.copy(
                                 pixelImageModel = updatedPixelImage,
@@ -222,6 +248,41 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private fun applyBucket(
+        x: Int,
+        y: Int,
+    ) {
+        val pixelImage = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
+        val paletteIndex = _mainScreenState.value.getPaletteIndex()
+
+        viewModelScope.launch {
+            applyBucketUseCase.execute(
+                successBlock = { updatedPixelImage ->
+                    _mainScreenState.update { mainScreenState ->
+                        val canvasSectionState = mainScreenState.canvasSectionState
+                        val pixelImagePreviewSectionState =
+                            mainScreenState.pixelImagePreviewSectionState
+                        mainScreenState.copy(
+                            canvasSectionState = canvasSectionState.copy(
+                                pixelImageModel = updatedPixelImage,
+                            ),
+                            pixelImagePreviewSectionState = pixelImagePreviewSectionState.copy(
+                                pixelImageModel = updatedPixelImage,
+                            ),
+                        )
+                    }
+                },
+                failureBlock = { },
+                params = ApplyBucketUseCase.Params(
+                    pixelImageModel = pixelImage,
+                    x = x,
+                    y = y,
+                    paletteIndex,
+                ),
+            )
+        }
+    }
+
     private fun moveImage(
         direction: MoveDirection
     ) {
@@ -232,7 +293,8 @@ class MainViewModel @Inject constructor(
                 successBlock = { updatedPixelImage ->
                     _mainScreenState.update { mainScreenState ->
                         val canvasSectionState = mainScreenState.canvasSectionState
-                        val pixelImagePreviewSectionState = mainScreenState.pixelImagePreviewSectionState
+                        val pixelImagePreviewSectionState =
+                            mainScreenState.pixelImagePreviewSectionState
                         mainScreenState.copy(
                             canvasSectionState = canvasSectionState.copy(
                                 pixelImageModel = updatedPixelImage,
@@ -307,7 +369,9 @@ class MainViewModel @Inject constructor(
                             canvasSectionState = canvasSectionState.copy(
                                 zoomFactor = zoomFactor,
                             ),
-                            actionsSectionState = actionsSectionState.updateZoomButtonState(zoomFactor)
+                            actionsSectionState = actionsSectionState.updateZoomButtonState(
+                                zoomFactor
+                            )
                         )
                     }
                 },
@@ -352,14 +416,14 @@ class MainViewModel @Inject constructor(
         when (interaction) {
             is MainViewModelInteraction.SelectSavePixelImageLocationInteraction
                 -> onSelectSavePixelImageLocationInteractionResult(
-                    interaction,
-                    interactionResult as MainViewModelInteractionResult.SelectSavePixelImageLocationInteractionResult,
-                )
+                interaction,
+                interactionResult as MainViewModelInteractionResult.SelectSavePixelImageLocationInteractionResult,
+            )
 
             MainViewModelInteraction.SelectOpenPixelImageLocationInteraction
                 -> onSelectOpenPixelImageLocationInteractionResult(
-                    interactionResult as MainViewModelInteractionResult.SelectOpenPixelImageLocationInteractionResult,
-                )
+                interactionResult as MainViewModelInteractionResult.SelectOpenPixelImageLocationInteractionResult,
+            )
         }
     }
 
@@ -528,7 +592,8 @@ private fun ActionsSectionState.updateSelectedChildButton(
 private fun ActionsSectionState.updatePaletteButtons(
     palette: PaletteModel,
 ): ActionsSectionState {
-    val openPaletteActionModel = actionModels[ActionButtonType.OpenPaletteActionButtonType] as ActionModel.SelectableButtonGroupActionModel
+    val openPaletteActionModel =
+        actionModels[ActionButtonType.OpenPaletteActionButtonType] as ActionModel.SelectableButtonGroupActionModel
 
     return copy(
         actionModels = actionModels.toMutableMap().apply {
@@ -556,8 +621,26 @@ private fun ActionsSectionState.isEraserSelected(): Boolean {
     return (actionModels[ActionButtonType.InkEraserActionButtonType] as ActionModel.ButtonActionModel).isSelected
 }
 
+private fun MainScreenState.getSelectedPaintTool() = actionsSectionState.getSelectedPaintTool()
+
+private fun ActionsSectionState.getSelectedPaintTool(): ActionButtonType {
+    return getSelectedChildButton(
+        buttonGroup = ActionButtonType.OpenToolsActionButtonType
+    )
+}
+
 private fun ActionsSectionState.getPaletteIndex(): Int {
-    return ((actionModels[ActionButtonType.OpenPaletteActionButtonType] as ActionModel.SelectableButtonGroupActionModel).childButtonActionModels.first { child ->
+    return (
+            getSelectedChildButton(
+                buttonGroup = ActionButtonType.OpenPaletteActionButtonType
+            ) as ActionButtonType.PickPaletteColorActionButtonType
+            ).paletteIndex
+}
+
+private fun ActionsSectionState.getSelectedChildButton(
+    buttonGroup: ActionButtonType,
+): ActionButtonType {
+    return (actionModels[buttonGroup] as ActionModel.SelectableButtonGroupActionModel).childButtonActionModels.first { child ->
         child.isSelected
-    }.actionType as ActionButtonType.PickPaletteColorActionButtonType).paletteIndex
+    }.actionType
 }
