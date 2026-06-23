@@ -9,12 +9,16 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swirlfist.simplepixel.domain.model.ActionModel
+import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.MAX_ZOOM_FACTOR
 import com.swirlfist.simplepixel.domain.usecase.MIN_ZOOM_FACTOR
+import com.swirlfist.simplepixel.domain.usecase.MoveDirection
+import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.execute
@@ -35,7 +39,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val DEFAULT_ZOOM_FACTOR = 1F
-private const val ERASER_TOOL_PALETTE_INDEX = -1
+private const val ERASER_TOOL_PALETTE_INDEX = EMPTY_PIXEL_PALETTE_INDEX
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -43,6 +47,7 @@ class MainViewModel @Inject constructor(
     private val openPixelImageUseCase: OpenPixelImageUseCase,
     private val getNextZoomFactorUseCase: GetNextZoomFactorUseCase,
     private val updatePixelColorUseCase: UpdatePixelColorUseCase,
+    private val moveImageUseCaseImpl: MoveImageUseCaseImpl,
 ) : ViewModel() {
     private val _mainScreenState = MutableStateFlow(
         value = MainScreenState(
@@ -173,10 +178,14 @@ class MainViewModel @Inject constructor(
                 -> updateSelectedTool(ActionButtonType.InkPenActionButtonType)
             ActionSectionEvent.OpenToolsButtonClicked -> {}
             ActionSectionEvent.MoveImageActionButtonClicked -> {}
-            ActionSectionEvent.MoveImageDownActionButtonClicked -> {}
-            ActionSectionEvent.MoveImageLeftActionButtonClicked -> {}
-            ActionSectionEvent.MoveImageRightActionButtonClicked -> {}
-            ActionSectionEvent.MoveImageUpActionButtonClicked -> {}
+            ActionSectionEvent.MoveImageDownActionButtonClicked
+                -> moveImage(MoveDirection.DOWN)
+            ActionSectionEvent.MoveImageLeftActionButtonClicked
+                -> moveImage(MoveDirection.LEFT)
+            ActionSectionEvent.MoveImageRightActionButtonClicked
+                -> moveImage(MoveDirection.RIGHT)
+            ActionSectionEvent.MoveImageUpActionButtonClicked
+                -> moveImage(MoveDirection.UP)
         }
     }
 
@@ -208,6 +217,36 @@ class MainViewModel @Inject constructor(
                     x = x,
                     y = y,
                     paletteIndex,
+                ),
+            )
+        }
+    }
+
+    private fun moveImage(
+        direction: MoveDirection
+    ) {
+        val pixelImage = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
+
+        viewModelScope.launch {
+            moveImageUseCaseImpl.execute(
+                successBlock = { updatedPixelImage ->
+                    _mainScreenState.update { mainScreenState ->
+                        val canvasSectionState = mainScreenState.canvasSectionState
+                        val pixelImagePreviewSectionState = mainScreenState.pixelImagePreviewSectionState
+                        mainScreenState.copy(
+                            canvasSectionState = canvasSectionState.copy(
+                                pixelImageModel = updatedPixelImage,
+                            ),
+                            pixelImagePreviewSectionState = pixelImagePreviewSectionState.copy(
+                                pixelImageModel = updatedPixelImage,
+                            ),
+                        )
+                    }
+                },
+                failureBlock = { },
+                params = MoveImageUseCase.Params(
+                    pixelImageModel = pixelImage,
+                    moveDirection = direction,
                 ),
             )
         }
