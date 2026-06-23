@@ -59,6 +59,11 @@ fun ActionButton(
             ActionButtonType.OpenPaletteActionButtonType,
             ActionButtonType.SavePixelImageActionButtonType,
             ActionButtonType.OpenPixelImageActionButtonType,
+            ActionButtonType.MoveImageActionButtonType,
+            ActionButtonType.MoveImageDownActionButtonType,
+            ActionButtonType.MoveImageLeftActionButtonType,
+            ActionButtonType.MoveImageRightActionButtonType,
+            ActionButtonType.MoveImageUpActionButtonType,
                 -> {
                 ActionIconButton(
                     modifier,

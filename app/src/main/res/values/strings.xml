@@ -3,6 +3,11 @@
     <string name="cd_actions_section_button_ink_bucket">Ink bucket</string>
     <string name="cd_actions_section_button_ink_eraser">Ink eraser</string>
     <string name="cd_actions_section_button_ink_pen">Ink pen</string>
+    <string name="cd_actions_section_button_move_image">Move image</string>
+    <string name="cd_actions_section_button_move_image_down">Move image down</string>
+    <string name="cd_actions_section_button_move_image_left">Move image left</string>
+    <string name="cd_actions_section_button_move_image_right">Move image right</string>
+    <string name="cd_actions_section_button_move_image_up">Move image up</string>
     <string name="cd_actions_section_button_open_palette">Open palette</string>
     <string name="cd_actions_section_button_open_pixel_image">Open pixel image</string>
     <string name="cd_actions_section_button_pick_palette_color">Pick palette color %d</string>

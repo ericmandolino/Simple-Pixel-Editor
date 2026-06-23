@@ -79,27 +79,22 @@ class MainViewModel @Inject constructor(
                     actionModels = mapOf(
                         ActionButtonType.OpenPaletteActionButtonType to ActionModel.SelectableButtonGroupActionModel(
                             actionType = ActionButtonType.OpenPaletteActionButtonType,
-                            isEnabled = true,
                             childButtonActionModels = palette.createPaletteButtons(),
                         ),
                         ActionButtonType.OpenToolsActionButtonType to ActionModel.SelectableButtonGroupActionModel(
                             actionType = ActionButtonType.OpenToolsActionButtonType,
-                            isEnabled = true,
                             childButtonActionModels = listOf(
                                 ActionModel.ButtonActionModel(
                                     actionType = ActionButtonType.InkPenActionButtonType,
-                                    isEnabled = true,
                                     isSelected = true,
                                 ),
                                 ActionModel.ButtonActionModel(
                                     actionType = ActionButtonType.InkBucketActionButtonType,
-                                    isEnabled = true,
                                 ),
                             ),
                         ),
                         ActionButtonType.InkEraserActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.InkEraserActionButtonType,
-                            isEnabled = true,
                         ),
                         ActionButtonType.UndoActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.UndoActionButtonType,
@@ -107,7 +102,6 @@ class MainViewModel @Inject constructor(
                         ),
                         ActionButtonType.RedoActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.RedoActionButtonType,
-                            isEnabled = false,
                         ),
                         ActionButtonType.ZoomInActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.ZoomInActionButtonType,
@@ -117,13 +111,28 @@ class MainViewModel @Inject constructor(
                             actionType = ActionButtonType.ZoomOutActionButtonType,
                             isEnabled = zoomFactor > MIN_ZOOM_FACTOR,
                         ),
+                        ActionButtonType.MoveImageActionButtonType to ActionModel.ButtonGroupActionModel(
+                            actionType = ActionButtonType.MoveImageActionButtonType,
+                            childButtonActionModels = listOf(
+                                ActionModel.ButtonActionModel(
+                                    actionType = ActionButtonType.MoveImageUpActionButtonType,
+                                ),
+                                ActionModel.ButtonActionModel(
+                                    actionType = ActionButtonType.MoveImageDownActionButtonType,
+                                ),
+                                ActionModel.ButtonActionModel(
+                                    actionType = ActionButtonType.MoveImageLeftActionButtonType,
+                                ),
+                                ActionModel.ButtonActionModel(
+                                    actionType = ActionButtonType.MoveImageRightActionButtonType,
+                                ),
+                            ),
+                        ),
                         ActionButtonType.SavePixelImageActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.SavePixelImageActionButtonType,
-                            isEnabled = true,
                         ),
                         ActionButtonType.OpenPixelImageActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.OpenPixelImageActionButtonType,
-                            isEnabled = true,
                         ),
                     )
                 ),
@@ -163,6 +172,11 @@ class MainViewModel @Inject constructor(
             ActionSectionEvent.InkPenButtonClicked,
                 -> updateSelectedTool(ActionButtonType.InkPenActionButtonType)
             ActionSectionEvent.OpenToolsButtonClicked -> {}
+            ActionSectionEvent.MoveImageActionButtonClicked -> {}
+            ActionSectionEvent.MoveImageDownActionButtonClicked -> {}
+            ActionSectionEvent.MoveImageLeftActionButtonClicked -> {}
+            ActionSectionEvent.MoveImageRightActionButtonClicked -> {}
+            ActionSectionEvent.MoveImageUpActionButtonClicked -> {}
         }
     }
 
@@ -401,29 +415,19 @@ private fun ActionsSectionState.updateButtonEnabled(
 ): ActionsSectionState {
     val buttonModel = actionModels[actionButtonType] ?: return this
 
-    return when (buttonModel) {
-        is ActionModel.ButtonActionModel -> {
-            if (buttonModel.isEnabled == isEnabled) {
-                this
-            } else {
-                copy(
-                    actionModels = actionModels.toMutableMap().also { actionModels ->
-                        actionModels[actionButtonType] = buttonModel.copy(isEnabled = isEnabled)
-                    }
-                )
-            }
+    return if (buttonModel.isEnabled) {
+        this
+    } else {
+        val updatedModel = when (buttonModel) {
+            is ActionModel.ButtonActionModel -> buttonModel.copy(isEnabled = isEnabled)
+            is ActionModel.ButtonGroupActionModel -> buttonModel.copy(isEnabled = isEnabled)
+            is ActionModel.SelectableButtonGroupActionModel -> buttonModel.copy(isEnabled = isEnabled)
         }
-        is ActionModel.SelectableButtonGroupActionModel -> {
-            if (buttonModel.isEnabled == isEnabled) {
-                this
-            } else {
-                copy(
-                    actionModels = actionModels.toMutableMap().also { actionModels ->
-                        actionModels[actionButtonType] = buttonModel.copy(isEnabled = isEnabled)
-                    }
-                )
+        copy(
+            actionModels = actionModels.toMutableMap().also { actionModels ->
+                actionModels[actionButtonType] = updatedModel
             }
-        }
+        )
     }
 }
 
@@ -444,6 +448,7 @@ private fun ActionsSectionState.toggleSelectableButton(
             }
         )
 
+        is ActionModel.ButtonGroupActionModel,
         is ActionModel.SelectableButtonGroupActionModel -> this
     }
 }
@@ -459,9 +464,9 @@ private fun ActionsSectionState.updateSelectedChildButton(
     } ?: return this
 
     return when (parentActionModel) {
-        is ActionModel.ButtonActionModel -> {
-            this
-        }
+        is ActionModel.ButtonActionModel,
+        is ActionModel.ButtonGroupActionModel -> this
+
         is ActionModel.SelectableButtonGroupActionModel -> {
             copy(
                 actionModels = actionModels.toMutableMap().apply {

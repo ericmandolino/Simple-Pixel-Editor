@@ -8,6 +8,16 @@ sealed interface ActionSectionEvent {
 
     data object InkEraserButtonClicked : ActionSectionEvent
 
+    data object MoveImageActionButtonClicked : ActionSectionEvent
+
+    data object MoveImageDownActionButtonClicked : ActionSectionEvent
+
+    data object MoveImageLeftActionButtonClicked : ActionSectionEvent
+
+    data object MoveImageRightActionButtonClicked : ActionSectionEvent
+
+    data object MoveImageUpActionButtonClicked : ActionSectionEvent
+
     data object OpenToolsButtonClicked : ActionSectionEvent
 
     data object UndoButtonClicked : ActionSectionEvent

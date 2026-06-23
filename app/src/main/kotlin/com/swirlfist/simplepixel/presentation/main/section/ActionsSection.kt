@@ -52,9 +52,19 @@ fun ActionsSection(
                     onEvent = onEvent,
                 )
 
+                is ActionModel.ButtonGroupActionModel
+                    -> ButtonGroupAction(
+                    actionType = actionModel.actionType,
+                    isEnabled = actionModel.isEnabled,
+                    childButtonActionModels = actionModel.childButtonActionModels,
+                    onEvent,
+                )
+
                 is ActionModel.SelectableButtonGroupActionModel
-                    -> SelectableButtonGroupAction(
-                    selectableButtonGroupActionModel = actionModel,
+                    -> ButtonGroupAction(
+                    actionType = actionModel.actionType,
+                    isEnabled = actionModel.isEnabled,
+                    childButtonActionModels = actionModel.childButtonActionModels,
                     onEvent,
                 )
             }
@@ -77,24 +87,28 @@ private fun ButtonAction(
 }
 
 @Composable
-private fun SelectableButtonGroupAction(
-    selectableButtonGroupActionModel: ActionModel.SelectableButtonGroupActionModel,
+private fun ButtonGroupAction(
+    actionType: ActionButtonType,
+    isEnabled: Boolean,
+    childButtonActionModels: List<ActionModel.ButtonActionModel>,
     onEvent: (ActionSectionEvent) -> Unit,
 ) {
-    if (selectableButtonGroupActionModel.isEnabled &&
-        selectableButtonGroupActionModel.childButtonActionModels.size in 2..MAX_BUTTON_GROUP_RENDER
+    if (isEnabled && childButtonActionModels.size in 2..MAX_BUTTON_GROUP_RENDER
     ) {
         Row(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.surfaceContainer)
                 .border(
-                    border = BorderStroke(width = 1.dp, color = IconButtonDefaults.filledIconButtonColors().containerColor),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = IconButtonDefaults.filledIconButtonColors().containerColor
+                    ),
                     shape = RoundedCornerShape(4.dp),
                 )
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            selectableButtonGroupActionModel.childButtonActionModels.forEach { buttonActionModel ->
+            childButtonActionModels.forEach { buttonActionModel ->
                 ButtonAction(
                     buttonActionModel,
                     onEvent = onEvent,
@@ -104,8 +118,8 @@ private fun SelectableButtonGroupAction(
     } else {
         ButtonAction(
             buttonActionModel = ActionModel.ButtonActionModel(
-                selectableButtonGroupActionModel.actionType,
-                selectableButtonGroupActionModel.isEnabled,
+                actionType,
+                isEnabled,
             ),
             onEvent = onEvent,
         )
@@ -196,6 +210,11 @@ fun ActionButtonType.toActionsSectionEvent(): ActionSectionEvent = when (this) {
     ActionButtonType.InkBucketActionButtonType -> ActionSectionEvent.InkBucketButtonClicked
     ActionButtonType.InkEraserActionButtonType -> ActionSectionEvent.InkEraserButtonClicked
     ActionButtonType.InkPenActionButtonType -> ActionSectionEvent.InkPenButtonClicked
+    ActionButtonType.MoveImageActionButtonType -> ActionSectionEvent.MoveImageActionButtonClicked
+    ActionButtonType.MoveImageDownActionButtonType -> ActionSectionEvent.MoveImageDownActionButtonClicked
+    ActionButtonType.MoveImageLeftActionButtonType -> ActionSectionEvent.MoveImageLeftActionButtonClicked
+    ActionButtonType.MoveImageRightActionButtonType -> ActionSectionEvent.MoveImageRightActionButtonClicked
+    ActionButtonType.MoveImageUpActionButtonType -> ActionSectionEvent.MoveImageUpActionButtonClicked
     ActionButtonType.OpenToolsActionButtonType -> ActionSectionEvent.OpenToolsButtonClicked
     ActionButtonType.UndoActionButtonType -> ActionSectionEvent.UndoButtonClicked
     ActionButtonType.RedoActionButtonType -> ActionSectionEvent.RedoButtonClicked

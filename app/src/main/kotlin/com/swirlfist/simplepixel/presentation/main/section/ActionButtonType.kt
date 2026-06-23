@@ -37,6 +37,31 @@ sealed interface ActionButtonType {
         contentDescription = R.string.cd_actions_section_button_redo,
     ), ActionButtonType
 
+    data object MoveImageActionButtonType : ActionIconButtonType(
+        icon = R.drawable.ic_actions_section_move_image_24dp,
+        contentDescription = R.string.cd_actions_section_button_move_image,
+    ), ActionButtonType
+
+    data object MoveImageDownActionButtonType : ActionIconButtonType(
+        icon = R.drawable.ic_actions_section_move_image_down_24dp,
+        contentDescription = R.string.cd_actions_section_button_move_image_down,
+    ), ActionButtonType
+
+    data object MoveImageLeftActionButtonType : ActionIconButtonType(
+        icon = R.drawable.ic_actions_section_move_image_left_24dp,
+        contentDescription = R.string.cd_actions_section_button_move_image_left,
+    ), ActionButtonType
+
+    data object MoveImageRightActionButtonType : ActionIconButtonType(
+        icon = R.drawable.ic_actions_section_move_image_right_24dp,
+        contentDescription = R.string.cd_actions_section_button_move_image_right,
+    ), ActionButtonType
+
+    data object MoveImageUpActionButtonType : ActionIconButtonType(
+        icon = R.drawable.ic_actions_section_move_image_up_24dp,
+        contentDescription = R.string.cd_actions_section_button_move_image_up,
+    ), ActionButtonType
+
     data object ZoomInActionButtonType : ActionIconButtonType(
         icon = R.drawable.ic_actions_section_zoom_in_24,
         contentDescription = R.string.cd_actions_section_button_zoom_in,
