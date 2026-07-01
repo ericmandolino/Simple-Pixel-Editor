@@ -69,8 +69,8 @@ class MainViewModel @Inject constructor(
         _mainScreenState.update { mainScreenState ->
             val palette = PaletteModel(colors = listOf(Color.Black.toColorLong(), Color.White.toColorLong()))
             val pixelImageModel = createEmptyPixelImage(
-                width = 32,
-                height = 32,
+                width = 24,
+                height = 24,
                 color1 = palette.colors[0],
                 color2 = palette.colors[1],
             )
@@ -141,6 +141,9 @@ class MainViewModel @Inject constructor(
                         ActionButtonType.OpenPixelImageActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.OpenPixelImageActionButtonType,
                         ),
+                        ActionButtonType.ExportPixelImageActionButtonType to ActionModel.ButtonActionModel(
+                            actionType = ActionButtonType.ExportPixelImageActionButtonType,
+                        ),
                     )
                 ),
                 pixelImagePreviewSectionState = mainScreenState.pixelImagePreviewSectionState.copy(
@@ -176,6 +179,8 @@ class MainViewModel @Inject constructor(
 
             ActionSectionEvent.OpenPixelImageButtonClicked
                 -> selectOpenPixelImageLocation()
+
+            ActionSectionEvent.ExportPixelImageButtonClicked -> {}
 
             ActionSectionEvent.InkEraserButtonClicked
                 -> toggleSelectableActionButton(ActionButtonType.InkEraserActionButtonType)

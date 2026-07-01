@@ -59,6 +59,7 @@ fun ActionButton(
             ActionButtonType.OpenPaletteActionButtonType,
             ActionButtonType.SavePixelImageActionButtonType,
             ActionButtonType.OpenPixelImageActionButtonType,
+            ActionButtonType.ExportPixelImageActionButtonType,
             ActionButtonType.MoveImageActionButtonType,
             ActionButtonType.MoveImageDownActionButtonType,
             ActionButtonType.MoveImageLeftActionButtonType,
