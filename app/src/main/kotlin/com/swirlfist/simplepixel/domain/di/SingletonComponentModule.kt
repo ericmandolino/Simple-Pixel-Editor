@@ -2,6 +2,8 @@ package com.swirlfist.simplepixel.domain.di
 
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCase
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
@@ -35,6 +37,11 @@ abstract class SingletonComponentModule {
     abstract fun bindSavePixelImageUseCase(
         impl: SavePixelImageUseCaseImpl,
     ) : SavePixelImageUseCase
+
+    @Binds
+    abstract fun bindExportPixelImageUseCase(
+        impl: ExportPixelImageUseCaseImpl,
+    ) : ExportPixelImageUseCase
 
     @Binds
     abstract fun bindOpenPixelImageUseCase(

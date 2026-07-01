@@ -13,6 +13,7 @@ import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCase
+import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.MAX_ZOOM_FACTOR
@@ -45,6 +46,7 @@ private const val ERASER_TOOL_PALETTE_INDEX = EMPTY_PIXEL_PALETTE_INDEX
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val savePixelImageUseCase: SavePixelImageUseCase,
+    private val exportPixelImageUseCase: ExportPixelImageUseCase,
     private val openPixelImageUseCase: OpenPixelImageUseCase,
     private val getNextZoomFactorUseCase: GetNextZoomFactorUseCase,
     private val updatePixelColorUseCase: UpdatePixelColorUseCase,
@@ -180,7 +182,8 @@ class MainViewModel @Inject constructor(
             ActionSectionEvent.OpenPixelImageButtonClicked
                 -> selectOpenPixelImageLocation()
 
-            ActionSectionEvent.ExportPixelImageButtonClicked -> {}
+            ActionSectionEvent.ExportPixelImageButtonClicked
+                -> selectExportPixelImageLocation()
 
             ActionSectionEvent.InkEraserButtonClicked
                 -> toggleSelectableActionButton(ActionButtonType.InkEraserActionButtonType)
@@ -390,19 +393,15 @@ class MainViewModel @Inject constructor(
     }
 
     private fun selectSavePixelImageLocation() {
-        val pixelImageModel = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
+        addInteraction(MainViewModelInteraction.SelectSavePixelImageLocationInteraction)
+    }
 
-        addInteraction(
-            MainViewModelInteraction.SelectSavePixelImageLocationInteraction(
-                pixelImageModel,
-            )
-        )
+    private fun selectExportPixelImageLocation() {
+        addInteraction(MainViewModelInteraction.SelectExportPixelImageLocationInteraction)
     }
 
     private fun selectOpenPixelImageLocation() {
-        addInteraction(
-            MainViewModelInteraction.SelectOpenPixelImageLocationInteraction
-        )
+        addInteraction(MainViewModelInteraction.SelectOpenPixelImageLocationInteraction)
     }
 
     private fun addInteraction(interaction: MainViewModelInteraction) {
@@ -419,11 +418,15 @@ class MainViewModel @Inject constructor(
         _interactions.value = interactions.minus(interaction)
 
         when (interaction) {
-            is MainViewModelInteraction.SelectSavePixelImageLocationInteraction
+            MainViewModelInteraction.SelectSavePixelImageLocationInteraction
                 -> onSelectSavePixelImageLocationInteractionResult(
-                interaction,
                 interactionResult as MainViewModelInteractionResult.SelectSavePixelImageLocationInteractionResult,
             )
+
+            MainViewModelInteraction.SelectExportPixelImageLocationInteraction
+                -> onSelectExportPixelImageLocationInteractionResult(
+                    interactionResult as MainViewModelInteractionResult.SelectExportPixelImageLocationInteractionResult,
+                )
 
             MainViewModelInteraction.SelectOpenPixelImageLocationInteraction
                 -> onSelectOpenPixelImageLocationInteractionResult(
@@ -433,12 +436,12 @@ class MainViewModel @Inject constructor(
     }
 
     private fun onSelectSavePixelImageLocationInteractionResult(
-        interaction: MainViewModelInteraction.SelectSavePixelImageLocationInteraction,
         interactionResult: MainViewModelInteractionResult.SelectSavePixelImageLocationInteractionResult,
     ) {
         interactionResult.result.fold(
             onSuccess = { uri ->
-                savePixelImage(interaction.pixelImage, uri)
+                val pixelImageModel = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
+                savePixelImage(pixelImageModel, uri)
             },
             onFailure = {
                 // TODO
@@ -455,6 +458,36 @@ class MainViewModel @Inject constructor(
                 successBlock = { }, // TODO
                 failureBlock = { }, // TODO
                 params = SavePixelImageUseCase.Params(
+                    pixelImageModel,
+                    uri,
+                ),
+            )
+        }
+    }
+
+    private fun onSelectExportPixelImageLocationInteractionResult(
+        interactionResult: MainViewModelInteractionResult.SelectExportPixelImageLocationInteractionResult,
+    ) {
+        interactionResult.result.fold(
+            onSuccess = { uri ->
+                val pixelImageModel = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
+                exportPixelImage(pixelImageModel, uri)
+            },
+            onFailure = {
+                // TODO
+            }
+        )
+    }
+
+    private fun exportPixelImage(
+        pixelImageModel: PixelImageModel,
+        uri: Uri,
+    ) {
+        viewModelScope.launch {
+            exportPixelImageUseCase.execute(
+                successBlock = { }, // TODO
+                failureBlock = { }, // TODO
+                params = ExportPixelImageUseCase.Params(
                     pixelImageModel,
                     uri,
                 ),

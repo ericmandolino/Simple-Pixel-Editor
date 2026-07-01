@@ -19,7 +19,7 @@ class SavePixelImageUseCaseImpl @Inject constructor(
                 params.uri,
             )
             Result.success(Unit)
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             Result.failure(SavePixelImageError(e))
         }
     }

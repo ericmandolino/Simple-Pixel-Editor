@@ -9,6 +9,8 @@ import com.swirlfist.simplepixel.domain.model.PixelModel
 import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
 import kotlin.collections.map
 
+private const val HEX_FORMAT = "#%02x%02x%02x"
+
 fun List<Color>.invertColors(): List<Color> = map { color ->
     color.invert()
 }
@@ -49,4 +51,12 @@ fun PaletteModel.createPaletteButtons(): List<ActionModel.ButtonActionModel> {
             isSelected = index == 0,
         )
     }
+}
+
+fun Color.toHexCode(): String {
+    val red = this.red * 255
+    val green = this.green * 255
+    val blue = this.blue * 255
+
+    return String.format(HEX_FORMAT, red.toInt(), green.toInt(), blue.toInt())
 }

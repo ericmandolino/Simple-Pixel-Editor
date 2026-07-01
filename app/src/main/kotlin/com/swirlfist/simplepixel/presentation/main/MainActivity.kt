@@ -13,6 +13,7 @@ import com.swirlfist.simplepixel.presentation.main.screen.MainScreen
 import com.swirlfist.simplepixel.presentation.main.screen.MainViewModel
 import com.swirlfist.simplepixel.presentation.main.screen.MainViewModelInteraction
 import com.swirlfist.simplepixel.presentation.main.screen.MainViewModelInteractionResult
+import com.swirlfist.simplepixel.presentation.main.screen.SelectExportPixelImageLocationError
 import com.swirlfist.simplepixel.presentation.main.screen.SelectOpenPixelImageLocationError
 import com.swirlfist.simplepixel.presentation.main.screen.SelectSavePixelImageLocationError
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
@@ -21,7 +22,9 @@ import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 private const val KEY_CURRENT_INTERACTION = "currentInteraction"
-private const val DEFAULT_FILE_NAME = "pixelImage.pxl"
+private const val DEFAULT_SAVE_FILE_NAME = "pixelImage.pxl"
+private const val DEFAULT_EXPORT_FILE_NAME = "pixelImage.svg"
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -34,6 +37,11 @@ class MainActivity : ComponentActivity() {
     private val startSelectSavePixelImageLocationForResult = registerForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
         callback = ::selectSavePixelImageLocationCallback,
+    )
+
+    private val startSelectExportPixelImageLocationForResult = registerForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        callback = ::selectExportPixelImageLocationCallback,
     )
 
     private val startSelectOpenPixelImageLocationForResult = registerForActivityResult(
@@ -81,8 +89,11 @@ class MainActivity : ComponentActivity() {
         currentInteraction = interaction
 
         when (interaction) {
-            is MainViewModelInteraction.SelectSavePixelImageLocationInteraction
+            MainViewModelInteraction.SelectSavePixelImageLocationInteraction
                 -> selectSavePixelImageLocation()
+
+            MainViewModelInteraction.SelectExportPixelImageLocationInteraction
+                -> selectExportPixelImageLocation()
 
             MainViewModelInteraction.SelectOpenPixelImageLocationInteraction
                 -> selectOpenPixelImageLocation()
@@ -105,7 +116,7 @@ class MainActivity : ComponentActivity() {
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "*/*"
-            putExtra(Intent.EXTRA_TITLE, DEFAULT_FILE_NAME)
+            putExtra(Intent.EXTRA_TITLE, DEFAULT_SAVE_FILE_NAME)
         }
 
         startSelectSavePixelImageLocationForResult.launch(intent)
@@ -126,6 +137,36 @@ class MainActivity : ComponentActivity() {
         }
         consumeInteraction(
             MainViewModelInteractionResult.SelectSavePixelImageLocationInteractionResult(
+                interactionResult
+            )
+        )
+    }
+
+    private fun selectExportPixelImageLocation() {
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+            putExtra(Intent.EXTRA_TITLE, DEFAULT_EXPORT_FILE_NAME)
+        }
+
+        startSelectExportPixelImageLocationForResult.launch(intent)
+    }
+
+    private fun selectExportPixelImageLocationCallback(
+        activityResult: ActivityResult,
+    ) {
+        val interactionResult = when (activityResult.resultCode) {
+            RESULT_OK
+                -> activityResult.data?.data?.let { uri ->
+                Result.success(uri)
+            } ?: Result.failure(SelectExportPixelImageLocationError(false))
+            RESULT_CANCELED
+                -> Result.failure(SelectExportPixelImageLocationError(true))
+            else
+                -> Result.failure(SelectExportPixelImageLocationError(false))
+        }
+        consumeInteraction(
+            MainViewModelInteractionResult.SelectExportPixelImageLocationInteractionResult(
                 interactionResult
             )
         )
