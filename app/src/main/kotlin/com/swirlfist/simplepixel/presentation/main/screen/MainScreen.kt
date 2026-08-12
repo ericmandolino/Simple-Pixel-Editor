@@ -47,7 +47,8 @@ import kotlinx.coroutines.launch
 fun MainScreen(
     viewModel: MainViewModel = hiltViewModel()
 ) {
-    val mainScreenState: MainScreenState = viewModel.mainScreenState.collectAsStateWithLifecycle().value
+    val mainScreenState: MainScreenState =
+        viewModel.mainScreenState.collectAsStateWithLifecycle().value
     val scaffoldNavigator = rememberSupportingPaneScaffoldNavigator()
     val coroutineScope = rememberCoroutineScope()
     val backNavigationBehavior = BackNavigationBehavior.PopUntilScaffoldValueChange
@@ -151,7 +152,8 @@ fun ThreePaneScaffoldPaneScope.SupportingPane(
             if (scaffoldNavigator.isSupportingPaneExpanded() && scaffoldNavigator.isMainPaneHidden()) {
                 Button(
                     modifier = Modifier
-                        .align(Alignment.End).padding(16.dp),
+                        .align(Alignment.End)
+                        .padding(16.dp),
                     onClick = {
                         coroutineScope.launch {
                             scaffoldNavigator.navigateBack(backNavigationBehavior)

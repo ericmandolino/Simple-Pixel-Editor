@@ -16,14 +16,14 @@ class OpenPixelImageUseCaseImpl @Inject constructor(
     override suspend fun invoke(params: OpenPixelImageUseCase.Params): Result<PixelImageModel> {
         return try {
             Result.success(openPixelImage(params.uri))
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             Result.failure(OpenPixelImageError(e))
         }
     }
 
     private fun openPixelImage(
         uri: Uri,
-    ) : PixelImageModel {
+    ): PixelImageModel {
         val contentResolver = applicationContext.contentResolver
 
         val stringBuilder = StringBuilder()

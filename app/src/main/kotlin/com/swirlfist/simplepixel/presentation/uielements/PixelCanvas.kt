@@ -60,7 +60,8 @@ fun PixelCanvas(
     val intSizeSaver = createIntSizeSaver()
     val imageOffset = rememberSaveable(stateSaver = offsetSaver) { mutableStateOf(Offset(0F, 0F)) }
     val margin = rememberSaveable(stateSaver = offsetSaver) { mutableStateOf(Offset(0F, 0F)) }
-    val lastCanvasSize = rememberSaveable(stateSaver = intSizeSaver) { mutableStateOf(IntSize(-1, -1)) }
+    val lastCanvasSize =
+        rememberSaveable(stateSaver = intSizeSaver) { mutableStateOf(IntSize(-1, -1)) }
 
     val imagePixelSize = IntSize(pixelImage.getPixelWidth(), pixelImage.getPixelHeight())
 
@@ -82,7 +83,16 @@ fun PixelCanvas(
                         lastCanvasSize.value.width.toFloat(),
                         lastCanvasSize.value.height.toFloat()
                     )
-                    onCanvasTap(tapOffset, pixelSizeDp, imagePixelSize, zoomFactor, canvasSize, imageOffset.value, margin.value, onPixelTap)
+                    onCanvasTap(
+                        tapOffset,
+                        pixelSizeDp,
+                        imagePixelSize,
+                        zoomFactor,
+                        canvasSize,
+                        imageOffset.value,
+                        margin.value,
+                        onPixelTap
+                    )
                 }
             },
     ) {
@@ -91,7 +101,11 @@ fun PixelCanvas(
 
         val coordinateTextTemplate = "%s,%s"
         val maxVisibleCoordinateTextSize = textMeasurer.measure(
-            text = String.format(coordinateTextTemplate, imagePixelSize.width, imagePixelSize.height)
+            text = String.format(
+                coordinateTextTemplate,
+                imagePixelSize.width,
+                imagePixelSize.height
+            )
         ).size
         val isShowCoordinates =
             isShowCoordinatesEnabled &&
@@ -126,7 +140,8 @@ fun PixelCanvasSnapshot(
     val intSizeSaver = createIntSizeSaver()
     val imageOffset = rememberSaveable(stateSaver = offsetSaver) { mutableStateOf(Offset(0F, 0F)) }
     val margin = rememberSaveable(stateSaver = offsetSaver) { mutableStateOf(Offset(0F, 0F)) }
-    val lastCanvasSize = rememberSaveable(stateSaver = intSizeSaver) { mutableStateOf(IntSize(-1, -1)) }
+    val lastCanvasSize =
+        rememberSaveable(stateSaver = intSizeSaver) { mutableStateOf(IntSize(-1, -1)) }
     val zoomFactor = rememberSaveable { mutableFloatStateOf(NO_ZOOM_FACTOR) }
 
     val imagePixelSize = IntSize(pixelImage.getPixelWidth(), pixelImage.getPixelHeight())
@@ -139,14 +154,21 @@ fun PixelCanvasSnapshot(
             .pointerInput(zoomFactor.floatValue) {
                 detectDragGestures { _, dragAmount ->
                     val pixelSizeDp = PIXEL_SIZE_DP_PREVIEW
-                    onCanvasDrag(dragAmount, pixelSizeDp, imagePixelSize, zoomFactor.floatValue, imageOffset)
+                    onCanvasDrag(
+                        dragAmount,
+                        pixelSizeDp,
+                        imagePixelSize,
+                        zoomFactor.floatValue,
+                        imageOffset
+                    )
                 }
             },
     ) {
         zoomFactor.floatValue = if (isFitAvailableSpace) {
             val pixelSizeNoZoom = PIXEL_SIZE_DP_PREVIEW.dp.toPx()
             val fitWidthZoomFactor = (size.width / (imagePixelSize.width * pixelSizeNoZoom)).toInt()
-            val fitHeightZoomFactor = (size.height / (imagePixelSize.height * pixelSizeNoZoom)).toInt()
+            val fitHeightZoomFactor =
+                (size.height / (imagePixelSize.height * pixelSizeNoZoom)).toInt()
             max(NO_ZOOM_FACTOR, min(fitWidthZoomFactor, fitHeightZoomFactor).toFloat())
         } else {
             NO_ZOOM_FACTOR
@@ -240,13 +262,15 @@ private fun PointerInputScope.onCanvasTap(
     onPixelTap: (Int, Int) -> Unit,
 ) {
     if (tapOffset.x - margin.x !in 0F..canvasSize.width ||
-        tapOffset.y - margin.y !in 0F..canvasSize.height) {
+        tapOffset.y - margin.y !in 0F..canvasSize.height
+    ) {
         return
     }
 
     val pixelSizeInt = getPixelSizeInt(pixelSizeDp, zoomFactor)
     val xPixel = ((imageOffset.x + tapOffset.x - margin.x) / pixelSizeInt).toInt()
-    val yPixel = imagePixelSize.height - 1 - ((imageOffset.y + tapOffset.y - margin.y) / pixelSizeInt).toInt()
+    val yPixel =
+        imagePixelSize.height - 1 - ((imageOffset.y + tapOffset.y - margin.y) / pixelSizeInt).toInt()
 
     if (xPixel !in 0..<imagePixelSize.width) return
     if (yPixel !in 0..<imagePixelSize.height) return
@@ -290,7 +314,8 @@ private fun DrawScope.drawCanvas(
     val marginY = margin.value.y
 
     var y = marginY
-    var yMatrixCoordinate = imagePixelSize.height - 1 - ((imageOffsetY + y - marginY) / pixelSizeInt).toInt()
+    var yMatrixCoordinate =
+        imagePixelSize.height - 1 - ((imageOffsetY + y - marginY) / pixelSizeInt).toInt()
     while (y < canvasSize.height && yMatrixCoordinate >= 0) {
         val pixelHeight = if (y - marginY > 0F || imageOffsetY == 0F) {
             pixelSizeInt
@@ -356,11 +381,23 @@ private fun DrawScope.drawCanvas(
     if (isShowBorderEnabled) {
         if (marginX >= 0) {
             drawVerticalGridLine(marginX, canvasSize, imageSize, gridLineWidth, marginY)
-            drawVerticalGridLine(canvasSize.width - marginX, canvasSize, imageSize, gridLineWidth, marginY)
+            drawVerticalGridLine(
+                canvasSize.width - marginX,
+                canvasSize,
+                imageSize,
+                gridLineWidth,
+                marginY
+            )
         }
         if (marginY >= 0) {
             drawHorizontalGridLine(marginY, canvasSize, imageSize, gridLineWidth, marginX)
-            drawHorizontalGridLine(canvasSize.height - marginY, canvasSize, imageSize, gridLineWidth, marginX)
+            drawHorizontalGridLine(
+                canvasSize.height - marginY,
+                canvasSize,
+                imageSize,
+                gridLineWidth,
+                marginX
+            )
         }
     }
 }
@@ -476,7 +513,8 @@ private fun DrawScope.drawPixel(
 
         textColor?.let { color ->
             val coordinateText = COORDINATE_TEXT_FORMAT.format(
-                xMatrixCoordinate + 1, yMatrixCoordinate + 1)
+                xMatrixCoordinate + 1, yMatrixCoordinate + 1
+            )
             val textSize = textMeasurer.measure(
                 text = coordinateText
             ).size
@@ -610,9 +648,9 @@ fun createCheckersPixelImage(
     color2: Long,
 ): PixelImageModel {
     val rows = mutableListOf<List<PixelModel>>()
-    for (y in 0..< height) {
+    for (y in 0..<height) {
         val row = mutableListOf<PixelModel>()
-        for (x in 0..< width) {
+        for (x in 0..<width) {
             val isXEven = x % 2 == 0
             val isYEven = y % 2 == 0
             row.add(

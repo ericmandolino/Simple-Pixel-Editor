@@ -20,8 +20,10 @@ import org.junit.jupiter.api.Assertions.assertTrue
 class ExportPixelImageUseCaseImplTest {
 
     private lateinit var useCase: ExportPixelImageUseCase
+
     @MockK
     private lateinit var uri: Uri
+
     @MockK
     private lateinit var writeToFileUseCase: WriteToFileUseCase
     private val testPixelImageString = """
@@ -95,6 +97,9 @@ class ExportPixelImageUseCaseImplTest {
 
         // Then
         assertTrue { result.isFailure }
-        assertEquals(expectedException, (result.exceptionOrNull() as ExportPixelImageError).innerException)
+        assertEquals(
+            expectedException,
+            (result.exceptionOrNull() as ExportPixelImageError).innerException
+        )
     }
 }

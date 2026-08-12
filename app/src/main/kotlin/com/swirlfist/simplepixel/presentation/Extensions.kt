@@ -7,7 +7,6 @@ import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
 import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
-import kotlin.collections.map
 
 private const val HEX_FORMAT = "#%02x%02x%02x"
 
@@ -31,9 +30,9 @@ fun List<Color>.getColor(pixel: PixelModel): Color? {
     }
 }
 
-fun PixelMatrixModel.width() : Int = if (content.isEmpty()) 0 else content.first().size
+fun PixelMatrixModel.width(): Int = if (content.isEmpty()) 0 else content.first().size
 
-fun PixelMatrixModel.height() : Int = content.size
+fun PixelMatrixModel.height(): Int = content.size
 
 fun PixelImageModel.getPixelAt(x: Int, y: Int): PixelModel = pixelMatrixModel.content[y][x]
 

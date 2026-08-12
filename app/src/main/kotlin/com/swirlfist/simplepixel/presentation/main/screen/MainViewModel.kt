@@ -14,7 +14,6 @@ import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCase
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCase
-import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.MAX_ZOOM_FACTOR
 import com.swirlfist.simplepixel.domain.usecase.MIN_ZOOM_FACTOR
@@ -23,6 +22,7 @@ import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.createPaletteButtons
 import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
@@ -69,7 +69,8 @@ class MainViewModel @Inject constructor(
 
     init {
         _mainScreenState.update { mainScreenState ->
-            val palette = PaletteModel(colors = listOf(Color.Black.toColorLong(), Color.White.toColorLong()))
+            val palette =
+                PaletteModel(colors = listOf(Color.Black.toColorLong(), Color.White.toColorLong()))
             val pixelImageModel = createEmptyPixelImage(
                 width = 24,
                 height = 24,
@@ -114,11 +115,11 @@ class MainViewModel @Inject constructor(
                         ),
                         ActionButtonType.ZoomInActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.ZoomInActionButtonType,
-                            isEnabled = zoomFactor < MAX_ZOOM_FACTOR,
+                            isEnabled = true,
                         ),
                         ActionButtonType.ZoomOutActionButtonType to ActionModel.ButtonActionModel(
                             actionType = ActionButtonType.ZoomOutActionButtonType,
-                            isEnabled = zoomFactor > MIN_ZOOM_FACTOR,
+                            isEnabled = true,
                         ),
                         ActionButtonType.MoveImageActionButtonType to ActionModel.ButtonGroupActionModel(
                             actionType = ActionButtonType.MoveImageActionButtonType,
@@ -217,7 +218,7 @@ class MainViewModel @Inject constructor(
         when (_mainScreenState.value.getSelectedPaintTool()) {
             is ActionButtonType.InkPenActionButtonType -> updatePixelColor(x, y)
             is ActionButtonType.InkBucketActionButtonType -> applyBucket(x, y)
-            else -> { }
+            else -> {}
         }
     }
 
@@ -425,8 +426,8 @@ class MainViewModel @Inject constructor(
 
             MainViewModelInteraction.SelectExportPixelImageLocationInteraction
                 -> onSelectExportPixelImageLocationInteractionResult(
-                    interactionResult as MainViewModelInteractionResult.SelectExportPixelImageLocationInteractionResult,
-                )
+                interactionResult as MainViewModelInteractionResult.SelectExportPixelImageLocationInteractionResult,
+            )
 
             MainViewModelInteraction.SelectOpenPixelImageLocationInteraction
                 -> onSelectOpenPixelImageLocationInteractionResult(
@@ -440,7 +441,8 @@ class MainViewModel @Inject constructor(
     ) {
         interactionResult.result.fold(
             onSuccess = { uri ->
-                val pixelImageModel = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
+                val pixelImageModel =
+                    _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
                 savePixelImage(pixelImageModel, uri)
             },
             onFailure = {
@@ -470,7 +472,8 @@ class MainViewModel @Inject constructor(
     ) {
         interactionResult.result.fold(
             onSuccess = { uri ->
-                val pixelImageModel = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
+                val pixelImageModel =
+                    _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
                 exportPixelImage(pixelImageModel, uri)
             },
             onFailure = {

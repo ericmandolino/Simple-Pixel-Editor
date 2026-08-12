@@ -1,7 +1,7 @@
 package com.swirlfist.simplepixel.domain.usecase
 
-import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.error.UpdatePixelError
+import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import javax.inject.Inject
 

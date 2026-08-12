@@ -5,10 +5,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 interface UseCase<P : UseCaseParams, T> {
-    suspend operator fun invoke(params: P) : Result<T>
+    suspend operator fun invoke(params: P): Result<T>
 }
 
-suspend fun <P: UseCaseParams, T> UseCase<P, T>.execute(
+suspend fun <P : UseCaseParams, T> UseCase<P, T>.execute(
     successBlock: (T) -> Unit,
     failureBlock: (Throwable) -> Unit,
     params: P,

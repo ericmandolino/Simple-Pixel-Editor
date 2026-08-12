@@ -58,7 +58,7 @@ class ApplyBucketUseCaseImpl @Inject constructor() : ApplyBucketUseCase {
     ) {
         val size = pixelMatrix.size
 
-        if (x !in 0..< size || y !in 0..< size) {
+        if (x !in 0..<size || y !in 0..<size) {
             return
         }
 
@@ -80,7 +80,7 @@ class ApplyBucketUseCaseImpl @Inject constructor() : ApplyBucketUseCase {
         y: Int,
         paletteIndexToReplace: Int,
         paletteIndexNew: Int,
-    ) : Boolean {
+    ): Boolean {
         val pixel = pixelMatrix[y][x]
         val pixelPaletteIndex = pixel.paletteIndex
 

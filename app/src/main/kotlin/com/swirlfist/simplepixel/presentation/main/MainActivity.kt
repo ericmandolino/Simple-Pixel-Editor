@@ -29,7 +29,8 @@ private const val DEFAULT_EXPORT_FILE_NAME = "pixelImage.svg"
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject lateinit var savePixelImageUseCase: SavePixelImageUseCase
+    @Inject
+    lateinit var savePixelImageUseCase: SavePixelImageUseCase
     private lateinit var mainViewModel: MainViewModel
     private var currentInteraction: MainViewModelInteraction? = null
     private var pendingInteractionResult: MainViewModelInteractionResult? = null
@@ -128,10 +129,12 @@ class MainActivity : ComponentActivity() {
         val interactionResult = when (activityResult.resultCode) {
             RESULT_OK
                 -> activityResult.data?.data?.let { uri ->
-                    Result.success(uri)
-                } ?: Result.failure(SelectSavePixelImageLocationError(false))
+                Result.success(uri)
+            } ?: Result.failure(SelectSavePixelImageLocationError(false))
+
             RESULT_CANCELED
                 -> Result.failure(SelectSavePixelImageLocationError(true))
+
             else
                 -> Result.failure(SelectSavePixelImageLocationError(false))
         }
@@ -160,8 +163,10 @@ class MainActivity : ComponentActivity() {
                 -> activityResult.data?.data?.let { uri ->
                 Result.success(uri)
             } ?: Result.failure(SelectExportPixelImageLocationError(false))
+
             RESULT_CANCELED
                 -> Result.failure(SelectExportPixelImageLocationError(true))
+
             else
                 -> Result.failure(SelectExportPixelImageLocationError(false))
         }
@@ -189,8 +194,10 @@ class MainActivity : ComponentActivity() {
                 -> activityResult.data?.data?.let { uri ->
                 Result.success(uri)
             } ?: Result.failure(SelectOpenPixelImageLocationError(false))
+
             RESULT_CANCELED
                 -> Result.failure(SelectOpenPixelImageLocationError(true))
+
             else
                 -> Result.failure(SelectOpenPixelImageLocationError(false))
         }

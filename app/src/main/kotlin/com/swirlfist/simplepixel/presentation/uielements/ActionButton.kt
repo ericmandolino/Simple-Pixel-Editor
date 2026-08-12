@@ -40,7 +40,7 @@ fun ActionButton(
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
-    Box (
+    Box(
         modifier = modifier
             .selectedButtonModifier(
                 isSelected,
@@ -264,16 +264,18 @@ private fun Modifier.selectedButtonModifier(
     selectedColor: Color,
 ): Modifier {
     return if (!isSelected) {
-        this.then( other = Modifier
-            .padding(4.dp)
+        this.then(
+            other = Modifier
+                .padding(4.dp)
         )
     } else {
-        this.then( other = Modifier
-            .border(
-                border = BorderStroke(width = 2.dp, color = selectedColor),
-                shape = RoundedCornerShape(4.dp),
-            )
-            .padding(4.dp)
+        this.then(
+            other = Modifier
+                .border(
+                    border = BorderStroke(width = 2.dp, color = selectedColor),
+                    shape = RoundedCornerShape(4.dp),
+                )
+                .padding(4.dp)
         )
     }
 }
