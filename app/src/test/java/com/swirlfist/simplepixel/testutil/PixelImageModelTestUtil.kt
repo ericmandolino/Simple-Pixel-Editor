@@ -1,5 +1,7 @@
 package com.swirlfist.simplepixel.testutil
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toColorLong
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
@@ -9,6 +11,16 @@ import kotlin.math.max
 class PixelImageModelTestUtil {
 
     companion object {
+
+        val paletteColors = listOf(
+            Color.White.toColorLong(),
+            Color.Black.toColorLong(),
+            Color.Red.toColorLong(),
+            Color.Green.toColorLong(),
+            Color.Blue.toColorLong(),
+            Color.Yellow.toColorLong(),
+        )
+
         fun createPixelImageModel(pixelImageString: String): PixelImageModel {
             var maxPaletteIndex = 0
             val rows = mutableListOf<List<PixelModel>>()
@@ -26,18 +38,12 @@ class PixelImageModelTestUtil {
                 rows.add(pixelModelRow.toList())
             }
 
-            val colors = mutableListOf<Long>().apply {
-                for (i in 0..maxPaletteIndex) {
-                    add(i.toLong())
-                }
-            }
-
             return PixelImageModel(
                 pixelMatrixModel = PixelMatrixModel(
                     content = rows.toList()
                 ),
                 paletteModel = PaletteModel(
-                    colors = colors
+                    colors = paletteColors.subList(0, maxPaletteIndex + 1)
                 )
             )
         }

@@ -14,6 +14,8 @@ import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.WriteToFileUseCase
+import com.swirlfist.simplepixel.domain.usecase.WriteToFileUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -32,6 +34,11 @@ abstract class SingletonComponentModule {
     abstract fun bindGetNextZoomFactorUseCase(
         impl: GetNextZoomFactorUseCaseImpl,
     ) : GetNextZoomFactorUseCase
+
+    @Binds
+    abstract fun bindWriteToFileUseCase(
+        impl: WriteToFileUseCaseImpl,
+    ) : WriteToFileUseCase
 
     @Binds
     abstract fun bindSavePixelImageUseCase(

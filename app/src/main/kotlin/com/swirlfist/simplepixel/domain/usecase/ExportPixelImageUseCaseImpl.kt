@@ -1,6 +1,5 @@
 package com.swirlfist.simplepixel.domain.usecase
 
-import android.content.Context
 import android.net.Uri
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.fromColorLong
@@ -12,12 +11,10 @@ import com.swirlfist.simplepixel.domain.model.PixelModel
 import com.swirlfist.simplepixel.presentation.height
 import com.swirlfist.simplepixel.presentation.toHexCode
 import com.swirlfist.simplepixel.presentation.width
-import dagger.hilt.android.qualifiers.ApplicationContext
-import java.io.FileOutputStream
 import javax.inject.Inject
 
 class ExportPixelImageUseCaseImpl @Inject constructor(
-    @ApplicationContext private val applicationContext: Context,
+    private val writeToFileUseCase: WriteToFileUseCase,
 ) : ExportPixelImageUseCase {
     override suspend fun invoke(params: ExportPixelImageUseCase.Params): Result<Unit> {
         return try {
@@ -31,49 +28,54 @@ class ExportPixelImageUseCaseImpl @Inject constructor(
         }
     }
 
-    private fun exportPixelImage(
+    private suspend fun exportPixelImage(
         pixelImageModel: PixelImageModel,
         uri: Uri,
     ) {
-        val contentResolver = applicationContext.contentResolver
+        val stringBuilder = StringBuilder()
+        val pixelMatrix = pixelImageModel.pixelMatrixModel
+        writeHeader(
+            stringBuilder,
+            width = pixelMatrix.width(),
+            height = pixelMatrix.height(),
+        )
+        writeContent(
+            stringBuilder,
+            pixelMatrix,
+            palette = pixelImageModel.paletteModel,
+        )
+        writeFooter(stringBuilder)
 
-        contentResolver.openFileDescriptor(uri, "w")?.use { descriptor ->
-            FileOutputStream(descriptor.fileDescriptor).use { outputStream ->
-                val pixelMatrix = pixelImageModel.pixelMatrixModel
-                writeHeader(
-                    out = outputStream,
-                    width = pixelMatrix.width(),
-                    height = pixelMatrix.height(),
-                )
-                writeContent(
-                    out = outputStream,
-                    pixelMatrix,
-                    palette = pixelImageModel.paletteModel,
-                )
-                writeFooter(outputStream)
-            }
-        }
+        writeToFileUseCase.invoke(
+            WriteToFileUseCase.Params(
+                content = stringBuilder.toString(),
+                uri,
+            )
+        ).fold(
+            onSuccess = {},
+            onFailure = { throwable -> throw throwable }
+        )
     }
 
     private fun writeHeader(
-        out: FileOutputStream,
+        stringBuilder: StringBuilder,
         width: Int,
         height: Int,
     ) {
         val header = """<svg width="$width" height="$height" xmlns="http://www.w3.org/2000/svg">
             |
         """.trimMargin()
-        out.write(header.toByteArray())
+        stringBuilder.append(header)
     }
 
     private fun writeFooter(
-        out: FileOutputStream,
+        stringBuilder: StringBuilder,
     ) {
-        out.write("</svg>".toByteArray())
+        stringBuilder.append("</svg>")
     }
 
     private fun writeContent(
-        out: FileOutputStream,
+        stringBuilder: StringBuilder,
         pixelMatrix: PixelMatrixModel,
         palette: PaletteModel,
     ) {
@@ -83,13 +85,13 @@ class ExportPixelImageUseCaseImpl @Inject constructor(
         pixelMatrix.content.forEachIndexed { rowIndex, row ->
             val y = height - 1 - rowIndex
             row.forEachIndexed { x, pixel ->
-                writePixel(out, pixel, x, y, palette, hexColorMap)
+                writePixel(stringBuilder, pixel, x, y, palette, hexColorMap)
             }
         }
     }
 
     private fun writePixel(
-        out: FileOutputStream,
+        stringBuilder: StringBuilder,
         pixel: PixelModel,
         x: Int,
         y: Int,
@@ -109,7 +111,7 @@ class ExportPixelImageUseCaseImpl @Inject constructor(
         val pixelStr = """  <rect width="1" height="1" x="$x" y="$y" fill="$color" />
             |
         """.trimMargin()
-        out.write(pixelStr.toByteArray())
+        stringBuilder.append(pixelStr)
     }
 
     private fun getHexColor(
