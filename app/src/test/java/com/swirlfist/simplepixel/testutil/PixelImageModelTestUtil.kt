@@ -21,7 +21,10 @@ class PixelImageModelTestUtil {
             Color.Yellow.toColorLong(),
         )
 
-        fun createPixelImageModel(pixelImageString: String): PixelImageModel {
+        fun createPixelImageModel(
+            pixelImageString: String,
+            paletteSize: Int = 0,
+        ): PixelImageModel {
             var maxPaletteIndex = 0
             val rows = mutableListOf<List<PixelModel>>()
 
@@ -43,7 +46,7 @@ class PixelImageModelTestUtil {
                     content = rows.toList()
                 ),
                 paletteModel = PaletteModel(
-                    colors = paletteColors.subList(0, maxPaletteIndex + 1)
+                    colors = paletteColors.subList(0, if (paletteSize > 0) paletteSize else maxPaletteIndex + 1)
                 )
             )
         }
