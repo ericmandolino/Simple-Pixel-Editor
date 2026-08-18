@@ -20,10 +20,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 class ExportPixelImageUseCaseImplTest {
 
     private lateinit var useCase: ExportPixelImageUseCase
-
     @MockK
     private lateinit var uri: Uri
-
     @MockK
     private lateinit var writeToFileUseCase: WriteToFileUseCase
     private val testPixelImageString = """
@@ -45,7 +43,7 @@ class ExportPixelImageUseCaseImplTest {
     }
 
     @Test
-    fun `The use case invokes WriteToFileUseCase with the expected params`() = runTest {
+    fun `the use case invokes WriteToFileUseCase with the expected params`() = runTest {
         // Given
         val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
             pixelImageString = testPixelImageString
@@ -80,7 +78,7 @@ class ExportPixelImageUseCaseImplTest {
     }
 
     @Test
-    fun `When WriteToFileUseCase fails then the use case fails`() = runTest {
+    fun `when WriteToFileUseCase fails then the use case fails`() = runTest {
         // Given
         val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
             pixelImageString = testPixelImageString
