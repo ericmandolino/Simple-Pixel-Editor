@@ -1,10 +1,7 @@
 package com.swirlfist.simplepixel.domain.usecase
 
 import android.net.Uri
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.fromColorLong
-import com.swirlfist.simplepixel.domain.error.ExportPixelImageError
-import com.swirlfist.simplepixel.presentation.toHexCode
+import com.swirlfist.simplepixel.domain.error.SavePixelImageError
 import com.swirlfist.simplepixel.testutil.PixelImageModelTestUtil
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
@@ -17,9 +14,9 @@ import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 
-class ExportPixelImageUseCaseImplTest {
+class SavePixelImageUseCaseImplTest {
 
-    private lateinit var useCase: ExportPixelImageUseCase
+    private lateinit var useCase: SavePixelImageUseCase
 
     @MockK
     private lateinit var uri: Uri
@@ -37,7 +34,7 @@ class ExportPixelImageUseCaseImplTest {
 
     @Before
     fun setup() {
-        useCase = ExportPixelImageUseCaseImpl(
+        useCase = SavePixelImageUseCaseImpl(
             writeToFileUseCase
         )
     }
@@ -48,17 +45,12 @@ class ExportPixelImageUseCaseImplTest {
         val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
             pixelImageString = testPixelImageString
         )
-        val hexColor0 = Color.fromColorLong(PixelImageModelTestUtil.paletteColors[0]).toHexCode()
-        val hexColor1 = Color.fromColorLong(PixelImageModelTestUtil.paletteColors[1]).toHexCode()
+        val color0 = PixelImageModelTestUtil.paletteColors[0]
+        val color1 = PixelImageModelTestUtil.paletteColors[1]
         val expectedContent = """
-            <svg width="2" height="2" xmlns="http://www.w3.org/2000/svg">
-              <rect width="1" height="1" x="0" y="1" fill="$hexColor1" />
-              <rect width="1" height="1" x="1" y="1" fill="$hexColor0" />
-              <rect width="1" height="1" x="0" y="0" fill="$hexColor1" />
-              <rect width="1" height="1" x="1" y="0" fill="$hexColor1" />
-            </svg>
+            {"pixels":[[1,0],[1,1]],"palette":[$color0,$color1]}
         """.trimIndent()
-        val useCaseParams = ExportPixelImageUseCase.Params(
+        val useCaseParams = SavePixelImageUseCase.Params(
             pixelImageModel,
             uri,
         )
@@ -84,7 +76,7 @@ class ExportPixelImageUseCaseImplTest {
         val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
             pixelImageString = testPixelImageString
         )
-        val useCaseParams = ExportPixelImageUseCase.Params(
+        val useCaseParams = SavePixelImageUseCase.Params(
             pixelImageModel,
             uri,
         )
@@ -98,7 +90,7 @@ class ExportPixelImageUseCaseImplTest {
         assertTrue { result.isFailure }
         assertEquals(
             expectedException,
-            (result.exceptionOrNull() as ExportPixelImageError).innerException
+            (result.exceptionOrNull() as SavePixelImageError).innerException
         )
     }
 }

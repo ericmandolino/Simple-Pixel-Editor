@@ -46,7 +46,10 @@ class PixelImageModelTestUtil {
                     content = rows.toList()
                 ),
                 paletteModel = PaletteModel(
-                    colors = paletteColors.subList(0, if (paletteSize > 0) paletteSize else maxPaletteIndex + 1)
+                    colors = paletteColors.subList(
+                        0,
+                        if (paletteSize > 0) paletteSize else maxPaletteIndex + 1
+                    )
                 )
             )
         }

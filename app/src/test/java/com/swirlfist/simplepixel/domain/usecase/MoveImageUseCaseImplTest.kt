@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 
 class MoveImageUseCaseImplTest {
 
-    private lateinit var useCase : MoveImageUseCase
+    private lateinit var useCase: MoveImageUseCase
     private val testPixelImageString = """
     1 2 2 1
     1 1 2 0
