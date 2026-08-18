@@ -1,16 +1,14 @@
 package com.swirlfist.simplepixel.domain.usecase
 
-import android.content.Context
 import android.net.Uri
 import com.swirlfist.simplepixel.domain.error.SavePixelImageError
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
-import dagger.hilt.android.qualifiers.ApplicationContext
+import com.swirlfist.simplepixel.presentation.mapper.toPixelImageSaveModel
 import kotlinx.serialization.json.Json
-import java.io.FileOutputStream
 import javax.inject.Inject
 
 class SavePixelImageUseCaseImpl @Inject constructor(
-    @ApplicationContext private val applicationContext: Context,
+    private val writeToFileUseCase: WriteToFileUseCase,
 ) : SavePixelImageUseCase {
     override suspend fun invoke(params: SavePixelImageUseCase.Params): Result<Unit> {
         return try {
@@ -24,16 +22,17 @@ class SavePixelImageUseCaseImpl @Inject constructor(
         }
     }
 
-    private fun savePixelImage(
+    private suspend fun savePixelImage(
         pixelImageModel: PixelImageModel,
         uri: Uri,
     ) {
-        val contentResolver = applicationContext.contentResolver
+        val content = Json.encodeToString(pixelImageModel.toPixelImageSaveModel())
 
-        contentResolver.openFileDescriptor(uri, "w")?.use { descriptor ->
-            FileOutputStream(descriptor.fileDescriptor).use { outputStream ->
-                outputStream.write(Json.encodeToString(pixelImageModel).toByteArray())
-            }
-        }
+        writeToFileUseCase.invoke(
+            WriteToFileUseCase.Params(
+                content,
+                uri,
+            )
+        ).getOrThrow()
     }
 }

@@ -1,17 +1,15 @@
 package com.swirlfist.simplepixel.domain.usecase
 
-import android.content.Context
 import android.net.Uri
 import com.swirlfist.simplepixel.domain.error.OpenPixelImageError
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
-import dagger.hilt.android.qualifiers.ApplicationContext
+import com.swirlfist.simplepixel.presentation.mapper.toPixelImageModel
+import com.swirlfist.simplepixel.presentation.model.PixelImageSaveModel
 import kotlinx.serialization.json.Json
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import javax.inject.Inject
 
 class OpenPixelImageUseCaseImpl @Inject constructor(
-    @ApplicationContext private val applicationContext: Context,
+    private val readFromFileUseCase: ReadFromFileUseCase,
 ) : OpenPixelImageUseCase {
     override suspend fun invoke(params: OpenPixelImageUseCase.Params): Result<PixelImageModel> {
         return try {
@@ -21,22 +19,15 @@ class OpenPixelImageUseCaseImpl @Inject constructor(
         }
     }
 
-    private fun openPixelImage(
+    private suspend fun openPixelImage(
         uri: Uri,
     ): PixelImageModel {
-        val contentResolver = applicationContext.contentResolver
-
-        val stringBuilder = StringBuilder()
-        contentResolver.openInputStream(uri)?.use { inputStream ->
-            BufferedReader(InputStreamReader(inputStream)).use { reader ->
-                var line: String? = reader.readLine()
-                while (line != null) {
-                    stringBuilder.append(line)
-                    line = reader.readLine()
-                }
-            }
+        return readFromFileUseCase.invoke(
+            params = ReadFromFileUseCase.Params(
+                uri,
+            )
+        ).getOrThrow().let { content ->
+            Json.decodeFromString<PixelImageSaveModel>(content).toPixelImageModel()
         }
-
-        return Json.decodeFromString<PixelImageModel>(stringBuilder.toString())
     }
 }

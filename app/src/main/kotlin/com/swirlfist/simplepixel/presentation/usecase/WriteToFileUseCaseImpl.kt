@@ -11,7 +11,6 @@ import javax.inject.Inject
 class WriteToFileUseCaseImpl @Inject constructor(
     @ApplicationContext private val applicationContext: Context,
 ) : WriteToFileUseCase {
-
     override suspend fun invoke(params: WriteToFileUseCase.Params): Result<Unit> {
         return try {
             writeToFile(
