@@ -1,8 +1,9 @@
-package com.swirlfist.simplepixel.domain.usecase
+package com.swirlfist.simplepixel.presentation.usecase
 
 import android.content.Context
 import android.net.Uri
 import com.swirlfist.simplepixel.domain.error.WriteToFileError
+import com.swirlfist.simplepixel.domain.usecase.WriteToFileUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.FileOutputStream
 import javax.inject.Inject
