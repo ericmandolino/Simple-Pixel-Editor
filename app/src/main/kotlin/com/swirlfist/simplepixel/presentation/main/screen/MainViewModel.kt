@@ -1,11 +1,8 @@
 package com.swirlfist.simplepixel.presentation.main.screen
 
 import android.net.Uri
-import androidx.annotation.MainThread
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swirlfist.simplepixel.domain.model.ActionModel
@@ -61,11 +58,6 @@ class MainViewModel @Inject constructor(
         )
     )
     val mainScreenState = _mainScreenState as StateFlow<MainScreenState>
-
-    private val _interactions = MutableLiveData(
-        listOf<MainViewModelInteraction>()
-    )
-    val interactions = _interactions as LiveData<List<MainViewModelInteraction>>
 
     init {
         _mainScreenState.update { mainScreenState ->
@@ -394,52 +386,69 @@ class MainViewModel @Inject constructor(
     }
 
     private fun selectSavePixelImageLocation() {
-        addInteraction(MainViewModelInteraction.SelectSavePixelImageLocationInteraction)
-    }
-
-    private fun selectExportPixelImageLocation() {
-        addInteraction(MainViewModelInteraction.SelectExportPixelImageLocationInteraction)
-    }
-
-    private fun selectOpenPixelImageLocation() {
-        addInteraction(MainViewModelInteraction.SelectOpenPixelImageLocationInteraction)
-    }
-
-    private fun addInteraction(interaction: MainViewModelInteraction) {
-        val interactions = _interactions.value ?: return
-        _interactions.value = interactions + interaction
-    }
-
-    @MainThread
-    fun onInteractionResult(
-        interaction: MainViewModelInteraction,
-        interactionResult: MainViewModelInteractionResult,
-    ) {
-        val interactions = _interactions.value ?: return
-        _interactions.value = interactions.minus(interaction)
-
-        when (interaction) {
-            MainViewModelInteraction.SelectSavePixelImageLocationInteraction
-                -> onSelectSavePixelImageLocationInteractionResult(
-                interactionResult as MainViewModelInteractionResult.SelectSavePixelImageLocationInteractionResult,
-            )
-
-            MainViewModelInteraction.SelectExportPixelImageLocationInteraction
-                -> onSelectExportPixelImageLocationInteractionResult(
-                interactionResult as MainViewModelInteractionResult.SelectExportPixelImageLocationInteractionResult,
-            )
-
-            MainViewModelInteraction.SelectOpenPixelImageLocationInteraction
-                -> onSelectOpenPixelImageLocationInteractionResult(
-                interactionResult as MainViewModelInteractionResult.SelectOpenPixelImageLocationInteractionResult,
+        _mainScreenState.update { mainScreenState ->
+            mainScreenState.copy(
+                launcherState = mainScreenState.launcherState.copy(
+                    launchSelectSavePixelImage = true,
+                ),
             )
         }
     }
 
-    private fun onSelectSavePixelImageLocationInteractionResult(
-        interactionResult: MainViewModelInteractionResult.SelectSavePixelImageLocationInteractionResult,
+    fun onSelectSavePixelImageLocationLaunched() {
+        _mainScreenState.update { mainScreenState ->
+            mainScreenState.copy(
+                launcherState = mainScreenState.launcherState.copy(
+                    launchSelectSavePixelImage = false,
+                ),
+            )
+        }
+    }
+
+    private fun selectExportPixelImageLocation() {
+        _mainScreenState.update { mainScreenState ->
+            mainScreenState.copy(
+                launcherState = mainScreenState.launcherState.copy(
+                    launchSelectExportPixelImage = true,
+                ),
+            )
+        }
+    }
+
+    fun onSelectExportPixelImageLocationLaunched() {
+        _mainScreenState.update { mainScreenState ->
+            mainScreenState.copy(
+                launcherState = mainScreenState.launcherState.copy(
+                    launchSelectExportPixelImage = false,
+                ),
+            )
+        }
+    }
+
+    private fun selectOpenPixelImageLocation() {
+        _mainScreenState.update { mainScreenState ->
+            mainScreenState.copy(
+                launcherState = mainScreenState.launcherState.copy(
+                    launchSelectOpenPixelImage = true,
+                ),
+            )
+        }
+    }
+
+    fun onSelectOpenPixelImageLocationLaunched() {
+        _mainScreenState.update { mainScreenState ->
+            mainScreenState.copy(
+                launcherState = mainScreenState.launcherState.copy(
+                    launchSelectOpenPixelImage = false,
+                ),
+            )
+        }
+    }
+
+    fun onSelectSavePixelImageLocationResult(
+        result: Result<Uri>,
     ) {
-        interactionResult.result.fold(
+        result.fold(
             onSuccess = { uri ->
                 val pixelImageModel =
                     _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
@@ -467,10 +476,10 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun onSelectExportPixelImageLocationInteractionResult(
-        interactionResult: MainViewModelInteractionResult.SelectExportPixelImageLocationInteractionResult,
+    fun onSelectExportPixelImageLocationResult(
+        result: Result<Uri>,
     ) {
-        interactionResult.result.fold(
+        result.fold(
             onSuccess = { uri ->
                 val pixelImageModel =
                     _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
@@ -498,10 +507,10 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun onSelectOpenPixelImageLocationInteractionResult(
-        interactionResult: MainViewModelInteractionResult.SelectOpenPixelImageLocationInteractionResult,
+    fun onSelectOpenPixelImageLocationResult(
+        result: Result<Uri>,
     ) {
-        interactionResult.result.fold(
+        result.fold(
             onSuccess = { uri ->
                 openPixelImage(uri)
             },

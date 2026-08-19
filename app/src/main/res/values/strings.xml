@@ -18,4 +18,6 @@
     <string name="cd_actions_section_button_undo">Undo last action</string>
     <string name="cd_actions_section_button_zoom_in">Zoom in</string>
     <string name="cd_actions_section_button_zoom_out">Zoom out</string>
+    <string name="new_image">New image</string>
+    <string name="load_image">Load image</string>
 </resources>
