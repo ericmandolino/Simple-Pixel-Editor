@@ -3,6 +3,7 @@ package com.swirlfist.simplepixel.presentation.main.screen
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
 import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -43,6 +44,7 @@ import com.swirlfist.simplepixel.presentation.main.section.CanvasSectionEvent
 import com.swirlfist.simplepixel.presentation.main.section.PixelImagePreviewSection
 import com.swirlfist.simplepixel.presentation.main.state.ActionsSectionState
 import com.swirlfist.simplepixel.presentation.main.state.CanvasSectionState
+import com.swirlfist.simplepixel.presentation.main.state.LauncherState
 import com.swirlfist.simplepixel.presentation.main.state.MainScreenState
 import com.swirlfist.simplepixel.presentation.main.state.PixelImagePreviewSectionState
 import kotlinx.coroutines.CoroutineScope
@@ -62,87 +64,15 @@ fun MainScreen(
     val coroutineScope = rememberCoroutineScope()
     val backNavigationBehavior = BackNavigationBehavior.PopUntilScaffoldValueChange
 
-    val selectSavePixelImageLocationLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { activityResult ->
-        val result = when (activityResult.resultCode) {
-            RESULT_OK
-                -> activityResult.data?.data?.let { uri ->
-                Result.success(uri)
-            } ?: Result.failure(SelectSavePixelImageLocationError(false))
-
-            RESULT_CANCELED
-                -> Result.failure(SelectSavePixelImageLocationError(true))
-
-            else
-                -> Result.failure(SelectSavePixelImageLocationError(false))
-        }
-        viewModel.onSelectSavePixelImageLocationResult(result)
-    }
-
-    val selectExportPixelImageLocationLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { activityResult ->
-        val result = when (activityResult.resultCode) {
-            RESULT_OK
-                -> activityResult.data?.data?.let { uri ->
-                Result.success(uri)
-            } ?: Result.failure(SelectExportPixelImageLocationError(false))
-
-            RESULT_CANCELED
-                -> Result.failure(SelectExportPixelImageLocationError(true))
-
-            else
-                -> Result.failure(SelectExportPixelImageLocationError(false))
-        }
-        viewModel.onSelectExportPixelImageLocationResult(result)
-    }
-
-    val selectOpenPixelImageLocationLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { activityResult ->
-        val result = when (activityResult.resultCode) {
-            RESULT_OK
-                -> activityResult.data?.data?.let { uri ->
-                    Result.success(uri)
-            } ?: Result.failure(SelectOpenPixelImageLocationError(false))
-
-            RESULT_CANCELED
-                -> Result.failure(SelectOpenPixelImageLocationError(true))
-
-            else
-                -> Result.failure(SelectOpenPixelImageLocationError(false))
-        }
-        viewModel.onSelectOpenPixelImageLocationResult(result)
-    }
-
-    val launcherState = mainScreenState.launcherState
-    LaunchedEffect(launcherState) {
-        if (launcherState.launchSelectSavePixelImage) {
-            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                addCategory(Intent.CATEGORY_OPENABLE)
-                type = "*/*"
-                putExtra(Intent.EXTRA_TITLE, DEFAULT_SAVE_FILE_NAME)
-            }
-            selectSavePixelImageLocationLauncher.launch(intent)
-            viewModel.onSelectSavePixelImageLocationLaunched()
-        } else if (launcherState.launchSelectExportPixelImage) {
-            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                addCategory(Intent.CATEGORY_OPENABLE)
-                type = "*/*"
-                putExtra(Intent.EXTRA_TITLE, DEFAULT_EXPORT_FILE_NAME)
-            }
-            selectExportPixelImageLocationLauncher.launch(intent)
-            viewModel.onSelectExportPixelImageLocationLaunched()
-        } else if (launcherState.launchSelectOpenPixelImage) {
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                addCategory(Intent.CATEGORY_OPENABLE)
-                type = "*/*"
-            }
-            selectOpenPixelImageLocationLauncher.launch(intent)
-            viewModel.onSelectOpenPixelImageLocationLaunched()
-        }
-    }
+    Launchers(
+        mainScreenState.launcherState,
+        onSelectSavePixelImageLocationResult = viewModel::onSelectSavePixelImageLocationResult,
+        onSelectExportPixelImageLocationResult = viewModel::onSelectExportPixelImageLocationResult,
+        onSelectOpenPixelImageLocationResult = viewModel::onSelectOpenPixelImageLocationResult,
+        onSelectSavePixelImageLocationLaunched = viewModel::onSelectSavePixelImageLocationLaunched,
+        onSelectExportPixelImageLocationLaunched = viewModel::onSelectExportPixelImageLocationLaunched,
+        onSelectOpenPixelImageLocationLaunched = viewModel::onSelectOpenPixelImageLocationLaunched,
+    )
 
     SupportingPaneScaffold(
         modifier = Modifier
@@ -182,6 +112,98 @@ fun MainScreen(
             )
         }
     )
+}
+
+@Composable
+fun Launchers(
+    launcherState: LauncherState,
+    onSelectSavePixelImageLocationResult: (Result<Uri>) -> Unit,
+    onSelectExportPixelImageLocationResult: (Result<Uri>) -> Unit,
+    onSelectOpenPixelImageLocationResult: (Result<Uri>) -> Unit,
+    onSelectSavePixelImageLocationLaunched: () -> Unit,
+    onSelectExportPixelImageLocationLaunched: () -> Unit,
+    onSelectOpenPixelImageLocationLaunched: () -> Unit,
+) {
+    val selectSavePixelImageLocationLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { activityResult ->
+        val result = when (activityResult.resultCode) {
+            RESULT_OK
+                -> activityResult.data?.data?.let { uri ->
+                Result.success(uri)
+            } ?: Result.failure(SelectSavePixelImageLocationError(false))
+
+            RESULT_CANCELED
+                -> Result.failure(SelectSavePixelImageLocationError(true))
+
+            else
+                -> Result.failure(SelectSavePixelImageLocationError(false))
+        }
+        onSelectSavePixelImageLocationResult(result)
+    }
+
+    val selectExportPixelImageLocationLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { activityResult ->
+        val result = when (activityResult.resultCode) {
+            RESULT_OK
+                -> activityResult.data?.data?.let { uri ->
+                Result.success(uri)
+            } ?: Result.failure(SelectExportPixelImageLocationError(false))
+
+            RESULT_CANCELED
+                -> Result.failure(SelectExportPixelImageLocationError(true))
+
+            else
+                -> Result.failure(SelectExportPixelImageLocationError(false))
+        }
+        onSelectExportPixelImageLocationResult(result)
+    }
+
+    val selectOpenPixelImageLocationLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { activityResult ->
+        val result = when (activityResult.resultCode) {
+            RESULT_OK
+                -> activityResult.data?.data?.let { uri ->
+                Result.success(uri)
+            } ?: Result.failure(SelectOpenPixelImageLocationError(false))
+
+            RESULT_CANCELED
+                -> Result.failure(SelectOpenPixelImageLocationError(true))
+
+            else
+                -> Result.failure(SelectOpenPixelImageLocationError(false))
+        }
+        onSelectOpenPixelImageLocationResult(result)
+    }
+
+    LaunchedEffect(launcherState) {
+        if (launcherState.launchSelectSavePixelImage) {
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "*/*"
+                putExtra(Intent.EXTRA_TITLE, DEFAULT_SAVE_FILE_NAME)
+            }
+            selectSavePixelImageLocationLauncher.launch(intent)
+            onSelectSavePixelImageLocationLaunched()
+        } else if (launcherState.launchSelectExportPixelImage) {
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "*/*"
+                putExtra(Intent.EXTRA_TITLE, DEFAULT_EXPORT_FILE_NAME)
+            }
+            selectExportPixelImageLocationLauncher.launch(intent)
+            onSelectExportPixelImageLocationLaunched()
+        } else if (launcherState.launchSelectOpenPixelImage) {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "*/*"
+            }
+            selectOpenPixelImageLocationLauncher.launch(intent)
+            onSelectOpenPixelImageLocationLaunched()
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
