@@ -4,10 +4,10 @@ data class MainScreenState(
     val canvasSectionState: CanvasSectionState,
     val actionsSectionState: ActionsSectionState,
     val pixelImagePreviewSectionState: PixelImagePreviewSectionState,
-    val launcherState: LauncherState = LauncherState(),
+    val launcherState: MainScreenLauncherState = MainScreenLauncherState(),
 )
 
-data class LauncherState(
+data class MainScreenLauncherState(
     val launchSelectSavePixelImage: Boolean = false,
     val launchSelectExportPixelImage: Boolean = false,
     val launchSelectOpenPixelImage: Boolean = false,
