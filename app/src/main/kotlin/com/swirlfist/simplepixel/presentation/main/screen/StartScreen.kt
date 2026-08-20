@@ -47,7 +47,7 @@ fun StartScreenContent(
             onClick = onNewImageClick,
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_actions_section_open_pixel_image_24dp),
+                painter = painterResource(R.drawable.ic_actions_section_new_pixel_image_24dp),
                 contentDescription = stringResource(R.string.cd_actions_section_button_open_pixel_image),
             )
             Spacer(modifier = Modifier.width(8.dp))

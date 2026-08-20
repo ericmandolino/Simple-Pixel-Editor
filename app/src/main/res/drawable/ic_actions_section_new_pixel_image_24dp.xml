@@ -4,40 +4,16 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
   <path
-      android:pathData="M13,21h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M14,21h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M15,21h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
       android:pathData="M16,21h1v1h-1z"
       android:fillColor="#000000"/>
   <path
-      android:pathData="M11,20h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M12,20h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M13,20h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M14,20h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M15,20h1v1h-1z"
+      android:pathData="M17,21h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M16,20h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M17,20h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M18,20h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M5,19h1v1h-1z"
@@ -52,16 +28,19 @@
       android:pathData="M8,19h1v1h-1z"
       android:fillColor="#000000"/>
   <path
+      android:pathData="M9,19h1v1h-1z"
+      android:fillColor="#000000"/>
+  <path
+      android:pathData="M10,19h1v1h-1z"
+      android:fillColor="#000000"/>
+  <path
       android:pathData="M11,19h1v1h-1z"
       android:fillColor="#000000"/>
   <path
-      android:pathData="M12,19h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M13,19h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
       android:pathData="M14,19h1v1h-1z"
+      android:fillColor="#000000"/>
+  <path
+      android:pathData="M15,19h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M16,19h1v1h-1z"
@@ -71,6 +50,9 @@
       android:fillColor="#000000"/>
   <path
       android:pathData="M18,19h1v1h-1z"
+      android:fillColor="#000000"/>
+  <path
+      android:pathData="M19,19h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M4,18h1v1h-1z"
@@ -88,19 +70,22 @@
       android:pathData="M8,18h1v1h-1z"
       android:fillColor="#000000"/>
   <path
+      android:pathData="M9,18h1v1h-1z"
+      android:fillColor="#000000"/>
+  <path
       android:pathData="M10,18h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M11,18h1v1h-1z"
       android:fillColor="#000000"/>
   <path
-      android:pathData="M12,18h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M13,18h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
       android:pathData="M14,18h1v1h-1z"
+      android:fillColor="#000000"/>
+  <path
+      android:pathData="M15,18h1v1h-1z"
+      android:fillColor="#000000"/>
+  <path
+      android:pathData="M16,18h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M17,18h1v1h-1z"
@@ -118,16 +103,10 @@
       android:pathData="M5,17h1v1h-1z"
       android:fillColor="#000000"/>
   <path
-      android:pathData="M10,17h1v1h-1z"
+      android:pathData="M16,17h1v1h-1z"
       android:fillColor="#000000"/>
   <path
-      android:pathData="M11,17h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M18,17h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M19,17h1v1h-1z"
+      android:pathData="M17,17h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M4,16h1v1h-1z"
@@ -136,16 +115,10 @@
       android:pathData="M5,16h1v1h-1z"
       android:fillColor="#000000"/>
   <path
-      android:pathData="M10,16h1v1h-1z"
+      android:pathData="M16,16h1v1h-1z"
       android:fillColor="#000000"/>
   <path
-      android:pathData="M11,16h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M18,16h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M19,16h1v1h-1z"
+      android:pathData="M17,16h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M4,15h1v1h-1z"
@@ -154,55 +127,10 @@
       android:pathData="M5,15h1v1h-1z"
       android:fillColor="#000000"/>
   <path
-      android:pathData="M10,15h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M11,15h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M12,15h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M13,15h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M14,15h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M17,15h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M18,15h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M19,15h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
       android:pathData="M4,14h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M5,14h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M11,14h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M12,14h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M13,14h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M14,14h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M16,14h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M17,14h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M18,14h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M4,13h1v1h-1z"
@@ -211,28 +139,10 @@
       android:pathData="M5,13h1v1h-1z"
       android:fillColor="#000000"/>
   <path
-      android:pathData="M11,13h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M12,13h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M13,13h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M14,13h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M15,13h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
       android:pathData="M16,13h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M17,13h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M18,13h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M4,12h1v1h-1z"
@@ -241,22 +151,22 @@
       android:pathData="M5,12h1v1h-1z"
       android:fillColor="#000000"/>
   <path
-      android:pathData="M13,12h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M14,12h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M15,12h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
       android:pathData="M16,12h1v1h-1z"
+      android:fillColor="#000000"/>
+  <path
+      android:pathData="M17,12h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M4,11h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M5,11h1v1h-1z"
+      android:fillColor="#000000"/>
+  <path
+      android:pathData="M16,11h1v1h-1z"
+      android:fillColor="#000000"/>
+  <path
+      android:pathData="M17,11h1v1h-1z"
       android:fillColor="#000000"/>
   <path
       android:pathData="M4,10h1v1h-1z"
