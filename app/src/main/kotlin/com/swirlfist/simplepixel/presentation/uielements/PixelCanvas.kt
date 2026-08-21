@@ -667,28 +667,3 @@ fun createCheckersPixelImage(
         paletteModel = PaletteModel(listOf(color1, color2)),
     )
 }
-
-fun createEmptyPixelImage(
-    width: Int,
-    height: Int,
-    color1: Long,
-    color2: Long,
-): PixelImageModel {
-    val rows = mutableListOf<List<PixelModel>>()
-    repeat(height) {
-        val row = mutableListOf<PixelModel>()
-        repeat(width) {
-            row.add(
-                PixelModel(-1)
-            )
-        }
-        rows.add(row)
-    }
-
-    return PixelImageModel(
-        pixelMatrixModel = PixelMatrixModel(
-            content = rows
-        ),
-        paletteModel = PaletteModel(listOf(color1, color2)),
-    )
-}

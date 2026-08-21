@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.swirlfist.simplepixel.data.repository.BasePixelImageRepository
 import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
 import com.swirlfist.simplepixel.domain.model.PaletteModel
@@ -29,7 +30,6 @@ import com.swirlfist.simplepixel.presentation.main.state.ActionsSectionState
 import com.swirlfist.simplepixel.presentation.main.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.main.state.MainScreenState
 import com.swirlfist.simplepixel.presentation.main.state.PixelImagePreviewSectionState
-import com.swirlfist.simplepixel.presentation.uielements.createEmptyPixelImage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,6 +42,7 @@ private const val ERASER_TOOL_PALETTE_INDEX = EMPTY_PIXEL_PALETTE_INDEX
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
+    private val basePixelImageRepository: BasePixelImageRepository,
     private val savePixelImageUseCase: SavePixelImageUseCase,
     private val exportPixelImageUseCase: ExportPixelImageUseCase,
     private val openPixelImageUseCase: OpenPixelImageUseCase,
@@ -60,15 +61,14 @@ class MainViewModel @Inject constructor(
     val mainScreenState = _mainScreenState as StateFlow<MainScreenState>
 
     init {
-        _mainScreenState.update { mainScreenState ->
-            val palette =
-                PaletteModel(colors = listOf(Color.Black.toColorLong(), Color.White.toColorLong()))
-            val pixelImageModel = createEmptyPixelImage(
+        val pixelImageModel = basePixelImageRepository.getBasePixelImage() ?:
+            PixelImageModel.createEmpty(
                 width = 24,
                 height = 24,
-                color1 = palette.colors[0],
-                color2 = palette.colors[1],
+                colors = listOf(Color.Black.toColorLong(), Color.White.toColorLong()),
             )
+
+        _mainScreenState.update { mainScreenState ->
             val zoomFactor = DEFAULT_ZOOM_FACTOR
             mainScreenState.copy(
                 canvasSectionState = mainScreenState.canvasSectionState.copy(
@@ -81,7 +81,7 @@ class MainViewModel @Inject constructor(
                     actionModels = mapOf(
                         ActionButtonType.OpenPaletteActionButtonType to ActionModel.SelectableButtonGroupActionModel(
                             actionType = ActionButtonType.OpenPaletteActionButtonType,
-                            childButtonActionModels = palette.createPaletteButtons(),
+                            childButtonActionModels = pixelImageModel.paletteModel.createPaletteButtons(),
                         ),
                         ActionButtonType.OpenToolsActionButtonType to ActionModel.SelectableButtonGroupActionModel(
                             actionType = ActionButtonType.OpenToolsActionButtonType,
@@ -466,7 +466,9 @@ class MainViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             savePixelImageUseCase.execute(
-                successBlock = { }, // TODO
+                successBlock = {
+                    basePixelImageRepository.updateBasePixelImage(pixelImageModel)
+                },
                 failureBlock = { }, // TODO
                 params = SavePixelImageUseCase.Params(
                     pixelImageModel,

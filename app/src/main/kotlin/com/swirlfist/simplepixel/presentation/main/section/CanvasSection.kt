@@ -6,11 +6,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.tooling.preview.Preview
+import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.presentation.main.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import com.swirlfist.simplepixel.presentation.uielements.PixelCanvas
 import com.swirlfist.simplepixel.presentation.uielements.createCheckersPixelImage
-import com.swirlfist.simplepixel.presentation.uielements.createEmptyPixelImage
 
 @Composable
 fun CanvasSection(
@@ -61,11 +61,10 @@ fun CanvasSectionEmptyImagePreview() {
         CanvasSection(
             modifier = Modifier.fillMaxSize(),
             state = CanvasSectionState().copy(
-                pixelImageModel = createEmptyPixelImage(
+                pixelImageModel = PixelImageModel.createEmpty(
                     width = 4,
                     height = 4,
-                    color1 = Color.Black.toColorLong(),
-                    color2 = Color.Yellow.toColorLong(),
+                    colors = listOf(Color.Black.toColorLong(), Color.Yellow.toColorLong()),
                 ),
                 zoomFactor = 1F,
                 isShowCoordinatesEnabled = true,

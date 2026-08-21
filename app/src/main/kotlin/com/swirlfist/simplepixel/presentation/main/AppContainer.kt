@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
 object Start
 
 @Serializable
-object Main
+data object Main
 
 @Composable
 fun SimplePixelApp() {
@@ -23,7 +23,7 @@ fun SimplePixelApp() {
     ) {
         composable<Start> {
             StartScreen(
-                onNavigateToMain = {
+                navigateToMain = {
                     navController.navigate(
                         route = Main,
                     )

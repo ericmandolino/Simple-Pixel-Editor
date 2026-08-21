@@ -31,6 +31,7 @@ class WriteToFileUseCaseImpl @Inject constructor(
 
         contentResolver.openFileDescriptor(uri, "w")?.use { descriptor ->
             FileOutputStream(descriptor.fileDescriptor).use { outputStream ->
+                outputStream.channel.truncate(0)
                 outputStream.write(content.toByteArray())
             }
         }

@@ -6,11 +6,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.tooling.preview.Preview
+import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.presentation.main.state.PixelImagePreviewSectionState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import com.swirlfist.simplepixel.presentation.uielements.PixelCanvasSnapshot
 import com.swirlfist.simplepixel.presentation.uielements.createCheckersPixelImage
-import com.swirlfist.simplepixel.presentation.uielements.createEmptyPixelImage
 
 @Composable
 fun PixelImagePreviewSection(
@@ -73,11 +73,10 @@ fun PixelImagePreviewSectionEmptyNoFitPreview() {
         PixelImagePreviewSection(
             modifier = Modifier.fillMaxSize(),
             state = PixelImagePreviewSectionState().copy(
-                pixelImageModel = createEmptyPixelImage(
+                pixelImageModel = PixelImageModel.createEmpty(
                     width = 64,
                     height = 64,
-                    color1 = Color.Black.toColorLong(),
-                    color2 = Color.Yellow.toColorLong(),
+                    colors = listOf(Color.Black.toColorLong(), Color.Yellow.toColorLong()),
                 ),
                 isFitAvailableSpace = false,
             ),
