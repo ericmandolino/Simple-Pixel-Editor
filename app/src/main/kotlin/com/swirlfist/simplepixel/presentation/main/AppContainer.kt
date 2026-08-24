@@ -3,8 +3,10 @@ package com.swirlfist.simplepixel.presentation.main
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import com.swirlfist.simplepixel.presentation.main.screen.MainScreen
+import com.swirlfist.simplepixel.presentation.main.screen.NewImageScreen
 import com.swirlfist.simplepixel.presentation.main.screen.StartScreen
 import kotlinx.serialization.Serializable
 
@@ -12,7 +14,10 @@ import kotlinx.serialization.Serializable
 object Start
 
 @Serializable
-data object Main
+object Main
+
+@Serializable
+object NewImage
 
 @Composable
 fun SimplePixelApp() {
@@ -23,6 +28,11 @@ fun SimplePixelApp() {
     ) {
         composable<Start> {
             StartScreen(
+                navigateToNewImage = {
+                    navController.navigate(
+                        route = NewImage,
+                    )
+                },
                 navigateToMain = {
                     navController.navigate(
                         route = Main,
@@ -32,6 +42,16 @@ fun SimplePixelApp() {
         }
         composable<Main> {
             MainScreen()
+        }
+        dialog<NewImage> {
+            NewImageScreen(
+                navigateToMain = {
+                    navController.popBackStack()
+                    navController.navigate(
+                        route = Main,
+                    )
+                }
+            )
         }
     }
 }

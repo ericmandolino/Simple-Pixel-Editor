@@ -22,4 +22,8 @@
     <string name="new_image">New image</string>
     <string name="load_image">Load image</string>
     <string name="loading_image">Loading image…</string>
+    <string name="input_width">Width</string>
+    <string name="input_height">Height</string>
+    <string name="input_dimension_range">%d up to %d</string>
+    <string name="create">Create</string>
 </resources>

@@ -36,6 +36,7 @@ import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 @Composable
 fun StartScreen(
     viewModel: StartViewModel = hiltViewModel(),
+    navigateToNewImage: () -> Unit,
     navigateToMain: () -> Unit,
 ) {
     val startScreenState = viewModel.startScreenState.collectAsStateWithLifecycle().value
@@ -57,7 +58,7 @@ fun StartScreen(
         StartScreenLoadingImage()
     } else {
         StartScreenContent(
-            onNewImageClick = { navigateToMain() },//viewModel::openNewImageModal,
+            onNewImageClick = { navigateToNewImage() },
             onLoadImageClick = viewModel::openImageSelection,
         )
     }

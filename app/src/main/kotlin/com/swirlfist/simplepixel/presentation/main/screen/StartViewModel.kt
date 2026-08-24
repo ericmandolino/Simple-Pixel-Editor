@@ -8,7 +8,7 @@ import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
 import com.swirlfist.simplepixel.presentation.main.state.StartScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,11 +21,7 @@ class StartViewModel @Inject constructor(
     private val _startScreenState = MutableStateFlow(
         value = StartScreenState()
     )
-    val startScreenState = _startScreenState as StateFlow<StartScreenState>
-
-    fun openNewImageModal() {
-
-    }
+    val startScreenState = _startScreenState.asStateFlow()
 
     fun openImageSelection() {
         _startScreenState.update { startScreenState ->

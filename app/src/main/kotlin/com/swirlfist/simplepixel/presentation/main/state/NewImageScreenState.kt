@@ -1,0 +1,9 @@
+package com.swirlfist.simplepixel.presentation.main.state
+
+import androidx.compose.foundation.text.input.TextFieldState
+
+data class NewImageScreenState(
+    val isNavigateToMainExpected: Boolean = false,
+    val widthTextFieldState: TextFieldState? = null,
+    val heightTextFieldState: TextFieldState? = null,
+)

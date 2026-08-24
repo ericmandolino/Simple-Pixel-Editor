@@ -32,7 +32,7 @@ import com.swirlfist.simplepixel.presentation.main.state.MainScreenState
 import com.swirlfist.simplepixel.presentation.main.state.PixelImagePreviewSectionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -58,7 +58,7 @@ class MainViewModel @Inject constructor(
             pixelImagePreviewSectionState = PixelImagePreviewSectionState(),
         )
     )
-    val mainScreenState = _mainScreenState as StateFlow<MainScreenState>
+    val mainScreenState = _mainScreenState.asStateFlow()
 
     init {
         val pixelImageModel = basePixelImageRepository.getBasePixelImage() ?:
