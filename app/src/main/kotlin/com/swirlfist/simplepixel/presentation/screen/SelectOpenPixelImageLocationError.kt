@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel.presentation.main.screen
+package com.swirlfist.simplepixel.presentation.screen
 
 class SelectOpenPixelImageLocationError(
     val isUserCancelled: Boolean,

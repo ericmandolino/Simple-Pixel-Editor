@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel.presentation.main
+package com.swirlfist.simplepixel.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import dagger.hilt.android.AndroidEntryPoint
-
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

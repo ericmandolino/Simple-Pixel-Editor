@@ -1,5 +1,6 @@
-package com.swirlfist.simplepixel.presentation.main.section
+package com.swirlfist.simplepixel.presentation.section
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,7 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.domain.model.PaletteModel
-import com.swirlfist.simplepixel.presentation.main.state.ActionsSectionState
+import com.swirlfist.simplepixel.presentation.state.ActionsSectionState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import com.swirlfist.simplepixel.presentation.uielements.ActionButton
 
@@ -201,7 +202,7 @@ fun ActionsSectionPreview() {
                 )
             ),
         ) { actionType ->
-            android.util.Log.d("ActionsSection", "action: $actionType")
+            Log.d("ActionsSection", "action: $actionType")
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel.presentation.main.screen
+package com.swirlfist.simplepixel.presentation.screen
 
 import android.net.Uri
 import androidx.compose.ui.graphics.Color
@@ -23,13 +23,13 @@ import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.createPaletteButtons
-import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
-import com.swirlfist.simplepixel.presentation.main.section.ActionSectionEvent
-import com.swirlfist.simplepixel.presentation.main.section.CanvasSectionEvent
-import com.swirlfist.simplepixel.presentation.main.state.ActionsSectionState
-import com.swirlfist.simplepixel.presentation.main.state.CanvasSectionState
-import com.swirlfist.simplepixel.presentation.main.state.MainScreenState
-import com.swirlfist.simplepixel.presentation.main.state.PixelImagePreviewSectionState
+import com.swirlfist.simplepixel.presentation.section.ActionButtonType
+import com.swirlfist.simplepixel.presentation.section.ActionSectionEvent
+import com.swirlfist.simplepixel.presentation.section.CanvasSectionEvent
+import com.swirlfist.simplepixel.presentation.state.ActionsSectionState
+import com.swirlfist.simplepixel.presentation.state.CanvasSectionState
+import com.swirlfist.simplepixel.presentation.state.MainScreenState
+import com.swirlfist.simplepixel.presentation.state.PixelImagePreviewSectionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

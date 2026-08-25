@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel.presentation.main.screen
+package com.swirlfist.simplepixel.presentation.screen
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -30,7 +30,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swirlfist.simplepixel.R
 import com.swirlfist.simplepixel.presentation.launcher.OpenPixelImageLocationLauncher
-import com.swirlfist.simplepixel.presentation.main.state.StartScreenLauncherState
+import com.swirlfist.simplepixel.presentation.state.StartScreenLauncherState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 
 @Composable

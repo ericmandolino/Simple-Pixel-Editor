@@ -13,8 +13,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.swirlfist.simplepixel.R
 import com.swirlfist.simplepixel.domain.model.PaletteModel
-import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
-import com.swirlfist.simplepixel.presentation.main.section.ActionIconButtonType
+import com.swirlfist.simplepixel.presentation.section.ActionButtonType
+import com.swirlfist.simplepixel.presentation.section.ActionIconButtonType
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 
 @Composable

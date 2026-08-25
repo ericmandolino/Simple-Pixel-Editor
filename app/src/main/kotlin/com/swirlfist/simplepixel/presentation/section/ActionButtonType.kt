@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel.presentation.main.section
+package com.swirlfist.simplepixel.presentation.section
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes

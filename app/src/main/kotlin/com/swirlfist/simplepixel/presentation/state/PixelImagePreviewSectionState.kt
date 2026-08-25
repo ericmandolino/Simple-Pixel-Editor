@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel.presentation.main.state
+package com.swirlfist.simplepixel.presentation.state
 
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 

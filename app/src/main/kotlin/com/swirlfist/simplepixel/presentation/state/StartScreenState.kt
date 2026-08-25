@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel.presentation.main.state
+package com.swirlfist.simplepixel.presentation.state
 
 data class StartScreenState(
     val isNavigateToMainExpected: Boolean = false,

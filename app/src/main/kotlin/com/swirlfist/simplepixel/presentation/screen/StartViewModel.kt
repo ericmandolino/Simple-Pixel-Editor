@@ -1,11 +1,11 @@
-package com.swirlfist.simplepixel.presentation.main.screen
+package com.swirlfist.simplepixel.presentation.screen
 
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swirlfist.simplepixel.data.repository.BasePixelImageRepository
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
-import com.swirlfist.simplepixel.presentation.main.state.StartScreenState
+import com.swirlfist.simplepixel.presentation.state.StartScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

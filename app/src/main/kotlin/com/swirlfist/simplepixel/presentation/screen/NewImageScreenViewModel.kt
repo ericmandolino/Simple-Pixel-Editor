@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel.presentation.main.screen
+package com.swirlfist.simplepixel.presentation.screen
 
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.ui.graphics.Color
@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.toColorLong
 import androidx.lifecycle.ViewModel
 import com.swirlfist.simplepixel.data.repository.BasePixelImageRepository
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
-import com.swirlfist.simplepixel.presentation.main.state.NewImageScreenState
+import com.swirlfist.simplepixel.presentation.state.NewImageScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

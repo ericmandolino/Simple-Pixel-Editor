@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel.presentation.main.screen
+package com.swirlfist.simplepixel.presentation.screen
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -37,15 +37,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swirlfist.simplepixel.presentation.launcher.ExportPixelImageLocationLauncher
 import com.swirlfist.simplepixel.presentation.launcher.OpenPixelImageLocationLauncher
 import com.swirlfist.simplepixel.presentation.launcher.SavePixelImageLocationLauncher
-import com.swirlfist.simplepixel.presentation.main.section.ActionSectionEvent
-import com.swirlfist.simplepixel.presentation.main.section.ActionsSection
-import com.swirlfist.simplepixel.presentation.main.section.CanvasSection
-import com.swirlfist.simplepixel.presentation.main.section.CanvasSectionEvent
-import com.swirlfist.simplepixel.presentation.main.section.PixelImagePreviewSection
-import com.swirlfist.simplepixel.presentation.main.state.ActionsSectionState
-import com.swirlfist.simplepixel.presentation.main.state.CanvasSectionState
-import com.swirlfist.simplepixel.presentation.main.state.MainScreenLauncherState
-import com.swirlfist.simplepixel.presentation.main.state.PixelImagePreviewSectionState
+import com.swirlfist.simplepixel.presentation.section.ActionSectionEvent
+import com.swirlfist.simplepixel.presentation.section.ActionsSection
+import com.swirlfist.simplepixel.presentation.section.CanvasSection
+import com.swirlfist.simplepixel.presentation.section.CanvasSectionEvent
+import com.swirlfist.simplepixel.presentation.section.PixelImagePreviewSection
+import com.swirlfist.simplepixel.presentation.state.ActionsSectionState
+import com.swirlfist.simplepixel.presentation.state.CanvasSectionState
+import com.swirlfist.simplepixel.presentation.state.MainScreenLauncherState
+import com.swirlfist.simplepixel.presentation.state.PixelImagePreviewSectionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

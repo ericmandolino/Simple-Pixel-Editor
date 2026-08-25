@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel.presentation.main.state
+package com.swirlfist.simplepixel.presentation.state
 
 data class MainScreenState(
     val canvasSectionState: CanvasSectionState,

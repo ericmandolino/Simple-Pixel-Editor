@@ -1,4 +1,4 @@
-package com.swirlfist.simplepixel.presentation.main.section
+package com.swirlfist.simplepixel.presentation.section
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.tooling.preview.Preview
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
-import com.swirlfist.simplepixel.presentation.main.state.PixelImagePreviewSectionState
+import com.swirlfist.simplepixel.presentation.state.PixelImagePreviewSectionState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import com.swirlfist.simplepixel.presentation.uielements.PixelCanvasSnapshot
 import com.swirlfist.simplepixel.presentation.uielements.createCheckersPixelImage

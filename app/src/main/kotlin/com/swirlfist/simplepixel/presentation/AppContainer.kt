@@ -1,13 +1,13 @@
-package com.swirlfist.simplepixel.presentation.main
+package com.swirlfist.simplepixel.presentation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
-import com.swirlfist.simplepixel.presentation.main.screen.MainScreen
-import com.swirlfist.simplepixel.presentation.main.screen.NewImageScreen
-import com.swirlfist.simplepixel.presentation.main.screen.StartScreen
+import com.swirlfist.simplepixel.presentation.screen.MainScreen
+import com.swirlfist.simplepixel.presentation.screen.NewImageScreen
+import com.swirlfist.simplepixel.presentation.screen.StartScreen
 import kotlinx.serialization.Serializable
 
 @Serializable

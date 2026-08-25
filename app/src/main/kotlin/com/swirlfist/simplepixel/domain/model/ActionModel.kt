@@ -1,6 +1,6 @@
 package com.swirlfist.simplepixel.domain.model
 
-import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
+import com.swirlfist.simplepixel.presentation.section.ActionButtonType
 
 sealed interface ActionModel {
     val actionType: ActionButtonType

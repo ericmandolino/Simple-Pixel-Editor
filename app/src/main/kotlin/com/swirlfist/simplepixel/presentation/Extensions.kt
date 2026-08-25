@@ -6,7 +6,7 @@ import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
-import com.swirlfist.simplepixel.presentation.main.section.ActionButtonType
+import com.swirlfist.simplepixel.presentation.section.ActionButtonType
 
 private const val HEX_FORMAT = "#%02x%02x%02x"
 

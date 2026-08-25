@@ -5,7 +5,7 @@ import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.result.ActivityResult
-import com.swirlfist.simplepixel.presentation.main.screen.SelectOpenPixelImageLocationError
+import com.swirlfist.simplepixel.presentation.screen.SelectOpenPixelImageLocationError
 
 class OpenPixelImageLocationLauncher {
     companion object {
