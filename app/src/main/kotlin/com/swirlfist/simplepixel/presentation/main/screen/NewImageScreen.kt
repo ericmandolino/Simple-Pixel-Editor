@@ -72,8 +72,10 @@ fun NewImageScreen(
         }
     }
 
-    val widthTextFieldState = rememberTextFieldState(initialText = DIMENSION_VALUE_DEFAULT.toString())
-    val heightTextFieldState = rememberTextFieldState(initialText = DIMENSION_VALUE_DEFAULT.toString())
+    val widthTextFieldState =
+        rememberTextFieldState(initialText = DIMENSION_VALUE_DEFAULT.toString())
+    val heightTextFieldState =
+        rememberTextFieldState(initialText = DIMENSION_VALUE_DEFAULT.toString())
 
     viewModel.updateTextFieldStates(
         widthTextFieldState,
@@ -132,7 +134,7 @@ fun NewImageScreenContent(
                 shape = RoundedCornerShape(4.dp),
             )
             .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         ImageSize(
             modifier = sectionModifier,
@@ -152,10 +154,15 @@ fun NewImageScreenContent(
             onColorComponentBlueSliderChange,
         )
 
+        val isCreateButtonEnabled =
+            widthTextFieldState.text.isNotBlank() &&
+                    heightTextFieldState.text.isNotBlank() &&
+                    paletteColors.isNotEmpty()
+
         TextButton(
             modifier = Modifier
                 .align(Alignment.End),
-            enabled = paletteColors.isNotEmpty(),
+            enabled = isCreateButtonEnabled,
             onClick = onCreateImageClick,
         ) {
             Text(
@@ -214,6 +221,9 @@ fun DimensionTextField(
         label = { Text(label) },
         inputTransformation = InputTransformation.then {
             val charSequence = asCharSequence()
+            if (charSequence.isEmpty()) {
+                return@then
+            }
             if (!charSequence.isDigitsOnly()) {
                 revertAllChanges()
             } else {
@@ -356,7 +366,7 @@ fun PaletteColorComponent(
     onSliderChange: (Float) -> Unit,
 ) {
     val sliderPosition = sliderValue ?: 0F
-    Row (
+    Row(
         modifier = Modifier
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
