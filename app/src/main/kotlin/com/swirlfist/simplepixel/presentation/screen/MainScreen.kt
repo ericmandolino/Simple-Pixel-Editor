@@ -4,7 +4,9 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidthIn
@@ -31,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,6 +48,7 @@ import com.swirlfist.simplepixel.presentation.section.PixelImagePreviewSection
 import com.swirlfist.simplepixel.presentation.state.ActionsSectionState
 import com.swirlfist.simplepixel.presentation.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.state.MainScreenLauncherState
+import com.swirlfist.simplepixel.presentation.state.MainScreenState
 import com.swirlfist.simplepixel.presentation.state.PixelImagePreviewSectionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -55,9 +59,6 @@ fun MainScreen(
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val mainScreenState = viewModel.mainScreenState.collectAsStateWithLifecycle().value
-    val scaffoldNavigator = rememberSupportingPaneScaffoldNavigator()
-    val coroutineScope = rememberCoroutineScope()
-    val backNavigationBehavior = BackNavigationBehavior.PopUntilScaffoldValueChange
 
     MainScreenLaunchers(
         mainScreenState.launcherState,
@@ -69,43 +70,13 @@ fun MainScreen(
         onSelectOpenPixelImageLocationLaunched = viewModel::onSelectOpenPixelImageLocationLaunched,
     )
 
-    SupportingPaneScaffold(
+    MainScreenContent(
         modifier = Modifier
             .fillMaxSize()
             .padding(8.dp),
-        directive = scaffoldNavigator.scaffoldDirective,
-        value = scaffoldNavigator.scaffoldValue,
-        mainPane = {
-            MainPane(
-                canvasSectionState = mainScreenState.canvasSectionState,
-                onCanvasSectionEvent = viewModel::onCanvasSectionEvent,
-                scaffoldNavigator = scaffoldNavigator,
-                coroutineScope = coroutineScope,
-            )
-        },
-        supportingPane = {
-            SupportingPane(
-                actionsSectionState = mainScreenState.actionsSectionState,
-                pixelImagePreviewSectionState = mainScreenState.pixelImagePreviewSectionState,
-                onActionsSectionEvent = viewModel::onActionsSectionEvent,
-                scaffoldNavigator = scaffoldNavigator,
-                backNavigationBehavior = backNavigationBehavior,
-                coroutineScope = coroutineScope,
-            )
-        },
-        paneExpansionState = rememberPaneExpansionState(scaffoldNavigator.scaffoldValue),
-        paneExpansionDragHandle = { state ->
-            val interactionSource = remember { MutableInteractionSource() }
-            VerticalDragHandle(
-                modifier =
-                    Modifier.paneExpansionDraggable(
-                        state,
-                        LocalMinimumInteractiveComponentSize.current,
-                        interactionSource
-                    ),
-                interactionSource = interactionSource,
-            )
-        }
+        mainScreenState,
+        onCanvasSectionEvent = viewModel::onCanvasSectionEvent,
+        onActionsSectionEvent = viewModel::onActionsSectionEvent,
     )
 }
 
@@ -161,6 +132,119 @@ fun MainScreenLaunchers(
             onSelectOpenPixelImageLocationLaunched()
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+@Composable
+fun MainScreenContent(
+    modifier: Modifier = Modifier,
+    mainScreenState: MainScreenState,
+    onCanvasSectionEvent: (CanvasSectionEvent) -> Unit,
+    onActionsSectionEvent: (ActionSectionEvent) -> Unit,
+) {
+    val availableSize = LocalWindowInfo.current.containerSize
+
+    val canvasSection = @Composable { modifier: Modifier ->
+        CanvasSection(
+            modifier = modifier
+                .fillMaxSize(),
+            state = mainScreenState.canvasSectionState,
+            onEvent = onCanvasSectionEvent,
+        )
+    }
+
+    val actionsSection = @Composable { modifier: Modifier ->
+        Column(
+            modifier = modifier,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ActionsSection(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(0.7F),
+                state = mainScreenState.actionsSectionState,
+                onEvent = onActionsSectionEvent,
+            )
+
+            PixelImagePreviewSection(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(0.3F),
+                state = mainScreenState.pixelImagePreviewSectionState,
+            )
+        }
+    }
+
+    val containerModifier = modifier
+        .safeContentPadding()
+
+    if (availableSize.height >= availableSize.width) {
+        Column(
+            modifier = containerModifier,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            canvasSection(Modifier.weight(0.6F))
+            actionsSection(Modifier.weight(0.4F))
+        }
+    } else {
+        Row(
+            modifier = containerModifier,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            canvasSection(Modifier.weight(0.6F))
+            actionsSection(Modifier.weight(0.4F))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+@Composable
+fun ThreePaneContent(
+    modifier: Modifier = Modifier,
+    mainScreenState: MainScreenState,
+    onCanvasSectionEvent: (CanvasSectionEvent) -> Unit,
+    onActionsSectionEvent: (ActionSectionEvent) -> Unit,
+) {
+    val scaffoldNavigator = rememberSupportingPaneScaffoldNavigator()
+    val coroutineScope = rememberCoroutineScope()
+    val backNavigationBehavior = BackNavigationBehavior.PopUntilScaffoldValueChange
+
+    SupportingPaneScaffold(
+        modifier = modifier,
+        directive = scaffoldNavigator.scaffoldDirective,
+        value = scaffoldNavigator.scaffoldValue,
+        mainPane = {
+            MainPane(
+                canvasSectionState = mainScreenState.canvasSectionState,
+                onCanvasSectionEvent = onCanvasSectionEvent,
+                scaffoldNavigator = scaffoldNavigator,
+                coroutineScope = coroutineScope,
+            )
+        },
+        supportingPane = {
+            SupportingPane(
+                actionsSectionState = mainScreenState.actionsSectionState,
+                pixelImagePreviewSectionState = mainScreenState.pixelImagePreviewSectionState,
+                onActionsSectionEvent = onActionsSectionEvent,
+                scaffoldNavigator = scaffoldNavigator,
+                backNavigationBehavior = backNavigationBehavior,
+                coroutineScope = coroutineScope,
+            )
+        },
+        paneExpansionState = rememberPaneExpansionState(scaffoldNavigator.scaffoldValue),
+        paneExpansionDragHandle = { state ->
+            val interactionSource = remember { MutableInteractionSource() }
+            VerticalDragHandle(
+                modifier =
+                    Modifier.paneExpansionDraggable(
+                        state,
+                        LocalMinimumInteractiveComponentSize.current,
+                        interactionSource
+                    ),
+                interactionSource = interactionSource,
+            )
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
