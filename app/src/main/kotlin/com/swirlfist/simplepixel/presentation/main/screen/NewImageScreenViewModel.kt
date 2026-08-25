@@ -2,6 +2,7 @@ package com.swirlfist.simplepixel.presentation.main.screen
 
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.fromColorLong
 import androidx.compose.ui.graphics.toColorLong
 import androidx.lifecycle.ViewModel
 import com.swirlfist.simplepixel.data.repository.BasePixelImageRepository
@@ -34,15 +35,109 @@ class NewImageScreenViewModel @Inject constructor(
         }
     }
 
-    fun createImage() {
-        val width = newImageScreenState.value.widthTextFieldState?.text?.toString()?.toInt()
-        val height = newImageScreenState.value.heightTextFieldState?.text?.toString()?.toInt()
+    fun addColorToPalette() {
+        _newImageScreenState.update { state ->
+            state.copy(
+                paletteColors = state.paletteColors + Color.Black.toColorLong(),
+            )
+        }
+    }
 
-        if (width == null || height == null) {
+    fun deleteColorFromPalette() {
+        val paletteIndex = newImageScreenState.value.selectedPaletteIndex ?: return
+
+        if (paletteIndex !in newImageScreenState.value.paletteColors.indices) {
             return
         }
 
-        val colors = listOf(Color.Black.toColorLong(), Color.White.toColorLong())
+        _newImageScreenState.update { state ->
+            state.copy(
+                paletteColors = state.paletteColors.toMutableList().apply { removeAt(paletteIndex) }
+            )
+        }
+    }
+
+    fun updatePaletteColorComponentRed(
+        value: Float,
+    ) {
+        updatePaletteColorComponent(
+            value,
+            ColorComponent.RED,
+        )
+    }
+
+    fun updatePaletteColorComponentGreen(
+        value: Float,
+    ) {
+        updatePaletteColorComponent(
+            value,
+            ColorComponent.GREEN,
+        )
+    }
+
+    fun updatePaletteColorComponentBlue(
+        value: Float,
+    ) {
+        updatePaletteColorComponent(
+            value,
+            ColorComponent.BLUE,
+        )
+    }
+
+    fun updateSelectedPaletteColor(
+        paletteIndex: Int,
+    ) {
+        _newImageScreenState.update { state ->
+            state.copy(
+                selectedPaletteIndex = if (state.selectedPaletteIndex == paletteIndex) null else paletteIndex
+            )
+        }
+    }
+
+    private fun updatePaletteColorComponent(
+        value: Float,
+        colorComponent: ColorComponent,
+    ) {
+        if (value !in 0F..1F) {
+            return
+        }
+
+        val paletteIndex = _newImageScreenState.value.selectedPaletteIndex ?: return
+
+        val paletteColors = _newImageScreenState.value.paletteColors.toMutableList()
+        if (paletteIndex !in paletteColors.indices) {
+            return
+        }
+
+        val color = Color.fromColorLong(paletteColors[paletteIndex])
+        val newColor = when (colorComponent) {
+            ColorComponent.RED -> color.copy(
+                red = value,
+            )
+            ColorComponent.GREEN -> color.copy(
+                green = value,
+            )
+            ColorComponent.BLUE -> color.copy(
+                blue = value,
+            )
+        }
+
+        _newImageScreenState.update { state ->
+            state.copy(
+                paletteColors = paletteColors.apply { set(paletteIndex, newColor.toColorLong()) }
+            )
+        }
+    }
+
+    fun createImage() {
+        val width = newImageScreenState.value.widthTextFieldState?.text?.toString()?.toInt()
+        val height = newImageScreenState.value.heightTextFieldState?.text?.toString()?.toInt()
+        val colors = newImageScreenState.value.paletteColors
+
+        if (width == null || height == null || colors.isEmpty()) {
+            return
+        }
+
         val pixelImageModel = PixelImageModel.createEmpty(
             width,
             height,
@@ -63,4 +158,10 @@ class NewImageScreenViewModel @Inject constructor(
             )
         }
     }
+}
+
+private enum class ColorComponent {
+    RED,
+    GREEN,
+    BLUE,
 }
