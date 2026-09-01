@@ -1,6 +1,7 @@
 package com.swirlfist.simplepixel.domain.usecase
 
 import android.net.Uri
+import com.swirlfist.simplepixel.data.repository.BasePixelImageRepository
 import com.swirlfist.simplepixel.domain.error.SavePixelImageError
 import com.swirlfist.simplepixel.testutil.PixelImageModelTestUtil
 import io.mockk.MockKAnnotations
@@ -23,6 +24,10 @@ class SavePixelImageUseCaseImplTest {
 
     @MockK
     private lateinit var writeToFileUseCase: WriteToFileUseCase
+
+    @MockK
+    private lateinit var basePixelImageRepository: BasePixelImageRepository
+
     private val testPixelImageString = """
     1 0
     1 1
@@ -35,7 +40,8 @@ class SavePixelImageUseCaseImplTest {
     @Before
     fun setup() {
         useCase = SavePixelImageUseCaseImpl(
-            writeToFileUseCase
+            writeToFileUseCase,
+            basePixelImageRepository,
         )
     }
 
@@ -65,6 +71,32 @@ class SavePixelImageUseCaseImplTest {
             writeToFileUseCase.invoke(
                 match { params ->
                     params.uri == uri && params.content == expectedContent
+                }
+            )
+        }
+    }
+
+    @Test
+    fun `when WriteToFileUseCase succeeds then the image is updated in the repository`() = runTest {
+        // Given
+        val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
+            pixelImageString = testPixelImageString
+        )
+        val useCaseParams = SavePixelImageUseCase.Params(
+            pixelImageModel,
+            uri,
+        )
+        coEvery { writeToFileUseCase.invoke(any()) }.returns(Result.success(Unit))
+
+        // When
+        val result = useCase.invoke(useCaseParams)
+
+        // Then
+        assertTrue { result.isSuccess }
+        coVerify {
+            basePixelImageRepository.updateBasePixelImage(
+                match { pixelImage ->
+                    pixelImage == pixelImageModel
                 }
             )
         }

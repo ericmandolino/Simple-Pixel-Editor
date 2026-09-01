@@ -8,11 +8,11 @@ import javax.inject.Singleton
 class BasePixelImageRepositoryImpl @Inject constructor() : BasePixelImageRepository {
     private var _basePixelImage: PixelImageModel? = null
 
-    override fun getBasePixelImage(): PixelImageModel? {
+    override suspend fun getBasePixelImage(): PixelImageModel? {
         return _basePixelImage
     }
 
-    override fun updateBasePixelImage(pixelImage: PixelImageModel) {
+    override suspend fun updateBasePixelImage(pixelImage: PixelImageModel) {
         _basePixelImage = pixelImage
     }
 }

@@ -61,91 +61,93 @@ class MainViewModel @Inject constructor(
     val mainScreenState = _mainScreenState.asStateFlow()
 
     init {
-        val pixelImageModel = basePixelImageRepository.getBasePixelImage() ?:
+        viewModelScope.launch {
+            val pixelImageModel = basePixelImageRepository.getBasePixelImage() ?:
             PixelImageModel.createEmpty(
                 width = 24,
                 height = 24,
                 colors = listOf(Color.Black.toColorLong(), Color.White.toColorLong()),
             )
 
-        _mainScreenState.update { mainScreenState ->
-            val zoomFactor = DEFAULT_ZOOM_FACTOR
-            mainScreenState.copy(
-                canvasSectionState = mainScreenState.canvasSectionState.copy(
-                    pixelImageModel = pixelImageModel,
-                    zoomFactor = zoomFactor,
-                    isShowCoordinatesEnabled = true,
-                    isShowGridEnabled = true,
-                ),
-                actionsSectionState = mainScreenState.actionsSectionState.copy(
-                    actionModels = mapOf(
-                        ActionButtonType.OpenPaletteActionButtonType to ActionModel.SelectableButtonGroupActionModel(
-                            actionType = ActionButtonType.OpenPaletteActionButtonType,
-                            childButtonActionModels = pixelImageModel.paletteModel.createPaletteButtons(),
-                        ),
-                        ActionButtonType.OpenToolsActionButtonType to ActionModel.SelectableButtonGroupActionModel(
-                            actionType = ActionButtonType.OpenToolsActionButtonType,
-                            childButtonActionModels = listOf(
-                                ActionModel.ButtonActionModel(
-                                    actionType = ActionButtonType.InkPenActionButtonType,
-                                    isSelected = true,
-                                ),
-                                ActionModel.ButtonActionModel(
-                                    actionType = ActionButtonType.InkBucketActionButtonType,
+            _mainScreenState.update { mainScreenState ->
+                val zoomFactor = DEFAULT_ZOOM_FACTOR
+                mainScreenState.copy(
+                    canvasSectionState = mainScreenState.canvasSectionState.copy(
+                        pixelImageModel = pixelImageModel,
+                        zoomFactor = zoomFactor,
+                        isShowCoordinatesEnabled = true,
+                        isShowGridEnabled = true,
+                    ),
+                    actionsSectionState = mainScreenState.actionsSectionState.copy(
+                        actionModels = mapOf(
+                            ActionButtonType.OpenPaletteActionButtonType to ActionModel.SelectableButtonGroupActionModel(
+                                actionType = ActionButtonType.OpenPaletteActionButtonType,
+                                childButtonActionModels = pixelImageModel.paletteModel.createPaletteButtons(),
+                            ),
+                            ActionButtonType.OpenToolsActionButtonType to ActionModel.SelectableButtonGroupActionModel(
+                                actionType = ActionButtonType.OpenToolsActionButtonType,
+                                childButtonActionModels = listOf(
+                                    ActionModel.ButtonActionModel(
+                                        actionType = ActionButtonType.InkPenActionButtonType,
+                                        isSelected = true,
+                                    ),
+                                    ActionModel.ButtonActionModel(
+                                        actionType = ActionButtonType.InkBucketActionButtonType,
+                                    ),
                                 ),
                             ),
-                        ),
-                        ActionButtonType.InkEraserActionButtonType to ActionModel.ButtonActionModel(
-                            actionType = ActionButtonType.InkEraserActionButtonType,
-                        ),
-                        ActionButtonType.UndoActionButtonType to ActionModel.ButtonActionModel(
-                            actionType = ActionButtonType.UndoActionButtonType,
-                            isEnabled = false,
-                        ),
-                        ActionButtonType.RedoActionButtonType to ActionModel.ButtonActionModel(
-                            actionType = ActionButtonType.RedoActionButtonType,
-                        ),
-                        ActionButtonType.ZoomInActionButtonType to ActionModel.ButtonActionModel(
-                            actionType = ActionButtonType.ZoomInActionButtonType,
-                            isEnabled = true,
-                        ),
-                        ActionButtonType.ZoomOutActionButtonType to ActionModel.ButtonActionModel(
-                            actionType = ActionButtonType.ZoomOutActionButtonType,
-                            isEnabled = true,
-                        ),
-                        ActionButtonType.MoveImageActionButtonType to ActionModel.ButtonGroupActionModel(
-                            actionType = ActionButtonType.MoveImageActionButtonType,
-                            childButtonActionModels = listOf(
-                                ActionModel.ButtonActionModel(
-                                    actionType = ActionButtonType.MoveImageUpActionButtonType,
-                                ),
-                                ActionModel.ButtonActionModel(
-                                    actionType = ActionButtonType.MoveImageDownActionButtonType,
-                                ),
-                                ActionModel.ButtonActionModel(
-                                    actionType = ActionButtonType.MoveImageLeftActionButtonType,
-                                ),
-                                ActionModel.ButtonActionModel(
-                                    actionType = ActionButtonType.MoveImageRightActionButtonType,
+                            ActionButtonType.InkEraserActionButtonType to ActionModel.ButtonActionModel(
+                                actionType = ActionButtonType.InkEraserActionButtonType,
+                            ),
+                            ActionButtonType.UndoActionButtonType to ActionModel.ButtonActionModel(
+                                actionType = ActionButtonType.UndoActionButtonType,
+                                isEnabled = false,
+                            ),
+                            ActionButtonType.RedoActionButtonType to ActionModel.ButtonActionModel(
+                                actionType = ActionButtonType.RedoActionButtonType,
+                            ),
+                            ActionButtonType.ZoomInActionButtonType to ActionModel.ButtonActionModel(
+                                actionType = ActionButtonType.ZoomInActionButtonType,
+                                isEnabled = true,
+                            ),
+                            ActionButtonType.ZoomOutActionButtonType to ActionModel.ButtonActionModel(
+                                actionType = ActionButtonType.ZoomOutActionButtonType,
+                                isEnabled = true,
+                            ),
+                            ActionButtonType.MoveImageActionButtonType to ActionModel.ButtonGroupActionModel(
+                                actionType = ActionButtonType.MoveImageActionButtonType,
+                                childButtonActionModels = listOf(
+                                    ActionModel.ButtonActionModel(
+                                        actionType = ActionButtonType.MoveImageUpActionButtonType,
+                                    ),
+                                    ActionModel.ButtonActionModel(
+                                        actionType = ActionButtonType.MoveImageDownActionButtonType,
+                                    ),
+                                    ActionModel.ButtonActionModel(
+                                        actionType = ActionButtonType.MoveImageLeftActionButtonType,
+                                    ),
+                                    ActionModel.ButtonActionModel(
+                                        actionType = ActionButtonType.MoveImageRightActionButtonType,
+                                    ),
                                 ),
                             ),
-                        ),
-                        ActionButtonType.SavePixelImageActionButtonType to ActionModel.ButtonActionModel(
-                            actionType = ActionButtonType.SavePixelImageActionButtonType,
-                        ),
-                        ActionButtonType.OpenPixelImageActionButtonType to ActionModel.ButtonActionModel(
-                            actionType = ActionButtonType.OpenPixelImageActionButtonType,
-                        ),
-                        ActionButtonType.ExportPixelImageActionButtonType to ActionModel.ButtonActionModel(
-                            actionType = ActionButtonType.ExportPixelImageActionButtonType,
-                        ),
+                            ActionButtonType.SavePixelImageActionButtonType to ActionModel.ButtonActionModel(
+                                actionType = ActionButtonType.SavePixelImageActionButtonType,
+                            ),
+                            ActionButtonType.OpenPixelImageActionButtonType to ActionModel.ButtonActionModel(
+                                actionType = ActionButtonType.OpenPixelImageActionButtonType,
+                            ),
+                            ActionButtonType.ExportPixelImageActionButtonType to ActionModel.ButtonActionModel(
+                                actionType = ActionButtonType.ExportPixelImageActionButtonType,
+                            ),
+                        )
+                    ),
+                    pixelImagePreviewSectionState = mainScreenState.pixelImagePreviewSectionState.copy(
+                        pixelImageModel = pixelImageModel,
+                        isFitAvailableSpace = true,
                     )
-                ),
-                pixelImagePreviewSectionState = mainScreenState.pixelImagePreviewSectionState.copy(
-                    pixelImageModel = pixelImageModel,
-                    isFitAvailableSpace = true,
                 )
-            )
+            }
         }
     }
 
@@ -466,9 +468,7 @@ class MainViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             savePixelImageUseCase.execute(
-                successBlock = {
-                    basePixelImageRepository.updateBasePixelImage(pixelImageModel)
-                },
+                successBlock = { },
                 failureBlock = { }, // TODO
                 params = SavePixelImageUseCase.Params(
                     pixelImageModel,

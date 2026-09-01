@@ -1,6 +1,7 @@
 package com.swirlfist.simplepixel.domain.usecase
 
 import android.net.Uri
+import com.swirlfist.simplepixel.data.repository.BasePixelImageRepository
 import com.swirlfist.simplepixel.domain.error.SavePixelImageError
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.presentation.mapper.toPixelImageSaveModel
@@ -9,6 +10,7 @@ import javax.inject.Inject
 
 class SavePixelImageUseCaseImpl @Inject constructor(
     private val writeToFileUseCase: WriteToFileUseCase,
+    private val basePixelImageRepository: BasePixelImageRepository,
 ) : SavePixelImageUseCase {
     override suspend fun invoke(params: SavePixelImageUseCase.Params): Result<Unit> {
         return try {
@@ -34,5 +36,7 @@ class SavePixelImageUseCaseImpl @Inject constructor(
                 uri,
             )
         ).getOrThrow()
+
+        basePixelImageRepository.updateBasePixelImage(pixelImageModel)
     }
 }
