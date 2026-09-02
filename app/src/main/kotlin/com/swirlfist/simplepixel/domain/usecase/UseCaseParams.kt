@@ -1,3 +1,5 @@
 package com.swirlfist.simplepixel.domain.usecase
 
-interface UseCaseParams
+interface UseCaseParams {
+    companion object NoParams : UseCaseParams
+}
