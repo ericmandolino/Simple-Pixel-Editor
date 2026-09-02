@@ -2,6 +2,7 @@ package com.swirlfist.simplepixel.presentation
 
 import androidx.compose.ui.graphics.Color
 import com.swirlfist.simplepixel.domain.model.ActionModel
+import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
@@ -58,4 +59,16 @@ fun Color.toHexCode(): String {
     val blue = this.blue * 255
 
     return String.format(HEX_FORMAT, red.toInt(), green.toInt(), blue.toInt())
+}
+
+fun PixelMatrixModel.isBlank(): Boolean {
+    content.forEach { row ->
+        row.forEach { pixel ->
+            if (pixel.paletteIndex != EMPTY_PIXEL_PALETTE_INDEX) {
+                return false
+            }
+        }
+    }
+
+    return true
 }

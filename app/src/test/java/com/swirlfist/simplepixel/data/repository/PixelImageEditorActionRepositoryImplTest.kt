@@ -52,7 +52,7 @@ class PixelImageEditorActionRepositoryImplTest {
         every { action.pixelImage }.returns(pixelImage)
 
         // When
-        repository.addAction(action)
+        repository.addAction(action, mockk())
         val actions = repository.getActions()
 
         // Then
@@ -72,15 +72,15 @@ class PixelImageEditorActionRepositoryImplTest {
         val action3 = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(mockk())
         }
-        repository.addAction(action1)
-        repository.addAction(action2)
-        repository.addAction(action3)
+        repository.addAction(action1, mockk())
+        repository.addAction(action2, mockk())
+        repository.addAction(action3, mockk())
         repository.undoAction()
         repository.undoAction()
         val action4 = mockk<PixelImageEditorAction>()
 
         // When
-        repository.addAction(action4)
+        repository.addAction(action4, mockk())
         val actions = repository.getActions()
         val currentAction = repository.getCurrentAction()
 
@@ -100,8 +100,8 @@ class PixelImageEditorActionRepositoryImplTest {
         val action2 = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(mockk())
         }
-        repository.addAction(action1)
-        repository.addAction(action2)
+        repository.addAction(action1, mockk())
+        repository.addAction(action2, mockk())
 
         // When
         repository.clearActions()
@@ -120,8 +120,8 @@ class PixelImageEditorActionRepositoryImplTest {
         val action2 = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(mockk())
         }
-        repository.addAction(action1)
-        repository.addAction(action2)
+        repository.addAction(action1, mockk())
+        repository.addAction(action2, mockk())
 
         // When
         repository.clearActions()
@@ -137,7 +137,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(mockk())
         }
-        repository.addAction(action)
+        repository.addAction(action, mockk())
         repository.undoAction()
 
         // When
@@ -157,8 +157,8 @@ class PixelImageEditorActionRepositoryImplTest {
         val action2 = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage2)
         }
-        repository.addAction(action1)
-        repository.addAction(action2)
+        repository.addAction(action1, mockk())
+        repository.addAction(action2, mockk())
 
         // When
         val result = repository.undoAction()
@@ -177,8 +177,8 @@ class PixelImageEditorActionRepositoryImplTest {
         val action2 = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage2)
         }
-        repository.addAction(action1)
-        repository.addAction(action2)
+        repository.addAction(action1, mockk())
+        repository.addAction(action2, mockk())
 
         // When
         repository.undoAction()
@@ -193,7 +193,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(mockk())
         }
-        repository.addAction(action)
+        repository.addAction(action, mockk())
 
         // When
         repository.undoAction()
@@ -208,7 +208,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(mockk())
         }
-        repository.addAction(action)
+        repository.addAction(action, mockk())
 
         // When
         val result = repository.redoAction()
@@ -218,13 +218,14 @@ class PixelImageEditorActionRepositoryImplTest {
     }
 
     @Test
-    fun `when there is an action to redo the current image is updated and returned`() = runTest {
+    fun `when there is an action to redo the resulting image is returned`() = runTest {
         // Given
         val pixelImage = mockk<PixelImageModel>()
+        val pixelImageResult = mockk<PixelImageModel>()
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage)
         }
-        repository.addAction(action)
+        repository.addAction(action, pixelImageResult)
         repository.undoAction()
 
         // When
@@ -232,8 +233,32 @@ class PixelImageEditorActionRepositoryImplTest {
         val currentAction = repository.getCurrentAction()
 
         // Then
-        assertEquals(pixelImage, result)
+        assertEquals(pixelImageResult, result)
         assertEquals(action, currentAction)
+    }
+
+    @Test
+    fun `when there is an action to redo the current action becomes the next one`() = runTest {
+        // Given
+        val pixelImage1 = mockk<PixelImageModel>()
+        val action1 = mockk<PixelImageEditorAction>().also { action ->
+            every { action.pixelImage }.returns(pixelImage1)
+        }
+        val pixelImage2 = mockk<PixelImageModel>()
+        val action2 = mockk<PixelImageEditorAction>().also { action ->
+            every { action.pixelImage }.returns(pixelImage2)
+        }
+        repository.addAction(action1, mockk())
+        repository.addAction(action2, mockk())
+        repository.undoAction()
+        repository.undoAction()
+
+        // When
+        val result = repository.redoAction()
+
+        // Then
+        assertEquals(pixelImage2, result)
+        assertEquals(action1, repository.getCurrentAction())
     }
 
     @Test
@@ -243,7 +268,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage)
         }
-        repository.addAction(action)
+        repository.addAction(action, mockk())
 
         // When
         repository.clearActions()
@@ -262,7 +287,7 @@ class PixelImageEditorActionRepositoryImplTest {
         }
 
         // When
-        repository.addAction(action)
+        repository.addAction(action, mockk())
 
         // Then
         assertTrue(repository.isUndoAvailable().first())
@@ -275,7 +300,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage)
         }
-        repository.addAction(action)
+        repository.addAction(action, mockk())
 
         // When
         repository.undoAction()
@@ -291,7 +316,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage)
         }
-        repository.addAction(action)
+        repository.addAction(action, mockk())
         repository.undoAction()
 
         // When
@@ -308,7 +333,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage)
         }
-        repository.addAction(action)
+        repository.addAction(action, mockk())
 
         // When
         repository.undoAction()
@@ -324,7 +349,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage)
         }
-        repository.addAction(action)
+        repository.addAction(action, mockk())
         repository.undoAction()
 
         // When
@@ -332,5 +357,26 @@ class PixelImageEditorActionRepositoryImplTest {
 
         // Then
         assertFalse(repository.isRedoAvailable().first())
+    }
+
+    @Test
+    fun `when adding an action if the max undo actions is reached then the first action is dropped`() = runTest {
+        // Given
+        val actions = mutableListOf<PixelImageEditorAction>().apply {
+            repeat(MAX_UNDO_ACTIONS) {
+                add(mockk<PixelImageEditorAction>())
+            }
+        }
+        actions.forEach { action ->
+            repository.addAction(action, mockk())
+        }
+
+        // When
+        repository.addAction(mockk(), mockk())
+
+        // Then
+        val actionsInRepository = repository.getActions()
+        assertEquals(MAX_UNDO_ACTIONS, actionsInRepository.size)
+        assertEquals(actions[1], actionsInRepository[0])
     }
 }

@@ -1,31 +1,50 @@
 package com.swirlfist.simplepixel.domain.usecase
 
+import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
 import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
+import com.swirlfist.simplepixel.presentation.isBlank
 import javax.inject.Inject
 
-class MoveImageUseCaseImpl @Inject constructor() : MoveImageUseCase {
+class MoveImageUseCaseImpl @Inject constructor(
+    private val pixelImageEditorActionRepository: PixelImageEditorActionRepository,
+) : MoveImageUseCase {
     override suspend fun invoke(params: MoveImageUseCase.Params): Result<PixelImageModel> {
         return Result.success(
             moveImage(
                 pixelImage = params.pixelImageModel,
-                direction = params.moveDirection,
+                moveDirection = params.moveDirection,
             )
         )
     }
 
-    private fun moveImage(
+    private suspend fun moveImage(
         pixelImage: PixelImageModel,
-        direction: MoveDirection,
+        moveDirection: MoveDirection,
     ): PixelImageModel {
-        return when (direction) {
+        if (pixelImage.pixelMatrixModel.isBlank()) {
+            return pixelImage
+        }
+
+        val pixelImageResult = when (moveDirection) {
             MoveDirection.UP -> pixelImage.moveImageUp()
             MoveDirection.DOWN -> pixelImage.moveImageDown()
             MoveDirection.LEFT -> pixelImage.moveImageLeft()
             MoveDirection.RIGHT -> pixelImage.moveImageRight()
         }
+
+        pixelImageEditorActionRepository.addAction(
+            PixelImageEditorAction.MoveImageAction(
+                pixelImage,
+                moveDirection,
+            ),
+            pixelImageResult,
+        )
+
+        return pixelImageResult
     }
 
     private fun PixelImageModel.moveImageUp(): PixelImageModel {

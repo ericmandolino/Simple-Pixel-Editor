@@ -1,11 +1,15 @@
 package com.swirlfist.simplepixel.domain.usecase
 
+import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
 import com.swirlfist.simplepixel.domain.error.UpdatePixelError
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import javax.inject.Inject
 
-class UpdatePixelColorUseCaseImpl @Inject constructor() : UpdatePixelColorUseCase {
+class UpdatePixelColorUseCaseImpl @Inject constructor(
+    private val pixelImageEditorActionRepository: PixelImageEditorActionRepository,
+) : UpdatePixelColorUseCase {
     override suspend fun invoke(params: UpdatePixelColorUseCase.Params): Result<PixelImageModel> {
         return try {
             Result.success(
@@ -21,7 +25,7 @@ class UpdatePixelColorUseCaseImpl @Inject constructor() : UpdatePixelColorUseCas
         }
     }
 
-    private fun updatePixel(
+    private suspend fun updatePixel(
         pixelImage: PixelImageModel,
         x: Int,
         y: Int,
@@ -47,8 +51,20 @@ class UpdatePixelColorUseCaseImpl @Inject constructor() : UpdatePixelColorUseCas
             },
         )
 
-        return pixelImage.copy(
+        val pixelImageResult = pixelImage.copy(
             pixelMatrixModel = updatedPixelMatrix,
         )
+
+        pixelImageEditorActionRepository.addAction(
+            PixelImageEditorAction.ApplyPixelColorAction(
+                pixelImage,
+                x,
+                y,
+                paletteIndex,
+            ),
+            pixelImageResult,
+        )
+
+        return pixelImageResult
     }
 }

@@ -6,12 +6,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class PixelImageEditorActionRepositoryImpl : PixelImageEditorActionRepository {
+@Singleton
+class PixelImageEditorActionRepositoryImpl @Inject constructor() : PixelImageEditorActionRepository {
     private var _actions = mutableListOf<PixelImageEditorAction>()
     private var _currentActionIndex: Int = -1
     private var _undoAvailableFlow = MutableStateFlow(false)
     private var _redoAvailableFlow = MutableStateFlow(false)
+    private var _finalPixelImage: PixelImageModel? = null
 
     override suspend fun getCurrentAction(): PixelImageEditorAction? {
         return _actions.getOrNull(_currentActionIndex)
@@ -27,10 +31,17 @@ class PixelImageEditorActionRepositoryImpl : PixelImageEditorActionRepository {
         updateAvailableOperations()
     }
 
-    override suspend fun addAction(action: PixelImageEditorAction) {
+    override suspend fun addAction(
+        action: PixelImageEditorAction,
+        pixelImageResult: PixelImageModel,
+    ) {
         clearActionsFromIndex(_currentActionIndex + 1)
+        if (_actions.size == MAX_UNDO_ACTIONS) {
+            _actions = _actions.subList(1, MAX_UNDO_ACTIONS)
+        }
         _actions.add(action)
         _currentActionIndex = _actions.size - 1
+        _finalPixelImage = pixelImageResult
         updateAvailableOperations()
     }
 
@@ -53,7 +64,12 @@ class PixelImageEditorActionRepositoryImpl : PixelImageEditorActionRepository {
         } else {
             _currentActionIndex = newCurrentActionIndex
             updateAvailableOperations()
-            _actions[_currentActionIndex].pixelImage
+            val nextActionIndex = _currentActionIndex + 1
+            if (nextActionIndex in _actions.indices) {
+                _actions[nextActionIndex].pixelImage
+            } else {
+                _finalPixelImage
+            }
         }
     }
 

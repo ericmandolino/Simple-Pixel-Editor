@@ -1,11 +1,15 @@
 package com.swirlfist.simplepixel.domain.usecase
 
+import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import javax.inject.Inject
 
-class ApplyBucketUseCaseImpl @Inject constructor() : ApplyBucketUseCase {
+class ApplyBucketUseCaseImpl @Inject constructor(
+    private val pixelImageEditorActionRepository: PixelImageEditorActionRepository,
+) : ApplyBucketUseCase {
     override suspend fun invoke(params: ApplyBucketUseCase.Params): Result<PixelImageModel> {
         return Result.success(
             applyBucket(
@@ -17,7 +21,7 @@ class ApplyBucketUseCaseImpl @Inject constructor() : ApplyBucketUseCase {
         )
     }
 
-    private fun applyBucket(
+    private suspend fun applyBucket(
         pixelImage: PixelImageModel,
         x: Int,
         y: Int,
@@ -42,11 +46,23 @@ class ApplyBucketUseCaseImpl @Inject constructor() : ApplyBucketUseCase {
             paletteIndexNew = paletteIndex,
         )
 
-        return pixelImage.copy(
+        val pixelImageResult = pixelImage.copy(
             pixelMatrixModel = pixelImage.pixelMatrixModel.copy(
                 content = mutablePixelMatrix,
             )
         )
+
+        pixelImageEditorActionRepository.addAction(
+            PixelImageEditorAction.ApplyBucketColorAction(
+                pixelImage,
+                x,
+                y,
+                paletteIndex,
+            ),
+            pixelImageResult,
+        )
+
+        return pixelImageResult
     }
 
     private fun applyBucket(

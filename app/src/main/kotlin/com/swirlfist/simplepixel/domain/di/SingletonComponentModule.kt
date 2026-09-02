@@ -2,16 +2,26 @@ package com.swirlfist.simplepixel.domain.di
 
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCase
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCase
+import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCase
+import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseCase
+import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.RedoEditorActionUseCase
+import com.swirlfist.simplepixel.domain.usecase.RedoEditorActionUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.UndoEditorActionUseCase
+import com.swirlfist.simplepixel.domain.usecase.UndoEditorActionUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCaseImpl
 import dagger.Binds
@@ -57,4 +67,29 @@ abstract class SingletonComponentModule {
     abstract fun bindApplyBucketUseCase(
         impl: ApplyBucketUseCaseImpl,
     ): ApplyBucketUseCase
+
+    @Binds
+    abstract fun bindGetUndoEditorActionAvailableUseCase(
+        impl: GetUndoEditorActionAvailableUseCaseImpl,
+    ): GetUndoEditorActionAvailableUseCase
+
+    @Binds
+    abstract fun bindGetRedoEditorActionAvailableUseCase(
+        impl: GetRedoEditorActionAvailableUseCaseImpl,
+    ): GetRedoEditorActionAvailableUseCase
+
+    @Binds
+    abstract fun bindUndoEditorActionUseCase(
+        impl: UndoEditorActionUseCaseImpl,
+    ): UndoEditorActionUseCase
+
+    @Binds
+    abstract fun bindRedoEditorActionUseCase(
+        impl: RedoEditorActionUseCaseImpl,
+    ): RedoEditorActionUseCase
+
+    @Binds
+    abstract fun bindClearEditorActionsUseCase(
+        impl: ClearEditorActionsUseCaseImpl,
+    ): ClearEditorActionsUseCase
 }

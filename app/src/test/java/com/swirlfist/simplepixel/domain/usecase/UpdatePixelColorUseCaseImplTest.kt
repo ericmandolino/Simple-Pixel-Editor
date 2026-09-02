@@ -1,7 +1,12 @@
 package com.swirlfist.simplepixel.domain.usecase
 
+import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
 import com.swirlfist.simplepixel.domain.error.UpdatePixelError
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
 import com.swirlfist.simplepixel.testutil.PixelImageModelTestUtil
+import io.mockk.MockKAnnotations
+import io.mockk.coVerify
+import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -19,9 +24,16 @@ class UpdatePixelColorUseCaseImplTest {
     1 1 3 3
     """.trimIndent()
 
+    @MockK
+    private lateinit var pixelImageEditorActionRepository: PixelImageEditorActionRepository
+
+    init {
+        MockKAnnotations.init(this, relaxUnitFun = true)
+    }
+
     @Before
     fun setup() {
-        useCase = UpdatePixelColorUseCaseImpl()
+        useCase = UpdatePixelColorUseCaseImpl(pixelImageEditorActionRepository)
     }
 
     @Test
@@ -79,4 +91,61 @@ class UpdatePixelColorUseCaseImplTest {
         assertFalse { result.isSuccess }
         assertTrue { result.exceptionOrNull() is UpdatePixelError }
     }
+
+    @Test
+    fun `when the use case fails the undo action is not added`() = runTest {
+        // Given
+        val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
+            pixelImageString = testPixelImageString
+        )
+        val x = 6
+        val y = 1
+        val useCaseParams = UpdatePixelColorUseCase.Params(
+            pixelImageModel,
+            x,
+            y,
+            paletteIndex = 3,
+        )
+
+        // When
+        useCase.invoke(useCaseParams)
+
+        // Then
+        coVerify(exactly = 0) {
+            pixelImageEditorActionRepository.addAction(any(), any())
+        }
+    }
+
+    @Test
+    fun `when the use case succeeds the undo action is added`() =
+        runTest {
+            // Given
+            val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
+                pixelImageString = testPixelImageString
+            )
+            val x = 1
+            val y = 1
+            val useCaseParams = UpdatePixelColorUseCase.Params(
+                pixelImageModel,
+                x,
+                y,
+                paletteIndex = 3,
+            )
+
+            // When
+            val result = useCase.invoke(useCaseParams)
+
+            // Then
+            coVerify(exactly = 1) {
+                pixelImageEditorActionRepository.addAction(
+                    PixelImageEditorAction.ApplyPixelColorAction(
+                        pixelImageModel,
+                        x,
+                        y,
+                        paletteIndex = 3,
+                    ),
+                    result.getOrThrow(),
+                )
+            }
+        }
 }

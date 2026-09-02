@@ -11,16 +11,21 @@ import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCase
+import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCase
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
+import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCase
+import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseCase
 import com.swirlfist.simplepixel.domain.usecase.MAX_ZOOM_FACTOR
 import com.swirlfist.simplepixel.domain.usecase.MIN_ZOOM_FACTOR
 import com.swirlfist.simplepixel.domain.usecase.MoveDirection
 import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCase
-import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.RedoEditorActionUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.UndoEditorActionUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
+import com.swirlfist.simplepixel.domain.usecase.UseCaseParams
 import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.createPaletteButtons
 import com.swirlfist.simplepixel.presentation.section.ActionButtonType
@@ -49,7 +54,12 @@ class MainViewModel @Inject constructor(
     private val getNextZoomFactorUseCase: GetNextZoomFactorUseCase,
     private val updatePixelColorUseCase: UpdatePixelColorUseCase,
     private val applyBucketUseCase: ApplyBucketUseCase,
-    private val moveImageUseCaseImpl: MoveImageUseCaseImpl,
+    private val moveImageUseCaseImpl: MoveImageUseCase,
+    private val getUndoEditorActionAvailableUseCase: GetUndoEditorActionAvailableUseCase,
+    private val getRedoEditorActionAvailableUseCase: GetRedoEditorActionAvailableUseCase,
+    private val undoEditorActionUseCase: UndoEditorActionUseCase,
+    private val redoEditorActionUseCase: RedoEditorActionUseCase,
+    private val clearEditorActionUseCase: ClearEditorActionsUseCase,
 ) : ViewModel() {
     private val _mainScreenState = MutableStateFlow(
         value = MainScreenState(
@@ -105,6 +115,7 @@ class MainViewModel @Inject constructor(
                             ),
                             ActionButtonType.RedoActionButtonType to ActionModel.ButtonActionModel(
                                 actionType = ActionButtonType.RedoActionButtonType,
+                                isEnabled = false,
                             ),
                             ActionButtonType.ZoomInActionButtonType to ActionModel.ButtonActionModel(
                                 actionType = ActionButtonType.ZoomInActionButtonType,
@@ -148,6 +159,35 @@ class MainViewModel @Inject constructor(
                     )
                 )
             }
+
+            clearEditorActionUseCase.invoke(UseCaseParams.NoParams)
+
+            launch {
+                getUndoEditorActionAvailableUseCase.invoke(UseCaseParams.NoParams).getOrNull()?.collect { isUndoAvailable ->
+                    _mainScreenState.update { mainScreenState ->
+                        val actionsSectionState = mainScreenState.actionsSectionState
+                        mainScreenState.copy(
+                            actionsSectionState = actionsSectionState.updateUndoButtonState(
+                                isUndoAvailable
+                            ),
+                        )
+                    }
+                }
+            }
+
+            launch {
+                getRedoEditorActionAvailableUseCase.invoke(UseCaseParams.NoParams).getOrNull()
+                    ?.collect { isRedoAvailable ->
+                        _mainScreenState.update { mainScreenState ->
+                            val actionsSectionState = mainScreenState.actionsSectionState
+                            mainScreenState.copy(
+                                actionsSectionState = actionsSectionState.updateRedoButtonState(
+                                    isRedoAvailable
+                                ),
+                            )
+                        }
+                    }
+            }
         }
     }
 
@@ -163,8 +203,12 @@ class MainViewModel @Inject constructor(
             is ActionSectionEvent.PickPaletteColorButtonClicked
                 -> updateSelectedPaletteIndex(event.pickPaletteColorActionButtonType)
 
-            ActionSectionEvent.RedoButtonClicked -> {}
-            ActionSectionEvent.UndoButtonClicked -> {}
+            ActionSectionEvent.RedoButtonClicked
+                -> redoEditorAction()
+
+            ActionSectionEvent.UndoButtonClicked
+                -> undoEditorAction()
+
             ActionSectionEvent.ZoomInButtonClicked
                 -> zoom(isZoomIn = true)
 
@@ -216,6 +260,24 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private fun updatePixelImage(
+        pixelImage: PixelImageModel,
+    ) {
+        _mainScreenState.update { mainScreenState ->
+            val canvasSectionState = mainScreenState.canvasSectionState
+            val pixelImagePreviewSectionState =
+                mainScreenState.pixelImagePreviewSectionState
+            mainScreenState.copy(
+                canvasSectionState = canvasSectionState.copy(
+                    pixelImageModel = pixelImage,
+                ),
+                pixelImagePreviewSectionState = pixelImagePreviewSectionState.copy(
+                    pixelImageModel = pixelImage,
+                ),
+            )
+        }
+    }
+
     private fun updatePixelColor(
         x: Int,
         y: Int,
@@ -226,19 +288,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             updatePixelColorUseCase.execute(
                 successBlock = { updatedPixelImage ->
-                    _mainScreenState.update { mainScreenState ->
-                        val canvasSectionState = mainScreenState.canvasSectionState
-                        val pixelImagePreviewSectionState =
-                            mainScreenState.pixelImagePreviewSectionState
-                        mainScreenState.copy(
-                            canvasSectionState = canvasSectionState.copy(
-                                pixelImageModel = updatedPixelImage,
-                            ),
-                            pixelImagePreviewSectionState = pixelImagePreviewSectionState.copy(
-                                pixelImageModel = updatedPixelImage,
-                            ),
-                        )
-                    }
+                    updatePixelImage(updatedPixelImage)
                 },
                 failureBlock = { },
                 params = UpdatePixelColorUseCase.Params(
@@ -261,19 +311,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             applyBucketUseCase.execute(
                 successBlock = { updatedPixelImage ->
-                    _mainScreenState.update { mainScreenState ->
-                        val canvasSectionState = mainScreenState.canvasSectionState
-                        val pixelImagePreviewSectionState =
-                            mainScreenState.pixelImagePreviewSectionState
-                        mainScreenState.copy(
-                            canvasSectionState = canvasSectionState.copy(
-                                pixelImageModel = updatedPixelImage,
-                            ),
-                            pixelImagePreviewSectionState = pixelImagePreviewSectionState.copy(
-                                pixelImageModel = updatedPixelImage,
-                            ),
-                        )
-                    }
+                    updatePixelImage(updatedPixelImage)
                 },
                 failureBlock = { },
                 params = ApplyBucketUseCase.Params(
@@ -294,19 +332,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             moveImageUseCaseImpl.execute(
                 successBlock = { updatedPixelImage ->
-                    _mainScreenState.update { mainScreenState ->
-                        val canvasSectionState = mainScreenState.canvasSectionState
-                        val pixelImagePreviewSectionState =
-                            mainScreenState.pixelImagePreviewSectionState
-                        mainScreenState.copy(
-                            canvasSectionState = canvasSectionState.copy(
-                                pixelImageModel = updatedPixelImage,
-                            ),
-                            pixelImagePreviewSectionState = pixelImagePreviewSectionState.copy(
-                                pixelImageModel = updatedPixelImage,
-                            ),
-                        )
-                    }
+                    updatePixelImage(updatedPixelImage)
                 },
                 failureBlock = { },
                 params = MoveImageUseCase.Params(
@@ -359,6 +385,28 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private fun undoEditorAction() {
+        viewModelScope.launch {
+            undoEditorActionUseCase.invoke(UseCaseParams.NoParams).fold(
+                onSuccess = { pixelImage ->
+                    updatePixelImage(pixelImage)
+                },
+                onFailure = {}, // TODO
+            )
+        }
+    }
+
+    private fun redoEditorAction() {
+        viewModelScope.launch {
+            redoEditorActionUseCase.invoke(UseCaseParams.NoParams).fold(
+                onSuccess = { pixelImage ->
+                    updatePixelImage(pixelImage)
+                },
+                onFailure = {}, // TODO
+            )
+        }
+    }
+
     private fun zoom(
         isZoomIn: Boolean,
     ) {
@@ -374,7 +422,7 @@ class MainViewModel @Inject constructor(
                             ),
                             actionsSectionState = actionsSectionState.updateZoomButtonState(
                                 zoomFactor
-                            )
+                            ),
                         )
                     }
                 },
@@ -564,13 +612,31 @@ private fun ActionsSectionState.updateZoomButtonState(
     )
 }
 
+private fun ActionsSectionState.updateUndoButtonState(
+    isEnabled: Boolean,
+): ActionsSectionState {
+    return updateButtonEnabled(
+        ActionButtonType.UndoActionButtonType,
+        isEnabled = isEnabled,
+    )
+}
+
+private fun ActionsSectionState.updateRedoButtonState(
+    isEnabled: Boolean,
+): ActionsSectionState {
+    return updateButtonEnabled(
+        ActionButtonType.RedoActionButtonType,
+        isEnabled = isEnabled,
+    )
+}
+
 private fun ActionsSectionState.updateButtonEnabled(
     actionButtonType: ActionButtonType,
     isEnabled: Boolean,
 ): ActionsSectionState {
     val buttonModel = actionModels[actionButtonType] ?: return this
 
-    return if (buttonModel.isEnabled) {
+    return if (buttonModel.isEnabled == isEnabled) {
         this
     } else {
         val updatedModel = when (buttonModel) {
