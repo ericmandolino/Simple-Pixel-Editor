@@ -94,7 +94,7 @@ private fun ButtonGroupAction(
     childButtonActionModels: List<ActionModel.ButtonActionModel>,
     onEvent: (ActionSectionEvent) -> Unit,
 ) {
-    if (isEnabled && childButtonActionModels.size in 2..MAX_BUTTON_GROUP_RENDER
+    if (isEnabled && childButtonActionModels.size in 1..MAX_BUTTON_GROUP_RENDER
     ) {
         Row(
             modifier = Modifier
