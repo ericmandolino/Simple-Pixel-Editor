@@ -68,7 +68,7 @@ class StartViewModel @Inject constructor(
 
     private fun openPixelImage(uri: Uri) {
         viewModelScope.launch {
-            openPixelImageUseCase.invoke(
+            openPixelImageUseCase(
                 OpenPixelImageUseCase.Params(
                     uri
                 )

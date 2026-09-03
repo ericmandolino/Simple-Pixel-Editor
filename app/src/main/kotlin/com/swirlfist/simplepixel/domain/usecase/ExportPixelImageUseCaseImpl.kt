@@ -46,7 +46,7 @@ class ExportPixelImageUseCaseImpl @Inject constructor(
         )
         writeFooter(stringBuilder)
 
-        writeToFileUseCase.invoke(
+        writeToFileUseCase(
             WriteToFileUseCase.Params(
                 content = stringBuilder.toString(),
                 uri,

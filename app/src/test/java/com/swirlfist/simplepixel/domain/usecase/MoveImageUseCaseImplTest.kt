@@ -50,7 +50,7 @@ class MoveImageUseCaseImplTest {
         )
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isSuccess }
@@ -73,7 +73,7 @@ class MoveImageUseCaseImplTest {
         )
 
         // When
-        useCase.invoke(useCaseParams)
+        useCase(useCaseParams)
 
         // Then
         coVerify(exactly = 0) {
@@ -103,7 +103,7 @@ class MoveImageUseCaseImplTest {
         )
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isSuccess }
@@ -132,7 +132,7 @@ class MoveImageUseCaseImplTest {
         )
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isSuccess }
@@ -161,7 +161,7 @@ class MoveImageUseCaseImplTest {
         )
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isSuccess }
@@ -190,7 +190,7 @@ class MoveImageUseCaseImplTest {
         )
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isSuccess }
@@ -209,7 +209,7 @@ class MoveImageUseCaseImplTest {
         )
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         coVerify(exactly = 1) {

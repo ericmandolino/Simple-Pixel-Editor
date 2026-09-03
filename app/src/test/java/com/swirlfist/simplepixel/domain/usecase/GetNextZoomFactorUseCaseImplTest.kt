@@ -25,7 +25,7 @@ class GetNextZoomFactorUseCaseImplTest {
         )
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isSuccess }
@@ -42,7 +42,7 @@ class GetNextZoomFactorUseCaseImplTest {
         )
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isSuccess }
@@ -59,7 +59,7 @@ class GetNextZoomFactorUseCaseImplTest {
         )
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isSuccess }
@@ -76,7 +76,7 @@ class GetNextZoomFactorUseCaseImplTest {
         )
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isSuccess }

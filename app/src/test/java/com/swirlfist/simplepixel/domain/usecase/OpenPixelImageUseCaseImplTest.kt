@@ -51,11 +51,11 @@ class OpenPixelImageUseCaseImplTest {
         )
 
         // When
-        useCase.invoke(useCaseParams)
+        useCase(useCaseParams)
 
         // Then
         coVerify {
-            readFromFileUseCase.invoke(
+            readFromFileUseCase(
                 match { params ->
                     params.uri == uri
                 }
@@ -70,10 +70,10 @@ class OpenPixelImageUseCaseImplTest {
             uri,
         )
         val expectedException = mockk<Exception>()
-        coEvery { readFromFileUseCase.invoke(any()) }.returns(Result.failure(expectedException))
+        coEvery { readFromFileUseCase(any()) }.returns(Result.failure(expectedException))
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isFailure }
@@ -96,14 +96,14 @@ class OpenPixelImageUseCaseImplTest {
                 1 1
                 """.trimIndent()
             )
-            coEvery { readFromFileUseCase.invoke(any()) }.returns(
+            coEvery { readFromFileUseCase(any()) }.returns(
                 Result.success(
                     Json.encodeToString(pixelImageModel.toPixelImageSaveModel())
                 )
             )
 
             // When
-            val result = useCase.invoke(useCaseParams)
+            val result = useCase(useCaseParams)
 
             // Then
             assertTrue { result.isSuccess }
@@ -117,14 +117,14 @@ class OpenPixelImageUseCaseImplTest {
             val useCaseParams = OpenPixelImageUseCase.Params(
                 uri,
             )
-            coEvery { readFromFileUseCase.invoke(any()) }.returns(
+            coEvery { readFromFileUseCase(any()) }.returns(
                 Result.success(
                     "invalid content"
                 )
             )
 
             // When
-            val result = useCase.invoke(useCaseParams)
+            val result = useCase(useCaseParams)
 
             // Then
             assertFalse { result.isSuccess }
@@ -137,10 +137,10 @@ class OpenPixelImageUseCaseImplTest {
             uri,
         )
         val expectedException = mockk<Exception>()
-        coEvery { readFromFileUseCase.invoke(any()) }.returns(Result.failure(expectedException))
+        coEvery { readFromFileUseCase(any()) }.returns(Result.failure(expectedException))
 
         // When
-        useCase.invoke(useCaseParams)
+        useCase(useCaseParams)
 
         // Then
         coVerify(exactly = 0) {
@@ -161,14 +161,14 @@ class OpenPixelImageUseCaseImplTest {
                 1 1
                 """.trimIndent()
             )
-            coEvery { readFromFileUseCase.invoke(any()) }.returns(
+            coEvery { readFromFileUseCase(any()) }.returns(
                 Result.success(
                     Json.encodeToString(pixelImageModel.toPixelImageSaveModel())
                 )
             )
 
             // When
-            useCase.invoke(useCaseParams)
+            useCase(useCaseParams)
 
             // Then
             coVerify(exactly = 1) {

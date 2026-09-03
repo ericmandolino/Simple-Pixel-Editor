@@ -51,7 +51,7 @@ class ApplyBucketUseCaseImplTest {
         )
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isSuccess }
@@ -74,7 +74,7 @@ class ApplyBucketUseCaseImplTest {
         )
 
         // When
-        useCase.invoke(useCaseParams)
+        useCase(useCaseParams)
 
         // Then
         coVerify(exactly = 0) {
@@ -107,7 +107,7 @@ class ApplyBucketUseCaseImplTest {
         )
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isSuccess }
@@ -139,7 +139,7 @@ class ApplyBucketUseCaseImplTest {
         )
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isSuccess }
@@ -162,7 +162,7 @@ class ApplyBucketUseCaseImplTest {
         )
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         coVerify(exactly = 1) {

@@ -62,7 +62,7 @@ class UpdatePixelColorUseCaseImplTest {
             )
 
             // When
-            val result = useCase.invoke(useCaseParams)
+            val result = useCase(useCaseParams)
 
             // Then
             assertTrue { result.isSuccess }
@@ -85,7 +85,7 @@ class UpdatePixelColorUseCaseImplTest {
         )
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertFalse { result.isSuccess }
@@ -108,7 +108,7 @@ class UpdatePixelColorUseCaseImplTest {
         )
 
         // When
-        useCase.invoke(useCaseParams)
+        useCase(useCaseParams)
 
         // Then
         coVerify(exactly = 0) {
@@ -133,7 +133,7 @@ class UpdatePixelColorUseCaseImplTest {
             )
 
             // When
-            val result = useCase.invoke(useCaseParams)
+            val result = useCase(useCaseParams)
 
             // Then
             coVerify(exactly = 1) {

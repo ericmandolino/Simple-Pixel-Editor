@@ -60,15 +60,15 @@ class SavePixelImageUseCaseImplTest {
             pixelImageModel,
             uri,
         )
-        coEvery { writeToFileUseCase.invoke(any()) }.returns(Result.success(Unit))
+        coEvery { writeToFileUseCase(any()) }.returns(Result.success(Unit))
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isSuccess }
         coVerify {
-            writeToFileUseCase.invoke(
+            writeToFileUseCase(
                 match { params ->
                     params.uri == uri && params.content == expectedContent
                 }
@@ -86,10 +86,10 @@ class SavePixelImageUseCaseImplTest {
             pixelImageModel,
             uri,
         )
-        coEvery { writeToFileUseCase.invoke(any()) }.returns(Result.success(Unit))
+        coEvery { writeToFileUseCase(any()) }.returns(Result.success(Unit))
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isSuccess }
@@ -113,10 +113,10 @@ class SavePixelImageUseCaseImplTest {
             uri,
         )
         val expectedException = mockk<Exception>()
-        coEvery { writeToFileUseCase.invoke(any()) }.returns(Result.failure(expectedException))
+        coEvery { writeToFileUseCase(any()) }.returns(Result.failure(expectedException))
 
         // When
-        val result = useCase.invoke(useCaseParams)
+        val result = useCase(useCaseParams)
 
         // Then
         assertTrue { result.isFailure }

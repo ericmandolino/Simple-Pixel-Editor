@@ -30,7 +30,7 @@ class SavePixelImageUseCaseImpl @Inject constructor(
     ) {
         val content = Json.encodeToString(pixelImageModel.toPixelImageSaveModel())
 
-        writeToFileUseCase.invoke(
+        writeToFileUseCase(
             WriteToFileUseCase.Params(
                 content,
                 uri,

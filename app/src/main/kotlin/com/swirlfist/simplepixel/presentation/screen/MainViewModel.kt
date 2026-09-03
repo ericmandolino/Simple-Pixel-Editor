@@ -160,10 +160,10 @@ class MainViewModel @Inject constructor(
                 )
             }
 
-            clearEditorActionUseCase.invoke(UseCaseParams.NoParams)
+            clearEditorActionUseCase(UseCaseParams.NoParams)
 
             launch {
-                getUndoEditorActionAvailableUseCase.invoke(UseCaseParams.NoParams).getOrNull()?.collect { isUndoAvailable ->
+                getUndoEditorActionAvailableUseCase(UseCaseParams.NoParams).getOrNull()?.collect { isUndoAvailable ->
                     _mainScreenState.update { mainScreenState ->
                         val actionsSectionState = mainScreenState.actionsSectionState
                         mainScreenState.copy(
@@ -176,7 +176,7 @@ class MainViewModel @Inject constructor(
             }
 
             launch {
-                getRedoEditorActionAvailableUseCase.invoke(UseCaseParams.NoParams).getOrNull()
+                getRedoEditorActionAvailableUseCase(UseCaseParams.NoParams).getOrNull()
                     ?.collect { isRedoAvailable ->
                         _mainScreenState.update { mainScreenState ->
                             val actionsSectionState = mainScreenState.actionsSectionState
@@ -387,7 +387,7 @@ class MainViewModel @Inject constructor(
 
     private fun undoEditorAction() {
         viewModelScope.launch {
-            undoEditorActionUseCase.invoke(UseCaseParams.NoParams).fold(
+            undoEditorActionUseCase(UseCaseParams.NoParams).fold(
                 onSuccess = { pixelImage ->
                     updatePixelImage(pixelImage)
                 },
@@ -398,7 +398,7 @@ class MainViewModel @Inject constructor(
 
     private fun redoEditorAction() {
         viewModelScope.launch {
-            redoEditorActionUseCase.invoke(UseCaseParams.NoParams).fold(
+            redoEditorActionUseCase(UseCaseParams.NoParams).fold(
                 onSuccess = { pixelImage ->
                     updatePixelImage(pixelImage)
                 },

@@ -26,7 +26,7 @@ class OpenPixelImageUseCaseImpl @Inject constructor(
     private suspend fun openPixelImage(
         uri: Uri,
     ): PixelImageModel {
-        return readFromFileUseCase.invoke(
+        return readFromFileUseCase(
             params = ReadFromFileUseCase.Params(
                 uri,
             )
