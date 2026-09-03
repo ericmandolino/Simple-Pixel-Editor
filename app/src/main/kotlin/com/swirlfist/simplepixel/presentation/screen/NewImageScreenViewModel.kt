@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.fromColorLong
 import androidx.compose.ui.graphics.toColorLong
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.usecase.UpdateBasePixelImageUseCase
 import com.swirlfist.simplepixel.presentation.state.NewImageScreenState
@@ -33,6 +34,34 @@ class NewImageScreenViewModel @Inject constructor(
             state.copy(
                 widthTextFieldState = widthTextFieldState,
                 heightTextFieldState = heightTextFieldState,
+            )
+        }
+    }
+
+    fun showPalettePresets() {
+        _newImageScreenState.update { state ->
+            state.copy(
+                isShowPalettePresets = true,
+            )
+        }
+    }
+
+    fun hidePalettePresets() {
+        _newImageScreenState.update { state ->
+            state.copy(
+                isShowPalettePresets = false,
+            )
+        }
+    }
+
+    fun onPalettePresetSelected(
+        paletteModel: PaletteModel,
+    ) {
+        _newImageScreenState.update { state ->
+            state.copy(
+                isShowPalettePresets = false,
+                paletteColors = paletteModel.colors,
+                selectedPaletteIndex = null,
             )
         }
     }

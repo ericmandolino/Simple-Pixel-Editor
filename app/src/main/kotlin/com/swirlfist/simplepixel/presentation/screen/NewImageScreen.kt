@@ -2,20 +2,22 @@ package com.swirlfist.simplepixel.presentation.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowColumn
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -25,6 +27,7 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.then
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -43,10 +46,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.text.isDigitsOnly
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swirlfist.simplepixel.R
+import com.swirlfist.simplepixel.domain.model.PaletteModel
+import com.swirlfist.simplepixel.presentation.state.NewImageScreenState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import com.swirlfist.simplepixel.presentation.toHexCode
 import com.swirlfist.simplepixel.presentation.uielements.IconButton
@@ -90,11 +96,13 @@ fun NewImageScreen(
         contentAlignment = Alignment.Center,
     ) {
         NewImageScreenContent(
+            newImageScreenState,
             widthTextFieldState,
             heightTextFieldState,
-            paletteColors = newImageScreenState.paletteColors,
-            selectedPaletteIndex = newImageScreenState.selectedPaletteIndex,
             onCreateImageClick = viewModel::createImage,
+            onLoadPalettePresetClick = viewModel::showPalettePresets,
+            onPalettePresetSelected = viewModel::onPalettePresetSelected,
+            onCancelPalettePresetSelection = viewModel::hidePalettePresets,
             onAddPaletteColorClick = viewModel::addColorToPalette,
             onPaletteColorClick = viewModel::updateSelectedPaletteColor,
             onDeletePaletteColorClick = viewModel::deleteColorFromPalette,
@@ -107,11 +115,13 @@ fun NewImageScreen(
 
 @Composable
 fun NewImageScreenContent(
+    newImageScreenState: NewImageScreenState,
     widthTextFieldState: TextFieldState,
     heightTextFieldState: TextFieldState,
-    paletteColors: List<Long>,
-    selectedPaletteIndex: Int?,
     onCreateImageClick: () -> Unit,
+    onLoadPalettePresetClick: () -> Unit,
+    onPalettePresetSelected: (PaletteModel) -> Unit,
+    onCancelPalettePresetSelection: () -> Unit,
     onAddPaletteColorClick: () -> Unit,
     onPaletteColorClick: (Int) -> Unit,
     onDeletePaletteColorClick: () -> Unit,
@@ -119,6 +129,14 @@ fun NewImageScreenContent(
     onColorComponentGreenSliderChange: (Float) -> Unit,
     onColorComponentBlueSliderChange: (Float) -> Unit,
 ) {
+    if (newImageScreenState.isShowPalettePresets) {
+        PalettePresetsDialog(
+            palettePresets = getBasePalettePresets(),
+            onPalettePresetSelected = onPalettePresetSelected,
+            onDismiss = onCancelPalettePresetSelection,
+        )
+    }
+
     val sectionModifier = Modifier
         .border(
             width = 1.dp,
@@ -144,8 +162,9 @@ fun NewImageScreenContent(
 
         ImagePalette(
             modifier = sectionModifier,
-            colors = paletteColors,
-            selectedPaletteIndex,
+            colors = newImageScreenState.paletteColors,
+            selectedPaletteIndex = newImageScreenState.selectedPaletteIndex,
+            onLoadPalettePresetClick,
             onAddPaletteColorClick,
             onPaletteColorClick,
             onDeletePaletteColorClick,
@@ -157,7 +176,7 @@ fun NewImageScreenContent(
         val isCreateButtonEnabled =
             widthTextFieldState.text.isNotBlank() &&
                     heightTextFieldState.text.isNotBlank() &&
-                    paletteColors.isNotEmpty()
+                    newImageScreenState.paletteColors.isNotEmpty()
 
         TextButton(
             modifier = Modifier
@@ -174,10 +193,11 @@ fun NewImageScreenContent(
 
 @Composable
 fun CreateImageSectionTitle(
+    modifier: Modifier = Modifier,
     text: String,
 ) {
     Text(
-        modifier = Modifier.padding(4.dp),
+        modifier = modifier.padding(4.dp),
         text = text,
         style = MaterialTheme.typography.titleMedium
     )
@@ -195,25 +215,36 @@ fun ImageSize(
         CreateImageSectionTitle(
             text = stringResource(R.string.create_image_size),
         )
-        DimensionTextField(
-            label = stringResource(R.string.input_width),
-            textFieldState = widthTextFieldState,
-        )
-        DimensionTextField(
-            label = stringResource(R.string.input_height),
-            textFieldState = heightTextFieldState,
-        )
-        Spacer(Modifier.height(8.dp))
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            DimensionTextField(
+                modifier = Modifier.weight(0.4F),
+                label = stringResource(R.string.input_width),
+                textFieldState = widthTextFieldState,
+            )
+            Text(
+                text = "x",
+            )
+            DimensionTextField(
+                modifier = Modifier.weight(0.4F),
+                label = stringResource(R.string.input_height),
+                textFieldState = heightTextFieldState,
+            )
+        }
     }
 }
 
 @Composable
 fun DimensionTextField(
+    modifier: Modifier = Modifier,
     label: String,
     textFieldState: TextFieldState,
 ) {
     OutlinedTextField(
         state = textFieldState,
+        modifier = modifier,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Number,
         ),
@@ -245,6 +276,7 @@ fun ImagePalette(
     modifier: Modifier = Modifier,
     colors: List<Long>,
     selectedPaletteIndex: Int?,
+    onLoadPalettePresetClick: () -> Unit,
     onAddPaletteColorClick: () -> Unit,
     onPaletteColorClick: (Int) -> Unit,
     onDeletePaletteColorClick: () -> Unit,
@@ -254,10 +286,26 @@ fun ImagePalette(
 ) {
     Column(
         modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        CreateImageSectionTitle(
-            text = stringResource(R.string.create_image_palette),
-        )
+        Row(
+            verticalAlignment = Alignment.Top,
+        ) {
+            CreateImageSectionTitle(
+                modifier = Modifier
+                    .weight(1F),
+                text = stringResource(R.string.create_image_palette),
+            )
+
+            TextButton(
+                onClick = onLoadPalettePresetClick,
+            ) {
+                Text(
+                    text = stringResource(R.string.load_palette_preset),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
 
         FlowColumn(
             modifier = Modifier
@@ -290,43 +338,47 @@ fun ImagePalette(
             null
         }
 
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+        Card {
+            Column(
+                modifier = Modifier
+                    .padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(
-                    modifier = Modifier
-                        .weight(1F),
-                    text = color?.toHexCode()?.uppercase() ?: "",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                TextButton(
-                    onClick = onDeletePaletteColorClick,
-                    enabled = color != null,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.delete)
+                        modifier = Modifier
+                            .weight(1F),
+                        text = color?.toHexCode()?.uppercase() ?: "",
+                        style = MaterialTheme.typography.titleMedium,
                     )
+                    TextButton(
+                        onClick = onDeletePaletteColorClick,
+                        enabled = color != null,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.delete)
+                        )
+                    }
                 }
+                PaletteColorComponent(
+                    label = stringResource(R.string.red),
+                    sliderValue = color?.red,
+                    onSliderChange = onColorComponentRedSliderChange,
+                )
+                PaletteColorComponent(
+                    label = stringResource(R.string.green),
+                    sliderValue = color?.green,
+                    onSliderChange = onColorComponentGreenSliderChange,
+                )
+                PaletteColorComponent(
+                    label = stringResource(R.string.blue),
+                    sliderValue = color?.blue,
+                    onSliderChange = onColorComponentBlueSliderChange,
+                )
             }
-            PaletteColorComponent(
-                label = stringResource(R.string.red),
-                sliderValue = color?.red,
-                onSliderChange = onColorComponentRedSliderChange,
-            )
-            PaletteColorComponent(
-                label = stringResource(R.string.green),
-                sliderValue = color?.green,
-                onSliderChange = onColorComponentGreenSliderChange,
-            )
-            PaletteColorComponent(
-                label = stringResource(R.string.blue),
-                sliderValue = color?.blue,
-                onSliderChange = onColorComponentBlueSliderChange,
-            )
         }
     }
 }
@@ -397,16 +449,105 @@ fun PaletteColorComponent(
     }
 }
 
+@Composable
+fun PalettePresetsDialog(
+    palettePresets: Map<String, PaletteModel>,
+    onPalettePresetSelected: (PaletteModel) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            PalettePresets(
+                modifier = Modifier
+                    .padding(16.dp),
+                palettePresets = palettePresets,
+                onPalettePresetSelected = onPalettePresetSelected,
+            )
+        }
+    }
+}
+
+@Composable
+fun PalettePresets(
+    modifier: Modifier = Modifier,
+    palettePresets: Map<String, PaletteModel>,
+    onPalettePresetSelected: (PaletteModel) -> Unit,
+) {
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        palettePresets.forEach { (presetName, palette) ->
+            item {
+                PalettePresetItem(
+                    presetName,
+                    palette,
+                    onClick = { onPalettePresetSelected(palette) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PalettePresetItem(
+    presetName: String,
+    palette: PaletteModel,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                onClickLabel = stringResource(R.string.cd_new_image_screen_select_palette_preset),
+                onClick = onClick,
+            ),
+    ) {
+        Text(
+            text = presetName,
+            style = MaterialTheme.typography.titleSmall,
+        )
+        FlowRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 8.dp),
+            maxLines = 4,
+
+            ) {
+            palette.colors.forEach { color ->
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(Color.fromColorLong(color)),
+                )
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true, widthDp = 320, heightDp = 640)
 @Composable
 fun NewImageScreenContentPreview() {
     SimplePixelTheme {
+        val widthTextFieldState = rememberTextFieldState()
+        val heightTextFieldState = rememberTextFieldState()
         NewImageScreenContent(
-            widthTextFieldState = rememberTextFieldState(),
-            heightTextFieldState = rememberTextFieldState(),
-            paletteColors = listOf(),
-            selectedPaletteIndex = null,
+            newImageScreenState = NewImageScreenState(
+                isNavigateToMainExpected = false,
+                widthTextFieldState,
+                heightTextFieldState,
+            ),
+            widthTextFieldState,
+            heightTextFieldState,
             onCreateImageClick = {},
+            onLoadPalettePresetClick = {},
+            onPalettePresetSelected = {},
+            onCancelPalettePresetSelection = {},
             onAddPaletteColorClick = {},
             onPaletteColorClick = {},
             onDeletePaletteColorClick = {},
@@ -439,6 +580,7 @@ fun ImagePalettePreview() {
                 Color.Green.toColorLong(),
             ),
             selectedPaletteIndex = 1,
+            onLoadPalettePresetClick = {},
             onAddPaletteColorClick = {},
             onPaletteColorClick = {},
             onDeletePaletteColorClick = {},
@@ -472,5 +614,59 @@ fun PaletteColorSelectButtonPreview() {
             onClick = {},
         )
     }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 320)
+@Composable
+fun PalettePresetsDialogPreview() {
+    SimplePixelTheme {
+        PalettePresetsDialog(
+            palettePresets = getBasePalettePresets(),
+            onPalettePresetSelected = {},
+            onDismiss = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 96)
+@Composable
+fun PalettePresetItemPreview() {
+    SimplePixelTheme {
+        val colors = listOf(
+            Color.Red.toColorLong(),
+            Color.Blue.toColorLong(),
+            Color.Green.toColorLong(),
+        )
+        PalettePresetItem(
+            presetName = "PRESET",
+            palette = PaletteModel(colors),
+            onClick = {},
+        )
+    }
+}
+
+// TODO: create repo
+private fun getBasePalettePresets(): Map<String, PaletteModel> {
+    val presets = mutableMapOf<String, PaletteModel>()
+
+    // Black & White
+    presets["B & W"] = PaletteModel(
+        colors = listOf(
+            Color.Black.toColorLong(),
+            Color.White.toColorLong(),
+        )
+    )
+
+    // Game Boy
+    presets["Game Boy"] = PaletteModel(
+        colors = listOf(
+            Color(155, 188, 15, 255).toColorLong(),
+            Color(139, 172, 15, 255).toColorLong(),
+            Color(48, 98, 48, 255).toColorLong(),
+            Color(15, 56, 15, 255).toColorLong(),
+        )
+    )
+
+    return presets
 }
 

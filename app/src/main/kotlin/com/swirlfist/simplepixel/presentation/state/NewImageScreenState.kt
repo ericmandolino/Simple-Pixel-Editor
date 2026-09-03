@@ -8,4 +8,5 @@ data class NewImageScreenState(
     val heightTextFieldState: TextFieldState? = null,
     val paletteColors: List<Long> = listOf(),
     val selectedPaletteIndex: Int? = null,
+    val isShowPalettePresets: Boolean = false,
 )
