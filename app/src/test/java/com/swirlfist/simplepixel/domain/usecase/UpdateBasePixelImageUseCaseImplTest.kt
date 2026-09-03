@@ -9,6 +9,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertTrue
 
 class UpdateBasePixelImageUseCaseImplTest {
 
@@ -32,11 +33,12 @@ class UpdateBasePixelImageUseCaseImplTest {
         val pixelImage = mockk<PixelImageModel>()
 
         // When
-        useCase(
+        val result = useCase(
             UpdateBasePixelImageUseCase.Params(pixelImage)
         )
 
         // Then
+        assertTrue(result.isSuccess)
         coVerify(exactly = 1) {
             basePixelImageRepository.updateBasePixelImage(pixelImage)
         }
