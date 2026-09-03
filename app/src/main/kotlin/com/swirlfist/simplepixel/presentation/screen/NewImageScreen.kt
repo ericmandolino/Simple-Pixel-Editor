@@ -52,6 +52,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swirlfist.simplepixel.R
 import com.swirlfist.simplepixel.domain.model.PaletteModel
+import com.swirlfist.simplepixel.presentation.state.NewImagePaletteState
 import com.swirlfist.simplepixel.presentation.state.NewImageScreenState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import com.swirlfist.simplepixel.presentation.toHexCode
@@ -99,16 +100,6 @@ fun NewImageScreen(
             newImageScreenState,
             widthTextFieldState,
             heightTextFieldState,
-            onCreateImageClick = viewModel::createImage,
-            onLoadPalettePresetClick = viewModel::showPalettePresets,
-            onPalettePresetSelected = viewModel::onPalettePresetSelected,
-            onCancelPalettePresetSelection = viewModel::hidePalettePresets,
-            onAddPaletteColorClick = viewModel::addColorToPalette,
-            onPaletteColorClick = viewModel::updateSelectedPaletteColor,
-            onDeletePaletteColorClick = viewModel::deleteColorFromPalette,
-            onColorComponentRedSliderChange = viewModel::updatePaletteColorComponentRed,
-            onColorComponentGreenSliderChange = viewModel::updatePaletteColorComponentGreen,
-            onColorComponentBlueSliderChange = viewModel::updatePaletteColorComponentBlue,
         )
     }
 }
@@ -118,22 +109,12 @@ fun NewImageScreenContent(
     newImageScreenState: NewImageScreenState,
     widthTextFieldState: TextFieldState,
     heightTextFieldState: TextFieldState,
-    onCreateImageClick: () -> Unit,
-    onLoadPalettePresetClick: () -> Unit,
-    onPalettePresetSelected: (PaletteModel) -> Unit,
-    onCancelPalettePresetSelection: () -> Unit,
-    onAddPaletteColorClick: () -> Unit,
-    onPaletteColorClick: (Int) -> Unit,
-    onDeletePaletteColorClick: () -> Unit,
-    onColorComponentRedSliderChange: (Float) -> Unit,
-    onColorComponentGreenSliderChange: (Float) -> Unit,
-    onColorComponentBlueSliderChange: (Float) -> Unit,
 ) {
     if (newImageScreenState.isShowPalettePresets) {
         PalettePresetsDialog(
             palettePresets = getBasePalettePresets(),
-            onPalettePresetSelected = onPalettePresetSelected,
-            onDismiss = onCancelPalettePresetSelection,
+            onPalettePresetSelected = newImageScreenState.onPalettePresetSelected,
+            onDismiss = newImageScreenState.onCancelPalettePresetSelection,
         )
     }
 
@@ -162,27 +143,19 @@ fun NewImageScreenContent(
 
         ImagePalette(
             modifier = sectionModifier,
-            colors = newImageScreenState.paletteColors,
-            selectedPaletteIndex = newImageScreenState.selectedPaletteIndex,
-            onLoadPalettePresetClick,
-            onAddPaletteColorClick,
-            onPaletteColorClick,
-            onDeletePaletteColorClick,
-            onColorComponentRedSliderChange,
-            onColorComponentGreenSliderChange,
-            onColorComponentBlueSliderChange,
+            paletteState = newImageScreenState.paletteState,
         )
 
         val isCreateButtonEnabled =
             widthTextFieldState.text.isNotBlank() &&
                     heightTextFieldState.text.isNotBlank() &&
-                    newImageScreenState.paletteColors.isNotEmpty()
+                    newImageScreenState.paletteState.paletteColors.isNotEmpty()
 
         TextButton(
             modifier = Modifier
                 .align(Alignment.End),
             enabled = isCreateButtonEnabled,
-            onClick = onCreateImageClick,
+            onClick = newImageScreenState.onCreateImageClick,
         ) {
             Text(
                 text = stringResource(R.string.create),
@@ -274,16 +247,11 @@ fun DimensionTextField(
 @Composable
 fun ImagePalette(
     modifier: Modifier = Modifier,
-    colors: List<Long>,
-    selectedPaletteIndex: Int?,
-    onLoadPalettePresetClick: () -> Unit,
-    onAddPaletteColorClick: () -> Unit,
-    onPaletteColorClick: (Int) -> Unit,
-    onDeletePaletteColorClick: () -> Unit,
-    onColorComponentRedSliderChange: (Float) -> Unit,
-    onColorComponentGreenSliderChange: (Float) -> Unit,
-    onColorComponentBlueSliderChange: (Float) -> Unit,
+    paletteState: NewImagePaletteState
+
 ) {
+    val colors = paletteState.paletteColors
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -298,7 +266,7 @@ fun ImagePalette(
             )
 
             TextButton(
-                onClick = onLoadPalettePresetClick,
+                onClick = paletteState.onLoadPalettePresetClick,
             ) {
                 Text(
                     text = stringResource(R.string.load_palette_preset),
@@ -306,6 +274,8 @@ fun ImagePalette(
                 )
             }
         }
+
+        val selectedPaletteIndex = paletteState.selectedPaletteIndex
 
         FlowColumn(
             modifier = Modifier
@@ -318,8 +288,8 @@ fun ImagePalette(
                 PaletteColorSelectButton(
                     colorLong,
                     paletteIndex,
-                    isSelected = paletteIndex == selectedPaletteIndex,
-                    onClick = { onPaletteColorClick(paletteIndex) },
+                    isSelected = paletteIndex == paletteState.selectedPaletteIndex,
+                    onClick = { paletteState.onPaletteColorClick(paletteIndex) },
                 )
             }
             IconButton(
@@ -328,7 +298,7 @@ fun ImagePalette(
                 contentDescriptionResId = R.string.cd_new_image_screen_add_palette_color,
                 size = 48.dp,
                 isEnabled = true,
-                onClick = onAddPaletteColorClick,
+                onClick = paletteState.onAddPaletteColorClick,
             )
         }
 
@@ -355,7 +325,7 @@ fun ImagePalette(
                         style = MaterialTheme.typography.titleMedium,
                     )
                     TextButton(
-                        onClick = onDeletePaletteColorClick,
+                        onClick = paletteState.onDeletePaletteColorClick,
                         enabled = color != null,
                     ) {
                         Text(
@@ -366,17 +336,17 @@ fun ImagePalette(
                 PaletteColorComponent(
                     label = stringResource(R.string.red),
                     sliderValue = color?.red,
-                    onSliderChange = onColorComponentRedSliderChange,
+                    onSliderChange = paletteState.onColorComponentRedSliderChange,
                 )
                 PaletteColorComponent(
                     label = stringResource(R.string.green),
                     sliderValue = color?.green,
-                    onSliderChange = onColorComponentGreenSliderChange,
+                    onSliderChange = paletteState.onColorComponentGreenSliderChange,
                 )
                 PaletteColorComponent(
                     label = stringResource(R.string.blue),
                     sliderValue = color?.blue,
-                    onSliderChange = onColorComponentBlueSliderChange,
+                    onSliderChange = paletteState.onColorComponentBlueSliderChange,
                 )
             }
         }
@@ -544,16 +514,6 @@ fun NewImageScreenContentPreview() {
             ),
             widthTextFieldState,
             heightTextFieldState,
-            onCreateImageClick = {},
-            onLoadPalettePresetClick = {},
-            onPalettePresetSelected = {},
-            onCancelPalettePresetSelection = {},
-            onAddPaletteColorClick = {},
-            onPaletteColorClick = {},
-            onDeletePaletteColorClick = {},
-            onColorComponentRedSliderChange = {},
-            onColorComponentGreenSliderChange = {},
-            onColorComponentBlueSliderChange = {},
         )
     }
 }
@@ -574,19 +534,7 @@ fun ImageSizePreview() {
 fun ImagePalettePreview() {
     SimplePixelTheme {
         ImagePalette(
-            colors = listOf(
-                Color.Red.toColorLong(),
-                Color.Blue.toColorLong(),
-                Color.Green.toColorLong(),
-            ),
-            selectedPaletteIndex = 1,
-            onLoadPalettePresetClick = {},
-            onAddPaletteColorClick = {},
-            onPaletteColorClick = {},
-            onDeletePaletteColorClick = {},
-            onColorComponentRedSliderChange = {},
-            onColorComponentGreenSliderChange = {},
-            onColorComponentBlueSliderChange = {},
+            paletteState = NewImagePaletteState(),
         )
     }
 }
