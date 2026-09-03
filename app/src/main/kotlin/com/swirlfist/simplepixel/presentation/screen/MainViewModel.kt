@@ -5,7 +5,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.swirlfist.simplepixel.data.repository.BasePixelImageRepository
 import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
 import com.swirlfist.simplepixel.domain.model.PaletteModel
@@ -13,6 +12,7 @@ import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCase
 import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCase
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.GetBasePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseCase
@@ -47,7 +47,7 @@ private const val ERASER_TOOL_PALETTE_INDEX = EMPTY_PIXEL_PALETTE_INDEX
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val basePixelImageRepository: BasePixelImageRepository,
+    private val getBasePixelImageUseCase: GetBasePixelImageUseCase,
     private val savePixelImageUseCase: SavePixelImageUseCase,
     private val exportPixelImageUseCase: ExportPixelImageUseCase,
     private val openPixelImageUseCase: OpenPixelImageUseCase,
@@ -72,7 +72,7 @@ class MainViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val pixelImageModel = basePixelImageRepository.getBasePixelImage() ?:
+            val pixelImageModel = getBasePixelImageUseCase(UseCaseParams.NoParams).getOrNull() ?:
             PixelImageModel.createEmpty(
                 width = 24,
                 height = 24,

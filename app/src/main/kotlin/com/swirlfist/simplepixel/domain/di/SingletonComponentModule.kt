@@ -6,6 +6,8 @@ import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCase
 import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.GetBasePixelImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.GetBasePixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCase
@@ -22,6 +24,8 @@ import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.UndoEditorActionUseCase
 import com.swirlfist.simplepixel.domain.usecase.UndoEditorActionUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.UpdateBasePixelImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.UpdateBasePixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCaseImpl
 import dagger.Binds
@@ -92,4 +96,14 @@ abstract class SingletonComponentModule {
     abstract fun bindClearEditorActionsUseCase(
         impl: ClearEditorActionsUseCaseImpl,
     ): ClearEditorActionsUseCase
+
+    @Binds
+    abstract fun bindGetBasePixelImageUseCase(
+        impl: GetBasePixelImageUseCaseImpl,
+    ): GetBasePixelImageUseCase
+
+    @Binds
+    abstract fun bindUpdateBasePixelImageUseCase(
+        impl: UpdateBasePixelImageUseCaseImpl,
+    ): UpdateBasePixelImageUseCase
 }

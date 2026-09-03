@@ -6,8 +6,8 @@ import androidx.compose.ui.graphics.fromColorLong
 import androidx.compose.ui.graphics.toColorLong
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.swirlfist.simplepixel.data.repository.BasePixelImageRepository
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
+import com.swirlfist.simplepixel.domain.usecase.UpdateBasePixelImageUseCase
 import com.swirlfist.simplepixel.presentation.state.NewImageScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NewImageScreenViewModel @Inject constructor(
-    private val basePixelImageRepository: BasePixelImageRepository,
+    private val updateBasePixelImageUseCase: UpdateBasePixelImageUseCase,
 ) : ViewModel() {
     private val _newImageScreenState = MutableStateFlow(
         value = NewImageScreenState()
@@ -147,7 +147,11 @@ class NewImageScreenViewModel @Inject constructor(
                 colors,
             )
 
-            basePixelImageRepository.updateBasePixelImage(pixelImageModel)
+            updateBasePixelImageUseCase(
+                UpdateBasePixelImageUseCase.Params(
+                    pixelImage = pixelImageModel
+                )
+            )
             _newImageScreenState.update { state ->
                 state.copy(
                     isNavigateToMainExpected = true,
