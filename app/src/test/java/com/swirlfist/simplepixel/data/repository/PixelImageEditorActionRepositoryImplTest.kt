@@ -61,35 +61,36 @@ class PixelImageEditorActionRepositoryImplTest {
     }
 
     @Test
-    fun `when we add an action then it gets added after the current index becoming the last action`() = runTest {
-        // Given
-        val action1 = mockk<PixelImageEditorAction>().also { action ->
-            every { action.pixelImage }.returns(mockk())
-        }
-        val action2 = mockk<PixelImageEditorAction>().also { action ->
-            every { action.pixelImage }.returns(mockk())
-        }
-        val action3 = mockk<PixelImageEditorAction>().also { action ->
-            every { action.pixelImage }.returns(mockk())
-        }
-        repository.addAction(action1, mockk())
-        repository.addAction(action2, mockk())
-        repository.addAction(action3, mockk())
-        repository.undoAction()
-        repository.undoAction()
-        val action4 = mockk<PixelImageEditorAction>()
+    fun `when we add an action then it gets added after the current index becoming the last action`() =
+        runTest {
+            // Given
+            val action1 = mockk<PixelImageEditorAction>().also { action ->
+                every { action.pixelImage }.returns(mockk())
+            }
+            val action2 = mockk<PixelImageEditorAction>().also { action ->
+                every { action.pixelImage }.returns(mockk())
+            }
+            val action3 = mockk<PixelImageEditorAction>().also { action ->
+                every { action.pixelImage }.returns(mockk())
+            }
+            repository.addAction(action1, mockk())
+            repository.addAction(action2, mockk())
+            repository.addAction(action3, mockk())
+            repository.undoAction()
+            repository.undoAction()
+            val action4 = mockk<PixelImageEditorAction>()
 
-        // When
-        repository.addAction(action4, mockk())
-        val actions = repository.getActions()
-        val currentAction = repository.getCurrentAction()
+            // When
+            repository.addAction(action4, mockk())
+            val actions = repository.getActions()
+            val currentAction = repository.getCurrentAction()
 
-        // Then
-        assertEquals(2, actions.size)
-        assertEquals(action1, actions[0])
-        assertEquals(action4, actions[1])
-        assertEquals(action4, currentAction)
-    }
+            // Then
+            assertEquals(2, actions.size)
+            assertEquals(action1, actions[0])
+            assertEquals(action4, actions[1])
+            assertEquals(action4, currentAction)
+        }
 
     @Test
     fun `when we clear actions then actions are empty`() = runTest {
@@ -360,23 +361,24 @@ class PixelImageEditorActionRepositoryImplTest {
     }
 
     @Test
-    fun `when adding an action if the max undo actions is reached then the first action is dropped`() = runTest {
-        // Given
-        val actions = mutableListOf<PixelImageEditorAction>().apply {
-            repeat(MAX_UNDO_ACTIONS) {
-                add(mockk<PixelImageEditorAction>())
+    fun `when adding an action if the max undo actions is reached then the first action is dropped`() =
+        runTest {
+            // Given
+            val actions = mutableListOf<PixelImageEditorAction>().apply {
+                repeat(MAX_UNDO_ACTIONS) {
+                    add(mockk<PixelImageEditorAction>())
+                }
             }
-        }
-        actions.forEach { action ->
-            repository.addAction(action, mockk())
-        }
+            actions.forEach { action ->
+                repository.addAction(action, mockk())
+            }
 
-        // When
-        repository.addAction(mockk(), mockk())
+            // When
+            repository.addAction(mockk(), mockk())
 
-        // Then
-        val actionsInRepository = repository.getActions()
-        assertEquals(MAX_UNDO_ACTIONS, actionsInRepository.size)
-        assertEquals(actions[1], actionsInRepository[0])
-    }
+            // Then
+            val actionsInRepository = repository.getActions()
+            assertEquals(MAX_UNDO_ACTIONS, actionsInRepository.size)
+            assertEquals(actions[1], actionsInRepository[0])
+        }
 }

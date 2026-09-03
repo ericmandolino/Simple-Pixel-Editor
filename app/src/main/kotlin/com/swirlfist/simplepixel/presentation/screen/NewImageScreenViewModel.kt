@@ -116,9 +116,11 @@ class NewImageScreenViewModel @Inject constructor(
             ColorComponent.RED -> color.copy(
                 red = value,
             )
+
             ColorComponent.GREEN -> color.copy(
                 green = value,
             )
+
             ColorComponent.BLUE -> color.copy(
                 blue = value,
             )

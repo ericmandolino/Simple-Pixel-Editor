@@ -14,6 +14,7 @@ interface PixelImageEditorActionRepository {
         action: PixelImageEditorAction,
         pixelImageResult: PixelImageModel,
     )
+
     suspend fun undoAction(): PixelImageModel?
     suspend fun redoAction(): PixelImageModel?
     fun isUndoAvailable(): Flow<Boolean>

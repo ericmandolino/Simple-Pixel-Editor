@@ -31,29 +31,31 @@ class RedoEditorActionUseCaseImplTest {
     }
 
     @Test
-    fun `when invoking the use case if the call to the repository returns the resulting image then the use case succeeds`() = runTest {
-        // Given
-        val pixelImage = mockk<PixelImageModel>()
-        coEvery { pixelImageEditorActionRepository.redoAction() }.returns(pixelImage)
+    fun `when invoking the use case if the call to the repository returns the resulting image then the use case succeeds`() =
+        runTest {
+            // Given
+            val pixelImage = mockk<PixelImageModel>()
+            coEvery { pixelImageEditorActionRepository.redoAction() }.returns(pixelImage)
 
-        // When
-        val result = useCase.invoke(UseCaseParams.NoParams)
+            // When
+            val result = useCase.invoke(UseCaseParams.NoParams)
 
-        // Then
-        assertTrue(result.isSuccess)
-        assertEquals(pixelImage, result.getOrThrow())
-    }
+            // Then
+            assertTrue(result.isSuccess)
+            assertEquals(pixelImage, result.getOrThrow())
+        }
 
     @Test
-    fun `when invoking the use case if the call to the repository returns a null image then the use case fails`() = runTest {
-        // Given
-        coEvery { pixelImageEditorActionRepository.redoAction() }.returns(null)
+    fun `when invoking the use case if the call to the repository returns a null image then the use case fails`() =
+        runTest {
+            // Given
+            coEvery { pixelImageEditorActionRepository.redoAction() }.returns(null)
 
-        // When
-        val result = useCase.invoke(UseCaseParams.NoParams)
+            // When
+            val result = useCase.invoke(UseCaseParams.NoParams)
 
-        // Then
-        assertFalse(result.isSuccess)
-        assertTrue(result.exceptionOrNull() is RedoEditorActionError)
-    }
+            // Then
+            assertFalse(result.isSuccess)
+            assertTrue(result.exceptionOrNull() is RedoEditorActionError)
+        }
 }

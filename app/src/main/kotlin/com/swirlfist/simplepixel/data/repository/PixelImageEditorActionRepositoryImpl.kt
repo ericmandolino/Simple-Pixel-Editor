@@ -10,7 +10,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PixelImageEditorActionRepositoryImpl @Inject constructor() : PixelImageEditorActionRepository {
+class PixelImageEditorActionRepositoryImpl @Inject constructor() :
+    PixelImageEditorActionRepository {
     private var _actions = mutableListOf<PixelImageEditorAction>()
     private var _currentActionIndex: Int = -1
     private var _undoAvailableFlow = MutableStateFlow(false)

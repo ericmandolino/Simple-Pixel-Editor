@@ -72,12 +72,12 @@ class MainViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val pixelImageModel = getBasePixelImageUseCase(UseCaseParams.NoParams).getOrNull() ?:
-            PixelImageModel.createEmpty(
-                width = 24,
-                height = 24,
-                colors = listOf(Color.Black.toColorLong(), Color.White.toColorLong()),
-            )
+            val pixelImageModel = getBasePixelImageUseCase(UseCaseParams.NoParams).getOrNull()
+                ?: PixelImageModel.createEmpty(
+                    width = 24,
+                    height = 24,
+                    colors = listOf(Color.Black.toColorLong(), Color.White.toColorLong()),
+                )
 
             _mainScreenState.update { mainScreenState ->
                 val zoomFactor = DEFAULT_ZOOM_FACTOR
@@ -163,16 +163,17 @@ class MainViewModel @Inject constructor(
             clearEditorActionUseCase(UseCaseParams.NoParams)
 
             launch {
-                getUndoEditorActionAvailableUseCase(UseCaseParams.NoParams).getOrNull()?.collect { isUndoAvailable ->
-                    _mainScreenState.update { mainScreenState ->
-                        val actionsSectionState = mainScreenState.actionsSectionState
-                        mainScreenState.copy(
-                            actionsSectionState = actionsSectionState.updateUndoButtonState(
-                                isUndoAvailable
-                            ),
-                        )
+                getUndoEditorActionAvailableUseCase(UseCaseParams.NoParams).getOrNull()
+                    ?.collect { isUndoAvailable ->
+                        _mainScreenState.update { mainScreenState ->
+                            val actionsSectionState = mainScreenState.actionsSectionState
+                            mainScreenState.copy(
+                                actionsSectionState = actionsSectionState.updateUndoButtonState(
+                                    isUndoAvailable
+                                ),
+                            )
+                        }
                     }
-                }
             }
 
             launch {
