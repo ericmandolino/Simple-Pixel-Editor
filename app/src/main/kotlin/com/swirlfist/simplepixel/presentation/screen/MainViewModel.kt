@@ -94,7 +94,9 @@ class MainViewModel @Inject constructor(
                         actionModels = mapOf(
                             ActionButtonType.OpenPaletteActionButtonType to ActionModel.SelectableButtonGroupActionModel(
                                 actionType = ActionButtonType.OpenPaletteActionButtonType,
-                                childButtonActionModels = pixelImageModel.paletteModel.createPaletteButtons(),
+                                childButtonActionModels = pixelImageModel.paletteModel.createPaletteButtons() + ActionModel.ButtonActionModel(
+                                    actionType = ActionButtonType.InkEraserActionButtonType,
+                                ),
                             ),
                             ActionButtonType.OpenToolsActionButtonType to ActionModel.SelectableButtonGroupActionModel(
                                 actionType = ActionButtonType.OpenToolsActionButtonType,
@@ -107,9 +109,6 @@ class MainViewModel @Inject constructor(
                                         actionType = ActionButtonType.InkBucketActionButtonType,
                                     ),
                                 ),
-                            ),
-                            ActionButtonType.InkEraserActionButtonType to ActionModel.ButtonActionModel(
-                                actionType = ActionButtonType.InkEraserActionButtonType,
                             ),
                             ActionButtonType.UndoActionButtonType to ActionModel.ButtonActionModel(
                                 actionType = ActionButtonType.UndoActionButtonType,
@@ -240,7 +239,7 @@ class MainViewModel @Inject constructor(
                 -> selectExportPixelImageLocation()
 
             ActionSectionEvent.InkEraserButtonClicked
-                -> toggleSelectableActionButton(ActionButtonType.InkEraserActionButtonType)
+                -> updateSelectedPaletteIndex(ActionButtonType.InkEraserActionButtonType)
 
             ActionSectionEvent.InkBucketButtonClicked,
                 -> updateSelectedTool(ActionButtonType.InkBucketActionButtonType)
@@ -359,14 +358,14 @@ class MainViewModel @Inject constructor(
     }
 
     private fun updateSelectedPaletteIndex(
-        pickPaletteColorActionButtonType: ActionButtonType.PickPaletteColorActionButtonType,
+        pickPaletteColorActionButtonType: ActionButtonType,
     ) {
         _mainScreenState.update { mainScreenState ->
             val actionsSectionState = mainScreenState.actionsSectionState
             mainScreenState.copy(
                 actionsSectionState = actionsSectionState.updateSelectedChildButton(
                     pickPaletteColorActionButtonType,
-                )
+                ),
             )
         }
         if (_mainScreenState.value.isEraserSelected()) {
@@ -751,7 +750,17 @@ private fun MainScreenState.getPaletteIndex(): Int {
 private fun MainScreenState.isEraserSelected() = actionsSectionState.isEraserSelected()
 
 private fun ActionsSectionState.isEraserSelected(): Boolean {
-    return (actionModels[ActionButtonType.InkEraserActionButtonType] as ActionModel.ButtonActionModel).isSelected
+    actionModels.values.forEach { actionModel ->
+        if (actionModel is ActionModel.SelectableButtonGroupActionModel) {
+            actionModel.childButtonActionModels.forEach { childActionModel ->
+                if (childActionModel.actionType is ActionButtonType.InkEraserActionButtonType) {
+                    return childActionModel.isSelected
+                }
+            }
+        }
+    }
+
+    return false
 }
 
 private fun MainScreenState.getSelectedPaintTool() = actionsSectionState.getSelectedPaintTool()

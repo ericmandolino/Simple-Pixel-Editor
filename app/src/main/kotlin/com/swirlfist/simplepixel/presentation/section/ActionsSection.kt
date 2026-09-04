@@ -27,7 +27,7 @@ import com.swirlfist.simplepixel.presentation.state.ActionsSectionState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import com.swirlfist.simplepixel.presentation.uielements.ActionButton
 
-private const val MAX_BUTTON_GROUP_RENDER = 4
+private const val MAX_BUTTON_GROUP_RENDER = 5
 private const val BUTTON_SIZE_DP = 48
 
 @Composable
