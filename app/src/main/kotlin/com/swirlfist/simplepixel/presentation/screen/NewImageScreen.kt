@@ -32,6 +32,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -96,11 +97,20 @@ fun NewImageScreen(
             .verticalScroll(rememberScrollState()),
         contentAlignment = Alignment.Center,
     ) {
-        NewImageScreenContent(
-            newImageScreenState,
-            widthTextFieldState,
-            heightTextFieldState,
-        )
+        Surface(
+            modifier = Modifier
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(4.dp),
+                )
+                .padding(16.dp),
+        ) {
+            NewImageScreenContent(
+                newImageScreenState,
+                widthTextFieldState,
+                heightTextFieldState,
+            )
+        }
     }
 }
 
@@ -121,18 +131,13 @@ fun NewImageScreenContent(
     val sectionModifier = Modifier
         .border(
             width = 1.dp,
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             shape = RoundedCornerShape(4.dp),
         )
         .padding(8.dp)
 
     Column(
-        modifier = Modifier
-            .background(
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                shape = RoundedCornerShape(4.dp),
-            )
-            .padding(16.dp),
+        modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         ImageSize(

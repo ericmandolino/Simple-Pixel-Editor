@@ -3,6 +3,7 @@ package com.swirlfist.simplepixel.presentation.screen
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDragHandle
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
@@ -70,14 +73,21 @@ fun MainScreen(
         onSelectOpenPixelImageLocationLaunched = viewModel::onSelectOpenPixelImageLocationLaunched,
     )
 
-    MainScreenContent(
+    Surface(
         modifier = Modifier
             .fillMaxSize()
-            .padding(8.dp),
-        mainScreenState,
-        onCanvasSectionEvent = viewModel::onCanvasSectionEvent,
-        onActionsSectionEvent = viewModel::onActionsSectionEvent,
-    )
+            .background(MaterialTheme.colorScheme.surface)
+            .safeContentPadding()
+            .padding(16.dp),
+    ) {
+        MainScreenContent(
+            modifier = Modifier
+                .fillMaxSize(),
+            mainScreenState,
+            onCanvasSectionEvent = viewModel::onCanvasSectionEvent,
+            onActionsSectionEvent = viewModel::onActionsSectionEvent,
+        )
+    }
 }
 
 @Composable
@@ -181,7 +191,7 @@ fun MainScreenContent(
     if (availableSize.height >= availableSize.width) {
         Column(
             modifier = containerModifier,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             canvasSection(Modifier.weight(0.6F))
             actionsSection(Modifier.weight(0.4F))

@@ -3,6 +3,7 @@ package com.swirlfist.simplepixel.presentation.screen
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -54,13 +56,21 @@ fun StartScreen(
         }
     }
 
-    if (startScreenState.isLoadingImage) {
-        StartScreenLoadingImage()
-    } else {
-        StartScreenContent(
-            onNewImageClick = { navigateToNewImage() },
-            onLoadImageClick = viewModel::openImageSelection,
-        )
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface)
+            .safeContentPadding()
+            .padding(16.dp),
+    ) {
+        if (startScreenState.isLoadingImage) {
+            StartScreenLoadingImage()
+        } else {
+            StartScreenContent(
+                onNewImageClick = { navigateToNewImage() },
+                onLoadImageClick = viewModel::openImageSelection,
+            )
+        }
     }
 }
 
@@ -68,9 +78,7 @@ fun StartScreen(
 fun StartScreenLoadingImage() {
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .safeContentPadding()
-            .padding(16.dp),
+            .fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -95,9 +103,8 @@ fun StartScreenContent(
 ) {
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .safeContentPadding()
-            .padding(16.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         TextButton(
             modifier = Modifier.fillMaxWidth(0.5F),
