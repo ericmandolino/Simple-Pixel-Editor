@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -21,11 +22,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.presentation.state.ActionsSectionState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import com.swirlfist.simplepixel.presentation.uielements.ActionButton
+import kotlin.collections.listOf
 
 private const val MAX_BUTTON_GROUP_RENDER = 5
 private const val BUTTON_SIZE_DP = 48
@@ -58,6 +61,7 @@ fun ActionsSection(
                     actionType = actionModel.actionType,
                     isEnabled = actionModel.isEnabled,
                     childButtonActionModels = actionModel.childButtonActionModels,
+                    isSelectable = false,
                     onEvent,
                 )
 
@@ -66,6 +70,7 @@ fun ActionsSection(
                     actionType = actionModel.actionType,
                     isEnabled = actionModel.isEnabled,
                     childButtonActionModels = actionModel.childButtonActionModels,
+                    isSelectable = true,
                     onEvent,
                 )
             }
@@ -92,29 +97,38 @@ private fun ButtonGroupAction(
     actionType: ActionButtonType,
     isEnabled: Boolean,
     childButtonActionModels: List<ActionModel.ButtonActionModel>,
+    isSelectable: Boolean,
     onEvent: (ActionSectionEvent) -> Unit,
 ) {
     if (isEnabled && childButtonActionModels.size in 1..MAX_BUTTON_GROUP_RENDER
     ) {
-        Row(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.surfaceContainer)
-                .border(
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = IconButtonDefaults.filledIconButtonColors().containerColor
+        ButtonGroupAction(
+            childButtonActionModels,
+            onEvent,
+        )
+    } else if (isSelectable) {
+        val selected = childButtonActionModels.find { actionModel ->
+            actionModel.isSelected
+        }
+        if (selected != null) {
+            ButtonGroupAction(
+                childButtonActionModels = listOf(
+                    ActionModel.ButtonActionModel(
+                        actionType,
+                        isEnabled,
                     ),
-                    shape = RoundedCornerShape(4.dp),
-                )
-                .padding(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            childButtonActionModels.forEach { buttonActionModel ->
-                ButtonAction(
-                    buttonActionModel,
-                    onEvent = onEvent,
-                )
-            }
+                    selected,
+                ),
+                onEvent,
+            )
+        } else {
+            ButtonAction(
+                buttonActionModel = ActionModel.ButtonActionModel(
+                    actionType,
+                    isEnabled,
+                ),
+                onEvent = onEvent,
+            )
         }
     } else {
         ButtonAction(
@@ -125,6 +139,158 @@ private fun ButtonGroupAction(
             onEvent = onEvent,
         )
     }
+}
+
+@Composable
+private fun ButtonGroupAction(
+    childButtonActionModels: List<ActionModel.ButtonActionModel>,
+    onEvent: (ActionSectionEvent) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .border(
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = IconButtonDefaults.filledIconButtonColors().containerColor
+                ),
+                shape = RoundedCornerShape(4.dp),
+            )
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        childButtonActionModels.forEach { buttonActionModel ->
+            ButtonAction(
+                buttonActionModel,
+                onEvent = onEvent,
+            )
+        }
+    }
+}
+
+@Composable
+fun SelectableButtonGroupDialog(
+    childButtonActionModels: List<ActionModel.ButtonActionModel>,
+    onEvent: (ActionSectionEvent) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                itemVerticalAlignment = Alignment.CenterVertically,
+            ) {
+                childButtonActionModels.forEach { buttonActionModel ->
+                    ButtonAction(
+                        buttonActionModel,
+                        onEvent = onEvent,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ButtonGroupActionOverflowPreview() {
+
+    val selectableButtonGroupActionModel = ActionModel.ButtonGroupActionModel(
+        actionType = ActionButtonType.OpenPaletteActionButtonType,
+        childButtonActionModels = createOverflowButtonGroupChildren(),
+    )
+
+    SimplePixelTheme {
+        ButtonGroupAction(
+            actionType = selectableButtonGroupActionModel.actionType,
+            isEnabled = true,
+            childButtonActionModels = selectableButtonGroupActionModel.childButtonActionModels,
+            isSelectable = false,
+            onEvent = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ButtonGroupActionSelectableOverflowPreview() {
+
+    val selectableButtonGroupActionModel = ActionModel.SelectableButtonGroupActionModel(
+        actionType = ActionButtonType.OpenPaletteActionButtonType,
+        childButtonActionModels = createOverflowButtonGroupChildren(),
+    )
+
+    SimplePixelTheme {
+        ButtonGroupAction(
+            actionType = selectableButtonGroupActionModel.actionType,
+            isEnabled = true,
+            childButtonActionModels = selectableButtonGroupActionModel.childButtonActionModels,
+            isSelectable = true,
+            onEvent = {},
+        )
+    }
+}
+
+private fun createOverflowButtonGroupChildren(): List<ActionModel.ButtonActionModel> {
+    val palette = PaletteModel(
+        colors = listOf(
+            Color.Black.toColorLong(),
+            Color.White.toColorLong(),
+            Color.Yellow.toColorLong(),
+            Color.Red.toColorLong(),
+            Color.Blue.toColorLong(),
+            Color.Green.toColorLong(),
+        )
+    )
+
+    return listOf(
+        ActionModel.ButtonActionModel(
+            ActionButtonType.PickPaletteColorActionButtonType(
+                paletteIndex = 0,
+                palette = palette,
+            ),
+        ),
+        ActionModel.ButtonActionModel(
+            ActionButtonType.PickPaletteColorActionButtonType(
+                paletteIndex = 1,
+                palette = palette,
+            )
+        ),
+        ActionModel.ButtonActionModel(
+            ActionButtonType.PickPaletteColorActionButtonType(
+                paletteIndex = 2,
+                palette = palette,
+            ),
+            isSelected = true,
+        ),
+        ActionModel.ButtonActionModel(
+            ActionButtonType.PickPaletteColorActionButtonType(
+                paletteIndex = 3,
+                palette = palette,
+            ),
+        ),
+        ActionModel.ButtonActionModel(
+            ActionButtonType.PickPaletteColorActionButtonType(
+                paletteIndex = 4,
+                palette = palette,
+            ),
+        ),
+        ActionModel.ButtonActionModel(
+            ActionButtonType.PickPaletteColorActionButtonType(
+                paletteIndex = 5,
+                palette = palette,
+            ),
+        )
+    )
 }
 
 @Preview(name = "no-scroll-actions-section", showBackground = true, widthDp = 320, heightDp = 320)
@@ -204,6 +370,18 @@ fun ActionsSectionPreview() {
         ) { actionType ->
             Log.d("ActionsSection", "action: $actionType")
         }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 320)
+@Composable
+fun SelectableButtonGroupDialogPreview() {
+    SimplePixelTheme {
+        SelectableButtonGroupDialog(
+            childButtonActionModels = createOverflowButtonGroupChildren(),
+            onEvent = {},
+            onDismiss = {},
+        )
     }
 }
 

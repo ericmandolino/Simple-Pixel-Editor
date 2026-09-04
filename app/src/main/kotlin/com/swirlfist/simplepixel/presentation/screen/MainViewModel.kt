@@ -193,6 +193,22 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun showPalette() {
+        _mainScreenState.update { state ->
+            state.copy(
+                isShowPalette = true,
+            )
+        }
+    }
+
+    fun hidePalette() {
+        _mainScreenState.update { state ->
+            state.copy(
+                isShowPalette = false,
+            )
+        }
+    }
+
     fun onPreviewBackgroundColorSelected(
         color: Color,
     ) {
@@ -213,7 +229,9 @@ class MainViewModel @Inject constructor(
 
     fun onActionsSectionEvent(event: ActionSectionEvent) {
         when (event) {
-            ActionSectionEvent.OpenPaletteButtonClicked -> {}
+            ActionSectionEvent.OpenPaletteButtonClicked
+                -> showPalette()
+
             is ActionSectionEvent.PickPaletteColorButtonClicked
                 -> updateSelectedPaletteIndex(event.pickPaletteColorActionButtonType)
 
@@ -366,10 +384,8 @@ class MainViewModel @Inject constructor(
                 actionsSectionState = actionsSectionState.updateSelectedChildButton(
                     pickPaletteColorActionButtonType,
                 ),
+                isShowPalette = false,
             )
-        }
-        if (_mainScreenState.value.isEraserSelected()) {
-            toggleSelectableActionButton(ActionButtonType.InkEraserActionButtonType)
         }
     }
 

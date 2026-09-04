@@ -4,6 +4,7 @@ data class MainScreenState(
     val canvasSectionState: CanvasSectionState,
     val actionsSectionState: ActionsSectionState,
     val pixelImagePreviewSectionState: PixelImagePreviewSectionState,
+    val isShowPalette: Boolean = false,
     val launcherState: MainScreenLauncherState = MainScreenLauncherState(),
 )
 

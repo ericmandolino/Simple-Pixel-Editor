@@ -40,14 +40,17 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.presentation.launcher.ExportPixelImageLocationLauncher
 import com.swirlfist.simplepixel.presentation.launcher.OpenPixelImageLocationLauncher
 import com.swirlfist.simplepixel.presentation.launcher.SavePixelImageLocationLauncher
+import com.swirlfist.simplepixel.presentation.section.ActionButtonType
 import com.swirlfist.simplepixel.presentation.section.ActionSectionEvent
 import com.swirlfist.simplepixel.presentation.section.ActionsSection
 import com.swirlfist.simplepixel.presentation.section.CanvasSection
 import com.swirlfist.simplepixel.presentation.section.CanvasSectionEvent
 import com.swirlfist.simplepixel.presentation.section.PixelImagePreviewSection
+import com.swirlfist.simplepixel.presentation.section.SelectableButtonGroupDialog
 import com.swirlfist.simplepixel.presentation.state.ActionsSectionState
 import com.swirlfist.simplepixel.presentation.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.state.MainScreenLauncherState
@@ -72,6 +75,18 @@ fun MainScreen(
         onSelectExportPixelImageLocationLaunched = viewModel::onSelectExportPixelImageLocationLaunched,
         onSelectOpenPixelImageLocationLaunched = viewModel::onSelectOpenPixelImageLocationLaunched,
     )
+
+    if (mainScreenState.isShowPalette) {
+        val openPaletteActionButtonModel = mainScreenState.actionsSectionState
+            .actionModels[ActionButtonType.OpenPaletteActionButtonType] as? ActionModel.SelectableButtonGroupActionModel
+        openPaletteActionButtonModel?.childButtonActionModels?.let { buttonActionModels ->
+            SelectableButtonGroupDialog(
+                childButtonActionModels = buttonActionModels,
+                onEvent = viewModel::onActionsSectionEvent,
+                onDismiss = viewModel::hidePalette,
+            )
+        }
+    }
 
     Surface(
         modifier = Modifier
