@@ -130,7 +130,7 @@ fun PixelCanvas(
 
 @Composable
 fun PixelCanvasSnapshot(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     pixelImage: PixelImageModel,
     isFitAvailableSpace: Boolean = false,
     backgroundColor: Color? = Color.White,
@@ -312,6 +312,14 @@ private fun DrawScope.drawCanvas(
     val imageOffsetY = imageOffset.value.y
     val marginX = margin.value.x
     val marginY = margin.value.y
+
+    backgroundColor?.let { color ->
+        drawRect(
+            color,
+            topLeft = Offset(marginX, marginY),
+            size = imageSize,
+        )
+    }
 
     var y = marginY
     var yMatrixCoordinate =
@@ -610,10 +618,10 @@ private fun getColor(
     palette: List<Color>,
     isXMatrixCoordinateEven: Boolean,
     isYMatrixCoordinateEven: Boolean,
-    checkerBackgroundColors: Pair<Color, Color>?,
+    backGroundCheckersColors: Pair<Color, Color>?,
 ): Color? {
     return palette.getColor(pixel)
-        ?: checkerBackgroundColors?.let { (first, second) ->
+        ?: backGroundCheckersColors?.let { (first, second) ->
             if (
                 (isXMatrixCoordinateEven && !isYMatrixCoordinateEven) ||
                 (!isXMatrixCoordinateEven && isYMatrixCoordinateEven)

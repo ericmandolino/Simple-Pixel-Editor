@@ -65,7 +65,9 @@ class MainViewModel @Inject constructor(
         value = MainScreenState(
             canvasSectionState = CanvasSectionState(),
             actionsSectionState = ActionsSectionState(),
-            pixelImagePreviewSectionState = PixelImagePreviewSectionState(),
+            pixelImagePreviewSectionState = PixelImagePreviewSectionState(
+                onPreviewBackgroundColorSelected = ::onPreviewBackgroundColorSelected,
+            ),
         )
     )
     val mainScreenState = _mainScreenState.asStateFlow()
@@ -189,6 +191,18 @@ class MainViewModel @Inject constructor(
                         }
                     }
             }
+        }
+    }
+
+    fun onPreviewBackgroundColorSelected(
+        color: Color,
+    ) {
+        _mainScreenState.update { state ->
+            state.copy(
+                pixelImagePreviewSectionState = state.pixelImagePreviewSectionState.copy(
+                    selectedPreviewBackgroundColorLong = color.toColorLong(),
+                )
+            )
         }
     }
 

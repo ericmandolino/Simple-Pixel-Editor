@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,7 +27,6 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.then
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
@@ -58,8 +56,7 @@ import com.swirlfist.simplepixel.presentation.state.NewImageScreenState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import com.swirlfist.simplepixel.presentation.toHexCode
 import com.swirlfist.simplepixel.presentation.uielements.IconButton
-import com.swirlfist.simplepixel.presentation.uielements.PaletteColorButton
-import com.swirlfist.simplepixel.presentation.uielements.selectedButtonModifier
+import com.swirlfist.simplepixel.presentation.uielements.PaletteColorSelectButton
 import kotlin.math.roundToInt
 
 private const val DIMENSION_VALUE_DEFAULT = 24
@@ -291,8 +288,13 @@ fun ImagePalette(
         ) {
             colors.forEachIndexed { paletteIndex, colorLong ->
                 PaletteColorSelectButton(
-                    colorLong,
-                    paletteIndex,
+                    Color.fromColorLong(colorLong),
+                    size = 48.dp,
+                    isEnabled = true,
+                    contentDescriptionValue = stringResource(
+                        R.string.cd_new_image_screen_edit_palette_color,
+                        paletteIndex
+                    ),
                     isSelected = paletteIndex == paletteState.selectedPaletteIndex,
                     onClick = { paletteState.onPaletteColorClick(paletteIndex) },
                 )
@@ -355,34 +357,6 @@ fun ImagePalette(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun PaletteColorSelectButton(
-    colorLong: Long,
-    paletteIndex: Int,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .wrapContentSize()
-            .selectedButtonModifier(
-                isSelected,
-                IconButtonDefaults.filledIconButtonColors().containerColor
-            ),
-    ) {
-        PaletteColorButton(
-            color = Color.fromColorLong(colorLong),
-            size = 48.dp,
-            isEnabled = true,
-            contentDescriptionValue = stringResource(
-                R.string.cd_new_image_screen_edit_palette_color,
-                paletteIndex
-            ),
-            onClick = onClick,
-        )
     }
 }
 
@@ -552,19 +526,6 @@ fun PaletteColorComponentPreview() {
             label = "R",
             sliderValue = null,
             onSliderChange = {},
-        )
-    }
-}
-
-@Preview(showBackground = true, widthDp = 320, heightDp = 320)
-@Composable
-fun PaletteColorSelectButtonPreview() {
-    SimplePixelTheme {
-        PaletteColorSelectButton(
-            colorLong = Color.Red.toColorLong(),
-            paletteIndex = 0,
-            isSelected = true,
-            onClick = {},
         )
     }
 }
