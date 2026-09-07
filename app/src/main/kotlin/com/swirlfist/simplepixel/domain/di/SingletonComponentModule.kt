@@ -10,6 +10,8 @@ import com.swirlfist.simplepixel.domain.usecase.GetBasePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetBasePixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.GetPalettePresetsUseCase
+import com.swirlfist.simplepixel.domain.usecase.GetPalettePresetsUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseCase
@@ -106,4 +108,9 @@ abstract class SingletonComponentModule {
     abstract fun bindUpdateBasePixelImageUseCase(
         impl: UpdateBasePixelImageUseCaseImpl,
     ): UpdateBasePixelImageUseCase
+
+    @Binds
+    abstract fun bindGetPalettePresetsUseCase(
+        impl: GetPalettePresetsUseCaseImpl,
+    ): GetPalettePresetsUseCase
 }

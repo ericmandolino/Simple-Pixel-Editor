@@ -37,4 +37,5 @@
     <string name="green">G</string>
     <string name="blue">B</string>
     <string name="load_palette_preset">Load preset</string>
+    <string name="loading_palette_presets">Loading palette presets…</string>
 </resources>
