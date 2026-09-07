@@ -58,7 +58,7 @@ private const val DIMENSION_VALUE_MAX = 1024
 
 @Composable
 fun NewImageScreen(
-    viewModel: NewImageScreenViewModel = hiltViewModel(),
+    viewModel: NewImageViewModel = hiltViewModel(),
     navigateToMain: () -> Unit,
 ) {
     val newImageScreenState = viewModel.newImageScreenState.collectAsStateWithLifecycle().value
@@ -114,6 +114,12 @@ fun NewImageScreenContent(
         PalettePresetsDialog(
             onPalettePresetSelected = newImageScreenState.onPalettePresetSelected,
             onDismiss = newImageScreenState.onCancelPalettePresetSelection,
+        )
+    } else if (newImageScreenState.isShowSavePalettePreset) {
+        SavePalettePresetDialog(
+            paletteColors = newImageScreenState.paletteState.paletteColors,
+            onSaveClick = newImageScreenState.paletteState.onSavePalettePresetClick,
+            onDismiss = newImageScreenState.onCancelSaveAsPalettePreset,
         )
     }
 
@@ -250,21 +256,34 @@ fun ImagePalette(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Row(
-            verticalAlignment = Alignment.Top,
-        ) {
-            CreateImageSectionTitle(
-                modifier = Modifier
-                    .weight(1F),
-                text = stringResource(R.string.create_image_palette),
-            )
+        CreateImageSectionTitle(
+            text = stringResource(R.string.create_image_palette),
+        )
 
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(
+                8.dp,
+                Alignment.End
+            ),
+        ) {
+            TextButton(
+                onClick = paletteState.onStartSavePalettePresetClick,
+                enabled = paletteState.paletteColors.isNotEmpty() && !paletteState.isSavingPalettePreset,
+            ) {
+                Text(
+                    text = stringResource(R.string.save_palette_as_preset),
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.End,
+                )
+            }
             TextButton(
                 onClick = paletteState.onLoadPalettePresetClick,
             ) {
                 Text(
                     text = stringResource(R.string.load_palette_preset),
                     style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Start,
                 )
             }
         }

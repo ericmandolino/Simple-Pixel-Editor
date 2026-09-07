@@ -37,5 +37,8 @@
     <string name="green">G</string>
     <string name="blue">B</string>
     <string name="load_palette_preset">Load preset</string>
+    <string name="save_palette_as_preset">Save as preset</string>
     <string name="loading_palette_presets">Loading palette presets…</string>
+    <string name="palette_preset_name">Preset name</string>
+    <string name="save">Save</string>
 </resources>

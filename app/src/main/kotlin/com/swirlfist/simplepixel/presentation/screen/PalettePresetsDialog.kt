@@ -124,8 +124,7 @@ fun PalettePresetItem(
                 .fillMaxWidth()
                 .padding(start = 8.dp),
             maxLines = 4,
-
-            ) {
+        ) {
             palette.colors.forEach { color ->
                 Box(
                     modifier = Modifier

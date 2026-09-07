@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
+import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetsUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdateBasePixelImageUseCase
 import com.swirlfist.simplepixel.presentation.state.NewImagePaletteState
 import com.swirlfist.simplepixel.presentation.state.NewImageScreenState
@@ -19,13 +20,16 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class NewImageScreenViewModel @Inject constructor(
+class NewImageViewModel @Inject constructor(
     private val updateBasePixelImageUseCase: UpdateBasePixelImageUseCase,
+    private val savePalettePresetsUseCase: SavePalettePresetsUseCase,
 ) : ViewModel() {
     private val _newImageScreenState = MutableStateFlow(
         value = NewImageScreenState(
             paletteState = NewImagePaletteState(
                 onLoadPalettePresetClick = ::showPalettePresets,
+                onStartSavePalettePresetClick = ::showSaveAsPalettePresetDialog,
+                onSavePalettePresetClick = ::saveAsPalettePreset,
                 onAddPaletteColorClick = ::addColorToPalette,
                 onPaletteColorClick = ::updateSelectedPaletteColor,
                 onDeletePaletteColorClick = ::deleteColorFromPalette,
@@ -36,6 +40,7 @@ class NewImageScreenViewModel @Inject constructor(
             onCreateImageClick = ::createImage,
             onPalettePresetSelected = ::onPalettePresetSelected,
             onCancelPalettePresetSelection = ::hidePalettePresets,
+            onCancelSaveAsPalettePreset = ::hideSaveAsPalettePresetDialog,
         )
     )
     val newImageScreenState = _newImageScreenState.asStateFlow()
@@ -56,6 +61,77 @@ class NewImageScreenViewModel @Inject constructor(
         _newImageScreenState.update { state ->
             state.copy(
                 isShowPalettePresets = true,
+            )
+        }
+    }
+
+    fun showSaveAsPalettePresetDialog() {
+        val paletteColors = newImageScreenState.value.paletteState.paletteColors
+        if (paletteColors.isEmpty()) {
+            return
+        }
+
+        _newImageScreenState.update { state ->
+            state.copy(
+                isShowSavePalettePreset = true,
+            )
+        }
+    }
+
+    fun hideSaveAsPalettePresetDialog() {
+        _newImageScreenState.update { state ->
+            state.copy(
+                isShowSavePalettePreset = false,
+            )
+
+        }
+    }
+
+    fun saveAsPalettePreset(presetName: String) {
+        if (presetName.isBlank()) {
+            return
+        }
+
+        val paletteColors = newImageScreenState.value.paletteState.paletteColors
+        if (paletteColors.isEmpty()) {
+            return
+        }
+
+        _newImageScreenState.update { state ->
+            state.copy(
+                isShowSavePalettePreset = false,
+                paletteState = state.paletteState.copy(
+                    isSavingPalettePreset = true,
+                ),
+            )
+        }
+
+        viewModelScope.launch {
+            savePalettePresetsUseCase(
+                SavePalettePresetsUseCase.Params(
+                    presetName,
+                    paletteModel = PaletteModel(paletteColors)
+                )
+            ).fold(
+                onSuccess = {
+                    _newImageScreenState.update { state ->
+                        state.copy(
+                            paletteState = state.paletteState.copy(
+                                isSavingPalettePreset = false,
+                            ),
+                        )
+                    }
+                },
+                onFailure = {
+                    _newImageScreenState.update { state ->
+                        state.copy(
+                            paletteState = state.paletteState.copy(
+                                isSavingPalettePreset = false,
+                            ),
+                        )
+                    }
+                    // TODO: display error
+                },
             )
         }
     }

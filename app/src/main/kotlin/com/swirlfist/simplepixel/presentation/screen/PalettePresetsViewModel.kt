@@ -25,12 +25,14 @@ class PalettePresetsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getPalettePresetsUseCase(UseCaseParams.NoParams).getOrNull()?.let { palettePresets ->
-                _palettePresetsDialogState.update { state ->
-                    state.copy(
-                        palettePresets = palettePresets,
-                        isLoadingPresets = false,
-                    )
+            getPalettePresetsUseCase(UseCaseParams.NoParams).getOrNull()?.let { palettePresetsFlow ->
+                palettePresetsFlow.collect { palettePresets ->
+                    _palettePresetsDialogState.update { state ->
+                        state.copy(
+                            palettePresets = palettePresets,
+                            isLoadingPresets = false,
+                        )
+                    }
                 }
             }
         }

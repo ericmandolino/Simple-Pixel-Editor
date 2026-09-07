@@ -22,6 +22,8 @@ import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.RedoEditorActionUseCase
 import com.swirlfist.simplepixel.domain.usecase.RedoEditorActionUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetsUseCase
+import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetsUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.UndoEditorActionUseCase
@@ -113,4 +115,9 @@ abstract class SingletonComponentModule {
     abstract fun bindGetPalettePresetsUseCase(
         impl: GetPalettePresetsUseCaseImpl,
     ): GetPalettePresetsUseCase
+
+    @Binds
+    abstract fun bindSavePalettePresetsUseCase(
+        impl: SavePalettePresetsUseCaseImpl,
+    ): SavePalettePresetsUseCase
 }
