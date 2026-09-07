@@ -94,9 +94,7 @@ class MainViewModel @Inject constructor(
                         actionModels = mapOf(
                             ActionButtonType.OpenPaletteActionButtonType to ActionModel.SelectableButtonGroupActionModel(
                                 actionType = ActionButtonType.OpenPaletteActionButtonType,
-                                childButtonActionModels = pixelImageModel.paletteModel.createPaletteButtons() + ActionModel.ButtonActionModel(
-                                    actionType = ActionButtonType.InkEraserActionButtonType,
-                                ),
+                                childButtonActionModels = pixelImageModel.paletteModel.createPaletteButtons(),
                             ),
                             ActionButtonType.OpenToolsActionButtonType to ActionModel.SelectableButtonGroupActionModel(
                                 actionType = ActionButtonType.OpenToolsActionButtonType,

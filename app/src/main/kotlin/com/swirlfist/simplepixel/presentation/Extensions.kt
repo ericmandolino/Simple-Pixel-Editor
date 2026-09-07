@@ -50,7 +50,9 @@ fun PaletteModel.createPaletteButtons(): List<ActionModel.ButtonActionModel> {
             ),
             isSelected = index == 0,
         )
-    }
+    } + ActionModel.ButtonActionModel(
+            actionType = ActionButtonType.InkEraserActionButtonType,
+    )
 }
 
 fun Color.toHexCode(): String {
