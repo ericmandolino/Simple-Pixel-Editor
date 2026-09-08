@@ -20,6 +20,7 @@ import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.text.input.then
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -29,10 +30,12 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.fromColorLong
 import androidx.compose.ui.res.stringResource
@@ -327,47 +330,83 @@ fun ImagePalette(
             null
         }
 
-        Card {
-            Column(
-                modifier = Modifier
-                    .padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+        PaletteColorEdit(
+            color,
+            onDeleteClick = paletteState.onDeletePaletteColorClick,
+            onColorComponentRedSliderChange = paletteState.onColorComponentRedSliderChange,
+            onColorComponentGreenSliderChange = paletteState.onColorComponentGreenSliderChange,
+            onColorComponentBlueSliderChange = paletteState.onColorComponentBlueSliderChange,
+        )
+    }
+}
+
+@Composable
+fun PaletteColorEdit(
+    color: Color?,
+    onDeleteClick: () -> Unit,
+    onColorComponentRedSliderChange: (Float) -> Unit,
+    onColorComponentGreenSliderChange: (Float) -> Unit,
+    onColorComponentBlueSliderChange: (Float) -> Unit,
+) {
+    val redTextFieldState = rememberTextFieldState()
+    val greenTextFieldState = rememberTextFieldState()
+    val blueTextFieldState = rememberTextFieldState()
+
+    LaunchedEffect(color) {
+        redTextFieldState.setTextAndPlaceCursorAtEnd(
+            color?.red?.toColorComponentString() ?: ""
+        )
+        greenTextFieldState.setTextAndPlaceCursorAtEnd(
+            color?.green?.toColorComponentString() ?: ""
+        )
+        blueTextFieldState.setTextAndPlaceCursorAtEnd(
+            color?.blue?.toColorComponentString() ?: ""
+        )
+    }
+
+    Card {
+        Column(
+            modifier = Modifier
+                .padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                Text(
+                    modifier = Modifier
+                        .weight(1F),
+                    text = color?.toHexCode()?.uppercase() ?: "",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                TextButton(
+                    onClick = onDeleteClick,
+                    enabled = color != null,
                 ) {
                     Text(
-                        modifier = Modifier
-                            .weight(1F),
-                        text = color?.toHexCode()?.uppercase() ?: "",
-                        style = MaterialTheme.typography.titleMedium,
+                        text = stringResource(R.string.delete)
                     )
-                    TextButton(
-                        onClick = paletteState.onDeletePaletteColorClick,
-                        enabled = color != null,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.delete)
-                        )
-                    }
                 }
-                PaletteColorComponent(
-                    label = stringResource(R.string.red),
-                    sliderValue = color?.red,
-                    onSliderChange = paletteState.onColorComponentRedSliderChange,
-                )
-                PaletteColorComponent(
-                    label = stringResource(R.string.green),
-                    sliderValue = color?.green,
-                    onSliderChange = paletteState.onColorComponentGreenSliderChange,
-                )
-                PaletteColorComponent(
-                    label = stringResource(R.string.blue),
-                    sliderValue = color?.blue,
-                    onSliderChange = paletteState.onColorComponentBlueSliderChange,
-                )
             }
+            PaletteColorComponent(
+                label = stringResource(R.string.red),
+                textFieldState = redTextFieldState,
+                onSliderChange = onColorComponentRedSliderChange,
+                isEnabled = color != null,
+            )
+            PaletteColorComponent(
+                label = stringResource(R.string.green),
+                textFieldState = greenTextFieldState,
+                onSliderChange = onColorComponentGreenSliderChange,
+                isEnabled = color != null,
+            )
+            PaletteColorComponent(
+                label = stringResource(R.string.blue),
+                textFieldState = blueTextFieldState,
+                onSliderChange = onColorComponentBlueSliderChange,
+                isEnabled = color != null,
+            )
         }
     }
 }
@@ -375,10 +414,13 @@ fun ImagePalette(
 @Composable
 fun PaletteColorComponent(
     label: String,
-    sliderValue: Float?,
+    textFieldState: TextFieldState,
     onSliderChange: (Float) -> Unit,
+    isEnabled: Boolean = true,
 ) {
-    val sliderPosition = sliderValue ?: 0F
+    val textValue = textFieldState.text.toString()
+    val sliderPosition = if (textValue.isNotBlank()) textValue.toFloat() / 255 else 0F
+
     Row(
         modifier = Modifier
             .fillMaxWidth(),
@@ -396,16 +438,53 @@ fun PaletteColorComponent(
             modifier = Modifier
                 .weight(1F),
             value = sliderPosition,
-            onValueChange = onSliderChange,
+            onValueChange = { value ->
+                textFieldState.setTextAndPlaceCursorAtEnd(value.toColorComponentString())
+                onSliderChange(value)
+            },
             valueRange = 0F..1F,
             steps = 256,
-            enabled = sliderValue != null,
+            enabled = isEnabled,
         )
-        Text(
+        TextField(
+            state = textFieldState,
             modifier = Modifier
-                .width(48.dp),
-            text = (sliderPosition * 255).roundToInt().toString(),
-            style = MaterialTheme.typography.labelMedium,
+                .width(64.dp)
+                .onFocusChanged { focusState ->
+                    if (!focusState.hasFocus && textFieldState.text.isBlank()) {
+                        textFieldState.setTextAndPlaceCursorAtEnd("0")
+                        onSliderChange(0F)
+                    }
+                }
+            ,
+            enabled = isEnabled,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                textAlign = TextAlign.End,
+            ),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+            ),
+            lineLimits = TextFieldLineLimits.SingleLine,
+            inputTransformation = InputTransformation.then {
+                val charSequence = asCharSequence()
+                if (charSequence.isEmpty()) {
+                    return@then
+                }
+                if (!charSequence.isDigitsOnly()) {
+                    revertAllChanges()
+                } else {
+                    try {
+                        val value = charSequence.toString().toInt()
+                        if (value !in 0..255) {
+                            revertAllChanges()
+                        } else {
+                            onSliderChange(value.toFloat() / 255)
+                        }
+                    } catch (_: NumberFormatException) {
+                        revertAllChanges()
+                    }
+                }
+            },
         )
     }
 }
@@ -455,9 +534,13 @@ fun PaletteColorComponentPreview() {
     SimplePixelTheme {
         PaletteColorComponent(
             label = "R",
-            sliderValue = null,
+            textFieldState = rememberTextFieldState("25"),
             onSliderChange = {},
         )
     }
+}
+
+private fun Float.toColorComponentString(): String {
+    return (this * 255).roundToInt().toString()
 }
 
