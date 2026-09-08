@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,12 +16,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.fromColorLong
 import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -38,6 +42,7 @@ import com.swirlfist.simplepixel.presentation.uielements.LoadingIndeterminatePro
 fun PalettePresetsDialog(
     viewModel: PalettePresetsViewModel = hiltViewModel(),
     onPalettePresetSelected: (PaletteModel) -> Unit,
+    onDeletePalettePresetClick: (PalettePresetModel) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val palettePresetsDialogState = viewModel.palettePresetsDialogState.collectAsStateWithLifecycle().value
@@ -45,6 +50,7 @@ fun PalettePresetsDialog(
     PalettePresetsDialogContent(
         palettePresetsDialogState,
         onPalettePresetSelected,
+        onDeletePalettePresetClick,
         onDismiss,
     )
 }
@@ -53,6 +59,7 @@ fun PalettePresetsDialog(
 fun PalettePresetsDialogContent(
     palettePresetsDialogState: PalettePresetsDialogState,
     onPalettePresetSelected: (PaletteModel) -> Unit,
+    onDeletePalettePresetClick: (PalettePresetModel) -> Unit,
     onDismiss: () -> Unit,
 ) {
     Dialog(onDismissRequest = onDismiss) {
@@ -70,7 +77,8 @@ fun PalettePresetsDialogContent(
                     modifier = Modifier
                         .padding(16.dp),
                     palettePresets = palettePresetsDialogState.palettePresets,
-                    onPalettePresetSelected = onPalettePresetSelected,
+                    onPalettePresetSelected,
+                    onDeletePalettePresetClick,
                 )
             }
         }
@@ -82,6 +90,7 @@ fun PalettePresets(
     modifier: Modifier = Modifier,
     palettePresets: List<PalettePresetModel>,
     onPalettePresetSelected: (PaletteModel) -> Unit,
+    onDeletePalettePresetClick: (PalettePresetModel) -> Unit,
 ) {
     LazyColumn(
         modifier = modifier
@@ -91,9 +100,9 @@ fun PalettePresets(
         palettePresets.forEach { palettePreset ->
             item {
                 PalettePresetItem(
-                    presetName = palettePreset.name,
-                    palette = palettePreset.palette,
-                    onClick = { onPalettePresetSelected(palettePreset.palette) }
+                    preset = palettePreset,
+                    onPresetClick = { onPalettePresetSelected(palettePreset.palette) },
+                    onDeleteClick = { onDeletePalettePresetClick(palettePreset) },
                 )
             }
         }
@@ -102,33 +111,51 @@ fun PalettePresets(
 
 @Composable
 fun PalettePresetItem(
-    presetName: String,
-    palette: PaletteModel,
-    onClick: () -> Unit,
+    preset: PalettePresetModel,
+    onPresetClick: () -> Unit,
+    onDeleteClick: () -> Unit,
 ) {
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(
                 onClickLabel = stringResource(R.string.cd_new_image_screen_select_palette_preset),
-                onClick = onClick,
+                onClick = onPresetClick,
             ),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(
-            text = presetName,
-            style = MaterialTheme.typography.titleSmall,
-        )
-        FlowRow(
+        Column (
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 8.dp),
-            maxLines = 4,
+                .weight(1F),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            palette.colors.forEach { color ->
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(Color.fromColorLong(color)),
+            Text(
+                text = preset.name,
+                style = MaterialTheme.typography.titleSmall,
+                textAlign = TextAlign.Start,
+            )
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp),
+                maxLines = 4,
+            ) {
+                preset.palette.colors.forEach { color ->
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(Color.fromColorLong(color)),
+                    )
+                }
+            }
+        }
+        if (preset.id >= 0) {
+            TextButton(
+                onClick = onDeleteClick,
+            ) {
+                Text(
+                    text = stringResource(R.string.delete)
                 )
             }
         }
@@ -145,6 +172,7 @@ fun PalettePresetsDialogPreview() {
                 isLoadingPresets = false,
             ),
             onPalettePresetSelected = {},
+            onDeletePalettePresetClick = {},
             onDismiss = {},
         )
     }
@@ -159,6 +187,7 @@ fun PalettePresetsDialogLoadingPreview() {
                 isLoadingPresets = true,
             ),
             onPalettePresetSelected = {},
+            onDeletePalettePresetClick = {},
             onDismiss = {},
         )
     }
@@ -174,9 +203,13 @@ fun PalettePresetItemPreview() {
             Color.Green.toColorLong(),
         )
         PalettePresetItem(
-            presetName = "PRESET",
-            palette = PaletteModel(colors),
-            onClick = {},
+            preset = PalettePresetModel(
+                id = 0,
+                name = "PRESET",
+                palette = PaletteModel(colors)
+            ),
+            onPresetClick = {},
+            onDeleteClick = {},
         )
     }
 }
@@ -187,7 +220,7 @@ private fun getPreviewPalettePresets(): List<PalettePresetModel> {
     // Black & White
     presets.add(
         PalettePresetModel(
-            id = 0,
+            id = -1,
             name = "B & W",
             palette = PaletteModel(
                 colors = listOf(

@@ -1,6 +1,7 @@
 package com.swirlfist.simplepixel.data.persistence.room.dao
 
 import androidx.room3.Dao
+import androidx.room3.Delete
 import androidx.room3.Insert
 import androidx.room3.Query
 import com.swirlfist.simplepixel.data.entity.PalettePresetEntity
@@ -13,4 +14,7 @@ interface PalettePresetDao {
 
     @Insert
     suspend fun addPalettePreset(palettePreset: PalettePresetEntity)
+
+    @Delete
+    suspend fun deletePalettePreset(palettePreset: PalettePresetEntity)
 }

@@ -113,6 +113,7 @@ fun NewImageScreenContent(
     if (newImageScreenState.isShowPalettePresets) {
         PalettePresetsDialog(
             onPalettePresetSelected = newImageScreenState.onPalettePresetSelected,
+            onDeletePalettePresetClick = newImageScreenState.onDeletePalettePresetClick,
             onDismiss = newImageScreenState.onCancelPalettePresetSelection,
         )
     } else if (newImageScreenState.isShowSavePalettePreset) {

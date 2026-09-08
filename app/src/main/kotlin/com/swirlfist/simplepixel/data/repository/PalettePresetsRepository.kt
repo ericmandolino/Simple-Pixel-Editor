@@ -7,5 +7,8 @@ interface PalettePresetsRepository {
     suspend fun addPalettePreset(
         preset: PalettePresetModel,
     )
+    suspend fun deletePalettePreset(
+        preset: PalettePresetModel,
+    )
     suspend fun getPalettePresets(): Flow<List<PalettePresetModel>>
 }

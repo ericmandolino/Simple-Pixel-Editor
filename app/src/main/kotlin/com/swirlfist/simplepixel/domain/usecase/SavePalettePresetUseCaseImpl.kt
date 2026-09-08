@@ -4,10 +4,10 @@ import com.swirlfist.simplepixel.data.repository.PalettePresetsRepository
 import com.swirlfist.simplepixel.domain.error.SavePalettePresetError
 import javax.inject.Inject
 
-class SavePalettePresetsUseCaseImpl @Inject constructor(
+class SavePalettePresetUseCaseImpl @Inject constructor(
     private val palettePresetsRepository: PalettePresetsRepository,
-) : SavePalettePresetsUseCase {
-    override suspend fun invoke(params: SavePalettePresetsUseCase.Params): Result<Unit> {
+) : SavePalettePresetUseCase {
+    override suspend fun invoke(params: SavePalettePresetUseCase.Params): Result<Unit> {
         return try {
             palettePresetsRepository.addPalettePreset(params.preset)
             Result.success(Unit)

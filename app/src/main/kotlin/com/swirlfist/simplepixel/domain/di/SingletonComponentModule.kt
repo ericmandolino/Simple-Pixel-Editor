@@ -4,6 +4,8 @@ import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCase
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCase
 import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.DeletePalettePresetUseCase
+import com.swirlfist.simplepixel.domain.usecase.DeletePalettePresetUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetBasePixelImageUseCase
@@ -22,8 +24,8 @@ import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.RedoEditorActionUseCase
 import com.swirlfist.simplepixel.domain.usecase.RedoEditorActionUseCaseImpl
-import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetsUseCase
-import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetsUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetUseCase
+import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.UndoEditorActionUseCase
@@ -117,7 +119,12 @@ abstract class SingletonComponentModule {
     ): GetPalettePresetsUseCase
 
     @Binds
-    abstract fun bindSavePalettePresetsUseCase(
-        impl: SavePalettePresetsUseCaseImpl,
-    ): SavePalettePresetsUseCase
+    abstract fun bindSavePalettePresetUseCase(
+        impl: SavePalettePresetUseCaseImpl,
+    ): SavePalettePresetUseCase
+
+    @Binds
+    abstract fun bindDeletePalettePresetUseCase(
+        impl: DeletePalettePresetUseCaseImpl,
+    ): DeletePalettePresetUseCase
 }

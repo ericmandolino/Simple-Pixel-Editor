@@ -34,10 +34,18 @@ class PalettePresetsRepositoryImpl @Inject constructor(
     ).asStateFlow()
 
     override suspend fun addPalettePreset(
-        preset: PalettePresetModel
+        preset: PalettePresetModel,
     ) {
         palettePresetDao.addPalettePreset(
             preset.toEntity()
+        )
+    }
+
+    override suspend fun deletePalettePreset(
+        preset: PalettePresetModel,
+    ) {
+        palettePresetDao.deletePalettePreset(
+            preset.toEntity(),
         )
     }
 

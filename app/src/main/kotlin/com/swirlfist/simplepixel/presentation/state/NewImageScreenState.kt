@@ -2,6 +2,7 @@ package com.swirlfist.simplepixel.presentation.state
 
 import androidx.compose.foundation.text.input.TextFieldState
 import com.swirlfist.simplepixel.domain.model.PaletteModel
+import com.swirlfist.simplepixel.domain.model.PalettePresetModel
 
 data class NewImageScreenState(
     val isNavigateToMainExpected: Boolean = false,
@@ -12,6 +13,7 @@ data class NewImageScreenState(
     val paletteState: NewImagePaletteState = NewImagePaletteState(),
     val onCreateImageClick: () -> Unit = {},
     val onPalettePresetSelected: (PaletteModel) -> Unit = {},
+    val onDeletePalettePresetClick: (PalettePresetModel) -> Unit = {},
     val onCancelPalettePresetSelection: () -> Unit = {},
     val onCancelSaveAsPalettePreset: () -> Unit = {},
 )

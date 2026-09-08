@@ -9,7 +9,8 @@ import androidx.lifecycle.viewModelScope
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PalettePresetModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
-import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetsUseCase
+import com.swirlfist.simplepixel.domain.usecase.DeletePalettePresetUseCase
+import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdateBasePixelImageUseCase
 import com.swirlfist.simplepixel.presentation.state.NewImagePaletteState
 import com.swirlfist.simplepixel.presentation.state.NewImageScreenState
@@ -23,7 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 class NewImageViewModel @Inject constructor(
     private val updateBasePixelImageUseCase: UpdateBasePixelImageUseCase,
-    private val savePalettePresetsUseCase: SavePalettePresetsUseCase,
+    private val savePalettePresetUseCase: SavePalettePresetUseCase,
+    private val deletePalettePresetUseCase: DeletePalettePresetUseCase,
 ) : ViewModel() {
     private val _newImageScreenState = MutableStateFlow(
         value = NewImageScreenState(
@@ -40,6 +42,7 @@ class NewImageViewModel @Inject constructor(
             ),
             onCreateImageClick = ::createImage,
             onPalettePresetSelected = ::onPalettePresetSelected,
+            onDeletePalettePresetClick = ::deletePalettePreset,
             onCancelPalettePresetSelection = ::hidePalettePresets,
             onCancelSaveAsPalettePreset = ::hideSaveAsPalettePresetDialog,
         )
@@ -58,7 +61,7 @@ class NewImageViewModel @Inject constructor(
         }
     }
 
-    fun showPalettePresets() {
+    private fun showPalettePresets() {
         _newImageScreenState.update { state ->
             state.copy(
                 isShowPalettePresets = true,
@@ -66,7 +69,7 @@ class NewImageViewModel @Inject constructor(
         }
     }
 
-    fun showSaveAsPalettePresetDialog() {
+    private fun showSaveAsPalettePresetDialog() {
         val paletteColors = newImageScreenState.value.paletteState.paletteColors
         if (paletteColors.isEmpty()) {
             return
@@ -88,7 +91,7 @@ class NewImageViewModel @Inject constructor(
         }
     }
 
-    fun saveAsPalettePreset(presetName: String) {
+    private fun saveAsPalettePreset(presetName: String) {
         if (presetName.isBlank()) {
             return
         }
@@ -108,8 +111,8 @@ class NewImageViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            savePalettePresetsUseCase(
-                SavePalettePresetsUseCase.Params(
+            savePalettePresetUseCase(
+                SavePalettePresetUseCase.Params(
                     PalettePresetModel(
                         id = 0,
                         name = presetName,
@@ -162,7 +165,19 @@ class NewImageViewModel @Inject constructor(
         }
     }
 
-    fun addColorToPalette() {
+    private fun deletePalettePreset(
+        preset: PalettePresetModel,
+    ) {
+        viewModelScope.launch {
+            deletePalettePresetUseCase(
+                DeletePalettePresetUseCase.Params(
+                    preset,
+                )
+            )
+        }
+    }
+
+    private fun addColorToPalette() {
         _newImageScreenState.update { state ->
             state.copy(
                 paletteState = state.paletteState.copy(
@@ -172,7 +187,7 @@ class NewImageViewModel @Inject constructor(
         }
     }
 
-    fun deleteColorFromPalette() {
+    private fun deleteColorFromPalette() {
         val paletteState = newImageScreenState.value.paletteState
         val paletteIndex = paletteState.selectedPaletteIndex ?: return
 
@@ -189,7 +204,7 @@ class NewImageViewModel @Inject constructor(
         }
     }
 
-    fun updatePaletteColorComponentRed(
+    private fun updatePaletteColorComponentRed(
         value: Float,
     ) {
         updatePaletteColorComponent(
@@ -198,7 +213,7 @@ class NewImageViewModel @Inject constructor(
         )
     }
 
-    fun updatePaletteColorComponentGreen(
+    private fun updatePaletteColorComponentGreen(
         value: Float,
     ) {
         updatePaletteColorComponent(
@@ -207,7 +222,7 @@ class NewImageViewModel @Inject constructor(
         )
     }
 
-    fun updatePaletteColorComponentBlue(
+    private fun updatePaletteColorComponentBlue(
         value: Float,
     ) {
         updatePaletteColorComponent(
@@ -216,7 +231,7 @@ class NewImageViewModel @Inject constructor(
         )
     }
 
-    fun updateSelectedPaletteColor(
+    private fun updateSelectedPaletteColor(
         paletteIndex: Int,
     ) {
         _newImageScreenState.update { state ->
