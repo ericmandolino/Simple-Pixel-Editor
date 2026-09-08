@@ -7,9 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class PixelImageEditorActionRepositoryImpl @Inject constructor() :
     PixelImageEditorActionRepository {
     private var _actions = mutableListOf<PixelImageEditorAction>()

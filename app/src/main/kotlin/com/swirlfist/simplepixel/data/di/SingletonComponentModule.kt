@@ -10,21 +10,25 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class SingletonComponentModule {
 
+    @Singleton
     @Binds
     abstract fun bindBasePixelImageRepository(
         impl: BasePixelImageRepositoryImpl,
     ): BasePixelImageRepository
 
+    @Singleton
     @Binds
     abstract fun bindPixelImageEditorActionRepository(
         impl: PixelImageEditorActionRepositoryImpl,
     ): PixelImageEditorActionRepository
 
+    @Singleton
     @Binds
     abstract fun bindPalettePresetsRepository(
         impl: PalettePresetsRepositoryImpl,

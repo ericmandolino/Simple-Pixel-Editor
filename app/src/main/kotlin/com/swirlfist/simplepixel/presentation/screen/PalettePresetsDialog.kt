@@ -29,10 +29,9 @@ import com.swirlfist.simplepixel.R
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.presentation.state.PalettePresetsDialogState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
-import kotlin.collections.component1
-import kotlin.collections.component2
 import kotlin.collections.forEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.swirlfist.simplepixel.domain.model.PalettePresetModel
 import com.swirlfist.simplepixel.presentation.uielements.LoadingIndeterminateProgress
 
 @Composable
@@ -81,7 +80,7 @@ fun PalettePresetsDialogContent(
 @Composable
 fun PalettePresets(
     modifier: Modifier = Modifier,
-    palettePresets: Map<String, PaletteModel>,
+    palettePresets: List<PalettePresetModel>,
     onPalettePresetSelected: (PaletteModel) -> Unit,
 ) {
     LazyColumn(
@@ -89,12 +88,12 @@ fun PalettePresets(
             .fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        palettePresets.forEach { (presetName, palette) ->
+        palettePresets.forEach { palettePreset ->
             item {
                 PalettePresetItem(
-                    presetName,
-                    palette,
-                    onClick = { onPalettePresetSelected(palette) }
+                    presetName = palettePreset.name,
+                    palette = palettePreset.palette,
+                    onClick = { onPalettePresetSelected(palettePreset.palette) }
                 )
             }
         }
@@ -182,24 +181,36 @@ fun PalettePresetItemPreview() {
     }
 }
 
-private fun getPreviewPalettePresets(): Map<String, PaletteModel> {
-    val presets = mutableMapOf<String, PaletteModel>()
+private fun getPreviewPalettePresets(): List<PalettePresetModel> {
+    val presets = mutableListOf<PalettePresetModel>()
 
     // Black & White
-    presets["B & W"] = PaletteModel(
-        colors = listOf(
-            Color.Black.toColorLong(),
-            Color.White.toColorLong(),
+    presets.add(
+        PalettePresetModel(
+            id = 0,
+            name = "B & W",
+            palette = PaletteModel(
+                colors = listOf(
+                    Color.Black.toColorLong(),
+                    Color.White.toColorLong(),
+                )
+            )
         )
     )
 
     // Game Boy
-    presets["Game Boy"] = PaletteModel(
-        colors = listOf(
-            Color(155, 188, 15, 255).toColorLong(),
-            Color(139, 172, 15, 255).toColorLong(),
-            Color(48, 98, 48, 255).toColorLong(),
-            Color(15, 56, 15, 255).toColorLong(),
+    presets.add(
+        PalettePresetModel(
+            id = 0,
+            name = "Game Boy",
+            palette = PaletteModel(
+                colors = listOf(
+                    Color(155, 188, 15, 255).toColorLong(),
+                    Color(139, 172, 15, 255).toColorLong(),
+                    Color(48, 98, 48, 255).toColorLong(),
+                    Color(15, 56, 15, 255).toColorLong(),
+                )
+            )
         )
     )
 

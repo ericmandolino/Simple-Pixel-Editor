@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.toColorLong
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swirlfist.simplepixel.domain.model.PaletteModel
+import com.swirlfist.simplepixel.domain.model.PalettePresetModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetsUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdateBasePixelImageUseCase
@@ -109,8 +110,11 @@ class NewImageViewModel @Inject constructor(
         viewModelScope.launch {
             savePalettePresetsUseCase(
                 SavePalettePresetsUseCase.Params(
-                    presetName,
-                    paletteModel = PaletteModel(paletteColors)
+                    PalettePresetModel(
+                        id = 0,
+                        name = presetName,
+                        palette = PaletteModel(paletteColors),
+                    )
                 )
             ).fold(
                 onSuccess = {

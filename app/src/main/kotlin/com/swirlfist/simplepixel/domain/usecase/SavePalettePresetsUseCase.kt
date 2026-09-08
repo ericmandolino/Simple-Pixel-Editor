@@ -1,11 +1,10 @@
 package com.swirlfist.simplepixel.domain.usecase
 
-import com.swirlfist.simplepixel.domain.model.PaletteModel
+import com.swirlfist.simplepixel.domain.model.PalettePresetModel
 
 interface SavePalettePresetsUseCase : UseCase<SavePalettePresetsUseCase.Params, Unit> {
 
     data class Params(
-        val presetName: String,
-        val paletteModel: PaletteModel,
+        val preset: PalettePresetModel,
     ) : UseCaseParams
 }

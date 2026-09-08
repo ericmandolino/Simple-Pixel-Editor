@@ -9,10 +9,7 @@ class SavePalettePresetsUseCaseImpl @Inject constructor(
 ) : SavePalettePresetsUseCase {
     override suspend fun invoke(params: SavePalettePresetsUseCase.Params): Result<Unit> {
         return try {
-            palettePresetsRepository.addPalettePreset(
-                presetName = params.presetName,
-                palette = params.paletteModel,
-            )
+            palettePresetsRepository.addPalettePreset(params.preset)
             Result.success(Unit)
         } catch(e: Exception) {
             Result.failure(SavePalettePresetError(e))
