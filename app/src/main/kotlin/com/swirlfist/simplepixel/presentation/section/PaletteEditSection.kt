@@ -1,13 +1,16 @@
 package com.swirlfist.simplepixel.presentation.section
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowColumn
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
@@ -158,19 +161,19 @@ fun PaletteColorEdit(
             }
         }
         PaletteColorComponent(
-            label = stringResource(R.string.red),
+            componentColor = Color.Red,
             textFieldState = redTextFieldState,
             onSliderChange = onColorComponentRedSliderChange,
             isEnabled = color != null,
         )
         PaletteColorComponent(
-            label = stringResource(R.string.green),
+            componentColor = Color.Green,
             textFieldState = greenTextFieldState,
             onSliderChange = onColorComponentGreenSliderChange,
             isEnabled = color != null,
         )
         PaletteColorComponent(
-            label = stringResource(R.string.blue),
+            componentColor = Color.Blue,
             textFieldState = blueTextFieldState,
             onSliderChange = onColorComponentBlueSliderChange,
             isEnabled = color != null,
@@ -180,7 +183,7 @@ fun PaletteColorEdit(
 
 @Composable
 fun PaletteColorComponent(
-    label: String,
+    componentColor: Color,
     textFieldState: TextFieldState,
     onSliderChange: (Float) -> Unit,
     isEnabled: Boolean = true,
@@ -194,10 +197,18 @@ fun PaletteColorComponent(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            textAlign = TextAlign.End,
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .background(
+                    color = if (isEnabled) componentColor else componentColor.copy(alpha = 0.5F),
+                    shape = RoundedCornerShape(4.dp),
+                )
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    shape = RoundedCornerShape(4.dp),
+                ),
         )
         Slider(
             modifier = Modifier
@@ -270,7 +281,7 @@ fun PaletteEditSectionPreview() {
 fun PaletteColorComponentPreview() {
     SimplePixelTheme {
         PaletteColorComponent(
-            label = "R",
+            componentColor = Color.Red,
             textFieldState = rememberTextFieldState("25"),
             onSliderChange = {},
         )
