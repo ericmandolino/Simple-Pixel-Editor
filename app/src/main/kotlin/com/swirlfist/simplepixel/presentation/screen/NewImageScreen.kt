@@ -30,14 +30,10 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.fromColorLong
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -47,13 +43,10 @@ import androidx.core.text.isDigitsOnly
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swirlfist.simplepixel.R
+import com.swirlfist.simplepixel.presentation.section.PaletteEditSection
 import com.swirlfist.simplepixel.presentation.state.NewImagePaletteState
 import com.swirlfist.simplepixel.presentation.state.NewImageScreenState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
-import com.swirlfist.simplepixel.presentation.toHexCode
-import com.swirlfist.simplepixel.presentation.uielements.IconButton
-import com.swirlfist.simplepixel.presentation.uielements.PaletteColorSelectButton
-import kotlin.math.roundToInt
 
 private const val DIMENSION_VALUE_DEFAULT = 24
 private const val DIMENSION_VALUE_MIN = 1
@@ -113,6 +106,9 @@ fun NewImageScreenContent(
     widthTextFieldState: TextFieldState,
     heightTextFieldState: TextFieldState,
 ) {
+    val paletteState = newImageScreenState.paletteState
+    val paletteEditState = paletteState.paletteEditState
+
     if (newImageScreenState.isShowPalettePresets) {
         PalettePresetsDialog(
             onPalettePresetSelected = newImageScreenState.onPalettePresetSelected,
@@ -121,8 +117,8 @@ fun NewImageScreenContent(
         )
     } else if (newImageScreenState.isShowSavePalettePreset) {
         SavePalettePresetDialog(
-            paletteColors = newImageScreenState.paletteState.paletteColors,
-            onSaveClick = newImageScreenState.paletteState.onSavePalettePresetClick,
+            paletteColors = paletteState.paletteEditState.paletteColors,
+            onSaveClick = paletteState.onSavePalettePresetClick,
             onDismiss = newImageScreenState.onCancelSaveAsPalettePreset,
         )
     }
@@ -147,13 +143,13 @@ fun NewImageScreenContent(
 
         ImagePalette(
             modifier = sectionModifier,
-            paletteState = newImageScreenState.paletteState,
+            paletteState = paletteState,
         )
 
         val isCreateButtonEnabled =
             widthTextFieldState.text.isNotBlank() &&
                     heightTextFieldState.text.isNotBlank() &&
-                    newImageScreenState.paletteState.paletteColors.isNotEmpty()
+                    paletteEditState.paletteColors.isNotEmpty()
 
         TextButton(
             modifier = Modifier
@@ -254,7 +250,7 @@ fun ImagePalette(
     paletteState: NewImagePaletteState
 
 ) {
-    val colors = paletteState.paletteColors
+    val paletteEditState = paletteState.paletteEditState
 
     Column(
         modifier = modifier,
@@ -273,7 +269,7 @@ fun ImagePalette(
         ) {
             TextButton(
                 onClick = paletteState.onStartSavePalettePresetClick,
-                enabled = paletteState.paletteColors.isNotEmpty() && !paletteState.isSavingPalettePreset,
+                enabled = paletteEditState.paletteColors.isNotEmpty() && !paletteState.isSavingPalettePreset,
             ) {
                 Text(
                     text = stringResource(R.string.save_palette_as_preset),
@@ -292,199 +288,8 @@ fun ImagePalette(
             }
         }
 
-        val selectedPaletteIndex = paletteState.selectedPaletteIndex
-
-        FlowColumn(
-            modifier = Modifier
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            maxItemsInEachColumn = 2,
-        ) {
-            colors.forEachIndexed { paletteIndex, colorLong ->
-                PaletteColorSelectButton(
-                    Color.fromColorLong(colorLong),
-                    size = 48.dp,
-                    isEnabled = true,
-                    contentDescriptionValue = stringResource(
-                        R.string.cd_new_image_screen_edit_palette_color,
-                        paletteIndex
-                    ),
-                    isSelected = paletteIndex == paletteState.selectedPaletteIndex,
-                    onClick = { paletteState.onPaletteColorClick(paletteIndex) },
-                )
-            }
-            IconButton(
-                modifier = Modifier.padding(4.dp),
-                drawableResId = R.drawable.ic_new_image_screen_add_palette_color_24dp,
-                contentDescriptionResId = R.string.cd_new_image_screen_add_palette_color,
-                size = 48.dp,
-                isEnabled = true,
-                onClick = paletteState.onAddPaletteColorClick,
-            )
-        }
-
-        val color = if (selectedPaletteIndex != null && selectedPaletteIndex in colors.indices) {
-            Color.fromColorLong(colors[selectedPaletteIndex])
-        } else {
-            null
-        }
-
-        PaletteColorEdit(
-            color,
-            onDeleteClick = paletteState.onDeletePaletteColorClick,
-            onColorComponentRedSliderChange = paletteState.onColorComponentRedSliderChange,
-            onColorComponentGreenSliderChange = paletteState.onColorComponentGreenSliderChange,
-            onColorComponentBlueSliderChange = paletteState.onColorComponentBlueSliderChange,
-        )
-    }
-}
-
-@Composable
-fun PaletteColorEdit(
-    color: Color?,
-    onDeleteClick: () -> Unit,
-    onColorComponentRedSliderChange: (Float) -> Unit,
-    onColorComponentGreenSliderChange: (Float) -> Unit,
-    onColorComponentBlueSliderChange: (Float) -> Unit,
-) {
-    val redTextFieldState = rememberTextFieldState()
-    val greenTextFieldState = rememberTextFieldState()
-    val blueTextFieldState = rememberTextFieldState()
-
-    LaunchedEffect(color) {
-        redTextFieldState.setTextAndPlaceCursorAtEnd(
-            color?.red?.toColorComponentString() ?: ""
-        )
-        greenTextFieldState.setTextAndPlaceCursorAtEnd(
-            color?.green?.toColorComponentString() ?: ""
-        )
-        blueTextFieldState.setTextAndPlaceCursorAtEnd(
-            color?.blue?.toColorComponentString() ?: ""
-        )
-    }
-
-    Card {
-        Column(
-            modifier = Modifier
-                .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    modifier = Modifier
-                        .weight(1F),
-                    text = color?.toHexCode()?.uppercase() ?: "",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                TextButton(
-                    onClick = onDeleteClick,
-                    enabled = color != null,
-                ) {
-                    Text(
-                        text = stringResource(R.string.delete)
-                    )
-                }
-            }
-            PaletteColorComponent(
-                label = stringResource(R.string.red),
-                textFieldState = redTextFieldState,
-                onSliderChange = onColorComponentRedSliderChange,
-                isEnabled = color != null,
-            )
-            PaletteColorComponent(
-                label = stringResource(R.string.green),
-                textFieldState = greenTextFieldState,
-                onSliderChange = onColorComponentGreenSliderChange,
-                isEnabled = color != null,
-            )
-            PaletteColorComponent(
-                label = stringResource(R.string.blue),
-                textFieldState = blueTextFieldState,
-                onSliderChange = onColorComponentBlueSliderChange,
-                isEnabled = color != null,
-            )
-        }
-    }
-}
-
-@Composable
-fun PaletteColorComponent(
-    label: String,
-    textFieldState: TextFieldState,
-    onSliderChange: (Float) -> Unit,
-    isEnabled: Boolean = true,
-) {
-    val textValue = textFieldState.text.toString()
-    val sliderPosition = if (textValue.isNotBlank()) textValue.toFloat() / 255 else 0F
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            modifier = Modifier
-                .width(24.dp),
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            textAlign = TextAlign.End,
-        )
-        Slider(
-            modifier = Modifier
-                .weight(1F),
-            value = sliderPosition,
-            onValueChange = { value ->
-                textFieldState.setTextAndPlaceCursorAtEnd(value.toColorComponentString())
-                onSliderChange(value)
-            },
-            valueRange = 0F..1F,
-            steps = 256,
-            enabled = isEnabled,
-        )
-        TextField(
-            state = textFieldState,
-            modifier = Modifier
-                .width(64.dp)
-                .onFocusChanged { focusState ->
-                    if (!focusState.hasFocus && textFieldState.text.isBlank()) {
-                        textFieldState.setTextAndPlaceCursorAtEnd("0")
-                        onSliderChange(0F)
-                    }
-                }
-            ,
-            enabled = isEnabled,
-            textStyle = MaterialTheme.typography.bodyMedium.copy(
-                textAlign = TextAlign.End,
-            ),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
-            ),
-            lineLimits = TextFieldLineLimits.SingleLine,
-            inputTransformation = InputTransformation.then {
-                val charSequence = asCharSequence()
-                if (charSequence.isEmpty()) {
-                    return@then
-                }
-                if (!charSequence.isDigitsOnly()) {
-                    revertAllChanges()
-                } else {
-                    try {
-                        val value = charSequence.toString().toInt()
-                        if (value !in 0..255) {
-                            revertAllChanges()
-                        } else {
-                            onSliderChange(value.toFloat() / 255)
-                        }
-                    } catch (_: NumberFormatException) {
-                        revertAllChanges()
-                    }
-                }
-            },
+        PaletteEditSection(
+            paletteEditState = paletteState.paletteEditState,
         )
     }
 }
@@ -526,21 +331,5 @@ fun ImagePalettePreview() {
             paletteState = NewImagePaletteState(),
         )
     }
-}
-
-@Preview(showBackground = true, widthDp = 320, heightDp = 320)
-@Composable
-fun PaletteColorComponentPreview() {
-    SimplePixelTheme {
-        PaletteColorComponent(
-            label = "R",
-            textFieldState = rememberTextFieldState("25"),
-            onSliderChange = {},
-        )
-    }
-}
-
-private fun Float.toColorComponentString(): String {
-    return (this * 255).roundToInt().toString()
 }
 

@@ -14,6 +14,7 @@ import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdateBasePixelImageUseCase
 import com.swirlfist.simplepixel.presentation.state.NewImagePaletteState
 import com.swirlfist.simplepixel.presentation.state.NewImageScreenState
+import com.swirlfist.simplepixel.presentation.state.PaletteEditState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,15 +31,17 @@ class NewImageViewModel @Inject constructor(
     private val _newImageScreenState = MutableStateFlow(
         value = NewImageScreenState(
             paletteState = NewImagePaletteState(
+                paletteEditState = PaletteEditState(
+                    onAddPaletteColorClick = ::addColorToPalette,
+                    onPaletteColorClick = ::updateSelectedPaletteColor,
+                    onDeletePaletteColorClick = ::deleteColorFromPalette,
+                    onColorComponentRedSliderChange = ::updatePaletteColorComponentRed,
+                    onColorComponentGreenSliderChange = ::updatePaletteColorComponentGreen,
+                    onColorComponentBlueSliderChange = ::updatePaletteColorComponentBlue,
+                ),
                 onLoadPalettePresetClick = ::showPalettePresets,
                 onStartSavePalettePresetClick = ::showSaveAsPalettePresetDialog,
                 onSavePalettePresetClick = ::saveAsPalettePreset,
-                onAddPaletteColorClick = ::addColorToPalette,
-                onPaletteColorClick = ::updateSelectedPaletteColor,
-                onDeletePaletteColorClick = ::deleteColorFromPalette,
-                onColorComponentRedSliderChange = ::updatePaletteColorComponentRed,
-                onColorComponentGreenSliderChange = ::updatePaletteColorComponentGreen,
-                onColorComponentBlueSliderChange = ::updatePaletteColorComponentBlue,
             ),
             onCreateImageClick = ::createImage,
             onPalettePresetSelected = ::onPalettePresetSelected,
@@ -70,7 +73,7 @@ class NewImageViewModel @Inject constructor(
     }
 
     private fun showSaveAsPalettePresetDialog() {
-        val paletteColors = newImageScreenState.value.paletteState.paletteColors
+        val paletteColors = newImageScreenState.value.paletteState.paletteEditState.paletteColors
         if (paletteColors.isEmpty()) {
             return
         }
@@ -96,7 +99,7 @@ class NewImageViewModel @Inject constructor(
             return
         }
 
-        val paletteColors = newImageScreenState.value.paletteState.paletteColors
+        val paletteColors = newImageScreenState.value.paletteState.paletteEditState.paletteColors
         if (paletteColors.isEmpty()) {
             return
         }
@@ -158,8 +161,10 @@ class NewImageViewModel @Inject constructor(
             state.copy(
                 isShowPalettePresets = false,
                 paletteState = state.paletteState.copy(
-                    paletteColors = paletteModel.colors,
-                    selectedPaletteIndex = null,
+                    paletteEditState = state.paletteState.paletteEditState.copy(
+                        paletteColors = paletteModel.colors,
+                        selectedPaletteIndex = null,
+                    ),
                 ),
             )
         }
@@ -181,7 +186,9 @@ class NewImageViewModel @Inject constructor(
         _newImageScreenState.update { state ->
             state.copy(
                 paletteState = state.paletteState.copy(
-                    paletteColors = state.paletteState.paletteColors + Color.Black.toColorLong(),
+                    paletteEditState = state.paletteState.paletteEditState.copy(
+                        paletteColors = state.paletteState.paletteEditState.paletteColors + Color.Black.toColorLong(),
+                    ),
                 ),
             )
         }
@@ -189,16 +196,21 @@ class NewImageViewModel @Inject constructor(
 
     private fun deleteColorFromPalette() {
         val paletteState = newImageScreenState.value.paletteState
-        val paletteIndex = paletteState.selectedPaletteIndex ?: return
+        val paletteEditState = paletteState.paletteEditState
+        val paletteIndex = paletteEditState.selectedPaletteIndex ?: return
 
-        if (paletteIndex !in paletteState.paletteColors.indices) {
+        if (paletteIndex !in paletteEditState.paletteColors.indices) {
             return
         }
 
         _newImageScreenState.update { state ->
             state.copy(
                 paletteState = state.paletteState.copy(
-                    paletteColors = state.paletteState.paletteColors.toMutableList().apply { removeAt(paletteIndex) }
+                    paletteEditState = state.paletteState.paletteEditState.copy(
+                        paletteColors = state.paletteState.paletteEditState.paletteColors.toMutableList().apply {
+                            removeAt(paletteIndex)
+                        }
+                    )
                 ),
             )
         }
@@ -237,10 +249,12 @@ class NewImageViewModel @Inject constructor(
         _newImageScreenState.update { state ->
             state.copy(
                 paletteState = state.paletteState.copy(
-                    selectedPaletteIndex = if (state.paletteState.selectedPaletteIndex == paletteIndex)
-                        null
-                    else
-                        paletteIndex
+                    paletteEditState = state.paletteState.paletteEditState.copy(
+                        selectedPaletteIndex = if (state.paletteState.paletteEditState.selectedPaletteIndex == paletteIndex)
+                            null
+                        else
+                            paletteIndex
+                    ),
                 ),
             )
         }
@@ -255,9 +269,10 @@ class NewImageViewModel @Inject constructor(
         }
 
         val paletteState = _newImageScreenState.value.paletteState
-        val paletteIndex = paletteState.selectedPaletteIndex ?: return
+        val paletteEditState = paletteState.paletteEditState
+        val paletteIndex = paletteEditState.selectedPaletteIndex ?: return
 
-        val paletteColors = paletteState.paletteColors.toMutableList()
+        val paletteColors = paletteEditState.paletteColors.toMutableList()
         if (paletteIndex !in paletteColors.indices) {
             return
         }
@@ -280,7 +295,9 @@ class NewImageViewModel @Inject constructor(
         _newImageScreenState.update { state ->
             state.copy(
                 paletteState = state.paletteState.copy(
-                    paletteColors = paletteColors.apply { set(paletteIndex, newColor.toColorLong()) }
+                    paletteEditState = state.paletteState.paletteEditState.copy(
+                        paletteColors = paletteColors.apply { set(paletteIndex, newColor.toColorLong()) }
+                    )
                 ),
             )
         }
@@ -289,7 +306,7 @@ class NewImageViewModel @Inject constructor(
     fun createImage() {
         val width = newImageScreenState.value.widthTextFieldState?.text?.toString()?.toInt()
         val height = newImageScreenState.value.heightTextFieldState?.text?.toString()?.toInt()
-        val colors = newImageScreenState.value.paletteState.paletteColors
+        val colors = newImageScreenState.value.paletteState.paletteEditState.paletteColors
 
         if (width == null || height == null || colors.isEmpty()) {
             return

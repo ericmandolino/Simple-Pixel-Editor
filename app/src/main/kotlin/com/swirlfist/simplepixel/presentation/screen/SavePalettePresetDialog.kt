@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,23 +15,20 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.then
 import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.fromColorLong
 import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.swirlfist.simplepixel.R
+import com.swirlfist.simplepixel.presentation.section.SaveCancelDialogFooter
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 
 private const val PRESET_NAME_MAX_LENGTH = 64
@@ -101,35 +97,12 @@ fun SavePalettePresetDialogContent(
                         )
                     }
                 }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        8.dp,
-                        Alignment.End,
-                    )
-                ) {
-                    val presetName = nameTextFieldState.text.toString()
-                    TextButton(
-                        onClick = onDismiss,
-                    ) {
-                        Text(
-                            text = stringResource(android.R.string.cancel),
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.End,
-                        )
-                    }
-                    TextButton(
-                        enabled = presetName.isNotBlank(),
-                        onClick = { onSaveClick(presetName) },
-                    ) {
-                        Text(
-                            text = stringResource(R.string.save),
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Start,
-                        )
-                    }
-                }
+                val presetName = nameTextFieldState.text.toString()
+                SaveCancelDialogFooter(
+                    isSaveEnabled = presetName.isNotBlank(),
+                    onSaveClick = { onSaveClick(presetName) },
+                    onCancelClick = onDismiss,
+                )
             }
         }
     }

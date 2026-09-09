@@ -19,16 +19,9 @@ data class NewImageScreenState(
 )
 
 data class NewImagePaletteState(
-    val paletteColors: List<Long> = listOf(),
-    val selectedPaletteIndex: Int? = null,
+    val paletteEditState: PaletteEditState = PaletteEditState(),
     val isSavingPalettePreset: Boolean = false,
     val onLoadPalettePresetClick: () -> Unit = {},
     val onStartSavePalettePresetClick: () -> Unit = {},
     val onSavePalettePresetClick: (String) -> Unit = {},
-    val onAddPaletteColorClick: () -> Unit = {},
-    val onPaletteColorClick: (Int) -> Unit = {},
-    val onDeletePaletteColorClick: () -> Unit = {},
-    val onColorComponentRedSliderChange: (Float) -> Unit = {},
-    val onColorComponentGreenSliderChange: (Float) -> Unit = {},
-    val onColorComponentBlueSliderChange: (Float) -> Unit = {},
 )
