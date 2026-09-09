@@ -141,6 +141,9 @@ class MainViewModel @Inject constructor(
                                     ),
                                 ),
                             ),
+                            ActionButtonType.EditPaletteActionButtonType to ActionModel.ButtonActionModel(
+                                actionType = ActionButtonType.EditPaletteActionButtonType,
+                            ),
                             ActionButtonType.SavePixelImageActionButtonType to ActionModel.ButtonActionModel(
                                 actionType = ActionButtonType.SavePixelImageActionButtonType,
                             ),
@@ -219,6 +222,22 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun showEditPalette() {
+        _mainScreenState.update { state ->
+            state.copy(
+                isShowEditPalette = true,
+            )
+        }
+    }
+
+    fun hideEditPalette() {
+        _mainScreenState.update { state ->
+            state.copy(
+                isShowEditPalette = false,
+            )
+        }
+    }
+
     fun onCanvasSectionEvent(event: CanvasSectionEvent) {
         when (event) {
             is CanvasSectionEvent.PixelTap -> onPixelTap(event)
@@ -229,6 +248,9 @@ class MainViewModel @Inject constructor(
         when (event) {
             ActionSectionEvent.OpenPaletteButtonClicked
                 -> showPalette()
+
+            ActionSectionEvent.EditPaletteButtonClicked
+                -> showEditPalette()
 
             is ActionSectionEvent.PickPaletteColorButtonClicked
                 -> updateSelectedPaletteIndex(event.pickPaletteColorActionButtonType)

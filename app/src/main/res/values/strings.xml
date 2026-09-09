@@ -3,6 +3,7 @@
     <string name="cd_new_image_screen_add_palette_color">Add palette color</string>
     <string name="cd_new_image_screen_edit_palette_color">Edit palette color %d</string>
     <string name="cd_new_image_screen_select_palette_preset">Select palette preset</string>
+    <string name="cd_actions_section_button_edit_palette">Edit palette</string>
     <string name="cd_actions_section_button_export_pixel_image">Export pixel image</string>
     <string name="cd_actions_section_button_ink_bucket">Ink bucket</string>
     <string name="cd_actions_section_button_ink_eraser">Ink eraser</string>

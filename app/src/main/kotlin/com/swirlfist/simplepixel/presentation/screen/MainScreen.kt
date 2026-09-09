@@ -86,6 +86,15 @@ fun MainScreen(
                 onDismiss = viewModel::hidePalette,
             )
         }
+    } else if (mainScreenState.isShowEditPalette) {
+        val palette = mainScreenState.canvasSectionState.pixelImageModel?.paletteModel
+        if (palette != null) {
+            PaletteEditDialog(
+                originalPalette = palette,
+                onSaveChangesClick = {}, // TODO
+                onDismiss = viewModel::hideEditPalette,
+            )
+        }
     }
 
     Surface(

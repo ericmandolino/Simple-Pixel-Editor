@@ -400,6 +400,7 @@ fun ActionButtonType.toActionsSectionEvent(): ActionSectionEvent = when (this) {
     ActionButtonType.ZoomInActionButtonType -> ActionSectionEvent.ZoomInButtonClicked
     ActionButtonType.ZoomOutActionButtonType -> ActionSectionEvent.ZoomOutButtonClicked
     ActionButtonType.OpenPaletteActionButtonType -> ActionSectionEvent.OpenPaletteButtonClicked
+    ActionButtonType.EditPaletteActionButtonType -> ActionSectionEvent.EditPaletteButtonClicked
     is ActionButtonType.PickPaletteColorActionButtonType -> ActionSectionEvent.PickPaletteColorButtonClicked(
         pickPaletteColorActionButtonType = this,
     )

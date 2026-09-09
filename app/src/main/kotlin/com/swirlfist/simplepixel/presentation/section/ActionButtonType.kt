@@ -77,6 +77,11 @@ sealed interface ActionButtonType {
         contentDescription = R.string.cd_actions_section_button_open_palette,
     ), ActionButtonType
 
+    data object EditPaletteActionButtonType : ActionIconButtonType(
+        icon = R.drawable.ic_actions_section_edit_palette_24dp,
+        contentDescription = R.string.cd_actions_section_button_edit_palette,
+    ), ActionButtonType
+
     data class PickPaletteColorActionButtonType(
         val paletteIndex: Int,
         val palette: PaletteModel,

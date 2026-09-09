@@ -43,6 +43,7 @@ fun ActionButton(
             ActionButtonType.ZoomInActionButtonType,
             ActionButtonType.ZoomOutActionButtonType,
             ActionButtonType.OpenPaletteActionButtonType,
+            ActionButtonType.EditPaletteActionButtonType,
             ActionButtonType.SavePixelImageActionButtonType,
             ActionButtonType.OpenPixelImageActionButtonType,
             ActionButtonType.ExportPixelImageActionButtonType,
