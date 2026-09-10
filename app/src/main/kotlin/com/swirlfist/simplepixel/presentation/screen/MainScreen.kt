@@ -92,7 +92,7 @@ fun MainScreen(
             PaletteEditDialog(
                 originalPalette = pixelImage.paletteModel,
                 pixelMatrix = pixelImage.pixelMatrixModel,
-                onSaveChangesClick = {}, // TODO
+                onSaveChangesClick = viewModel::onEditPaletteChangesSaved,
                 onDismiss = viewModel::hideEditPalette,
             )
         }

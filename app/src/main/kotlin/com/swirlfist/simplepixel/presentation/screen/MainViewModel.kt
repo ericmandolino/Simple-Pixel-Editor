@@ -9,6 +9,7 @@ import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
+import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCase
 import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCase
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCase
@@ -237,6 +238,25 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun onEditPaletteChangesSaved(
+        paletteModel: PaletteModel,
+        pixelMatrixModel: PixelMatrixModel?,
+    ) {
+        hideEditPalette()
+
+        if (pixelMatrixModel == null) {
+            return
+        }
+
+        updatePixelImage(
+            pixelImage = PixelImageModel(
+                pixelMatrixModel,
+                paletteModel,
+            ),
+            isPaletteUpdate = true,
+        )
+    }
+
     fun onCanvasSectionEvent(event: CanvasSectionEvent) {
         when (event) {
             is CanvasSectionEvent.PixelTap -> onPixelTap(event)
@@ -313,15 +333,24 @@ class MainViewModel @Inject constructor(
 
     private fun updatePixelImage(
         pixelImage: PixelImageModel,
+        isPaletteUpdate: Boolean = false,
     ) {
         _mainScreenState.update { mainScreenState ->
             val canvasSectionState = mainScreenState.canvasSectionState
+            val actionsSectionState = mainScreenState.actionsSectionState
             val pixelImagePreviewSectionState =
                 mainScreenState.pixelImagePreviewSectionState
             mainScreenState.copy(
                 canvasSectionState = canvasSectionState.copy(
                     pixelImageModel = pixelImage,
                 ),
+                actionsSectionState = if (isPaletteUpdate) {
+                    actionsSectionState.updatePaletteButtons(
+                        palette = pixelImage.paletteModel,
+                    )
+                } else {
+                    actionsSectionState
+                },
                 pixelImagePreviewSectionState = pixelImagePreviewSectionState.copy(
                     pixelImageModel = pixelImage,
                 ),

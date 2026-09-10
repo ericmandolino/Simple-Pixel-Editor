@@ -40,14 +40,11 @@ class PaletteEditViewModel @Inject constructor(
     fun setOriginalPalette(
         palette: PaletteModel,
     ) {
-        if (_paletteEditDialogState.value.paletteEditState.paletteColors.isNotEmpty()) {
-            return
-        }
-
         _paletteEditDialogState.update { state ->
             state.copy(
                 paletteEditState = state.paletteEditState.copy(
                     paletteColors = palette.colors,
+                    selectedPaletteIndex = null,
                 ),
             )
         }
@@ -56,10 +53,6 @@ class PaletteEditViewModel @Inject constructor(
     fun setOriginalPixelMatrix(
         pixelMatrix: PixelMatrixModel,
     ) {
-        if (_paletteEditDialogState.value.pixelImagePreviewSectionState != null) {
-            return
-        }
-
         val paletteColors = _paletteEditDialogState.value.paletteEditState.paletteColors
 
         _paletteEditDialogState.update { state ->

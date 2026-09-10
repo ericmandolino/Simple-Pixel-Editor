@@ -10,6 +10,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
@@ -34,15 +38,18 @@ fun PaletteEditDialog(
     originalPalette: PaletteModel,
     pixelMatrix: PixelMatrixModel? = null,
     viewModel: PaletteEditViewModel = hiltViewModel(),
-    onSaveChangesClick: (PaletteModel) -> Unit,
+    onSaveChangesClick: (PaletteModel, PixelMatrixModel?) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val paletteEditDialogState = viewModel.paletteEditDialogState.collectAsStateWithLifecycle().value
+    var viewModelInitialized by rememberSaveable { mutableStateOf(false) }
 
-    viewModel.setOriginalPalette(originalPalette)
-
-    if (pixelMatrix != null) {
-        viewModel.setOriginalPixelMatrix(pixelMatrix)
+    if (!viewModelInitialized) {
+        viewModel.setOriginalPalette(originalPalette)
+        if (pixelMatrix != null) {
+            viewModel.setOriginalPixelMatrix(pixelMatrix)
+        }
+        viewModelInitialized = true
     }
 
     PaletteEditDialogContent(
@@ -55,7 +62,7 @@ fun PaletteEditDialog(
 @Composable
 fun PaletteEditDialogContent(
     paletteEditDialogState: PaletteEditDialogState,
-    onSaveChangesClick: (PaletteModel) -> Unit,
+    onSaveChangesClick: (PaletteModel, PixelMatrixModel?) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val pixelImagePreviewSectionState = paletteEditDialogState.pixelImagePreviewSectionState
@@ -89,7 +96,8 @@ fun PaletteEditDialogContent(
                     isSaveEnabled = true,
                     onSaveClick = {
                         onSaveChangesClick(
-                            PaletteModel(paletteEditDialogState.paletteEditState.paletteColors)
+                            PaletteModel(paletteEditDialogState.paletteEditState.paletteColors),
+                            pixelImagePreviewSectionState?.pixelImageModel?.pixelMatrixModel,
                         )
                     },
                     onCancelClick = onDismiss,
@@ -114,7 +122,7 @@ fun PaletteEditDialogContentNoImagePreview() {
                     selectedPaletteIndex = 1,
                 ),
             ),
-            onSaveChangesClick = {},
+            onSaveChangesClick = { _, _ -> },
             onDismiss = {},
         )
     }
@@ -143,7 +151,7 @@ fun PaletteEditDialogContentPreview() {
                     onPreviewBackgroundColorSelected = {},
                 ),
             ),
-            onSaveChangesClick = {},
+            onSaveChangesClick = { _, _ -> },
             onDismiss = {},
         )
     }
