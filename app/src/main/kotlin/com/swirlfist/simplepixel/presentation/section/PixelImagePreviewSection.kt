@@ -52,27 +52,6 @@ fun PixelImagePreviewSection(
     }
 }
 
-@Preview(showBackground = true, widthDp = 320, heightDp = 320)
-@Composable
-fun PixelImagePreviewSectionFitPreview() {
-    SimplePixelTheme {
-        PixelImagePreviewSection(
-            modifier = Modifier.fillMaxSize(),
-            state = PixelImagePreviewSectionState(
-                onPreviewBackgroundColorSelected = {},
-            ).copy(
-                pixelImageModel = createCheckersPixelImage(
-                    width = 64,
-                    height = 64,
-                    color1 = Color.Black.toColorLong(),
-                    color2 = Color.Yellow.toColorLong(),
-                ),
-                isFitAvailableSpace = true,
-            ),
-        )
-    }
-}
-
 @Composable
 fun PixelImagePreviewBackgroundColorSelection(
     modifier: Modifier = Modifier,
@@ -82,7 +61,6 @@ fun PixelImagePreviewBackgroundColorSelection(
     FlowRow (
         maxLines = 2,
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         PreviewBackgroundColorButton(
             color = Color.Black,
@@ -115,7 +93,7 @@ fun PreviewBackgroundColorButton(
 ) {
     PaletteColorSelectButton(
         color = color,
-        size = 48.dp,
+        size = 36.dp,
         isEnabled = true,
         contentDescriptionValue = stringResource(
                 R.string.cd_preview_section_button_pick_background_color,
@@ -128,6 +106,27 @@ fun PreviewBackgroundColorButton(
 
 @Preview(showBackground = true, widthDp = 320, heightDp = 320)
 @Composable
+fun PixelImagePreviewSectionFitPreview() {
+    SimplePixelTheme {
+        PixelImagePreviewSection(
+            modifier = Modifier.fillMaxSize(),
+            state = PixelImagePreviewSectionState(
+                onPreviewBackgroundColorSelected = {},
+            ).copy(
+                pixelImageModel = createCheckersPixelImage(
+                    width = 32,
+                    height = 32,
+                    color1 = Color.Black.toColorLong(),
+                    color2 = Color.Yellow.toColorLong(),
+                ),
+                isFitAvailableSpace = true,
+            ),
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 320)
+@Composable
 fun PixelImagePreviewSectionNoFitPreview() {
     SimplePixelTheme {
         PixelImagePreviewSection(
@@ -136,8 +135,8 @@ fun PixelImagePreviewSectionNoFitPreview() {
                 onPreviewBackgroundColorSelected = {},
             ).copy(
                 pixelImageModel = createCheckersPixelImage(
-                    width = 64,
-                    height = 64,
+                    width = 32,
+                    height = 32,
                     color1 = Color.Black.toColorLong(),
                     color2 = Color.Yellow.toColorLong(),
                 ),
@@ -157,8 +156,8 @@ fun PixelImagePreviewSectionEmptyNoFitPreview() {
                 onPreviewBackgroundColorSelected = {},
             ).copy(
                 pixelImageModel = PixelImageModel.createEmpty(
-                    width = 64,
-                    height = 64,
+                    width = 32,
+                    height = 32,
                     colors = listOf(Color.Black.toColorLong(), Color.Yellow.toColorLong()),
                 ),
                 isFitAvailableSpace = false,

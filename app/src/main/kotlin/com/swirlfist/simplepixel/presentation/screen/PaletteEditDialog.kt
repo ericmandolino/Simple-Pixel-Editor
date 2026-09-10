@@ -2,6 +2,8 @@ package com.swirlfist.simplepixel.presentation.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,15 +19,20 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swirlfist.simplepixel.domain.model.PaletteModel
+import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.presentation.section.PaletteEditSection
+import com.swirlfist.simplepixel.presentation.section.PixelImagePreviewSection
 import com.swirlfist.simplepixel.presentation.section.SaveCancelDialogFooter
 import com.swirlfist.simplepixel.presentation.state.PaletteEditDialogState
 import com.swirlfist.simplepixel.presentation.state.PaletteEditState
+import com.swirlfist.simplepixel.presentation.state.PixelImagePreviewSectionState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
+import com.swirlfist.simplepixel.presentation.uielements.createCheckersPixelImage
 
 @Composable
 fun PaletteEditDialog(
     originalPalette: PaletteModel,
+    pixelMatrix: PixelMatrixModel? = null,
     viewModel: PaletteEditViewModel = hiltViewModel(),
     onSaveChangesClick: (PaletteModel) -> Unit,
     onDismiss: () -> Unit,
@@ -33,6 +40,10 @@ fun PaletteEditDialog(
     val paletteEditDialogState = viewModel.paletteEditDialogState.collectAsStateWithLifecycle().value
 
     viewModel.setOriginalPalette(originalPalette)
+
+    if (pixelMatrix != null) {
+        viewModel.setOriginalPixelMatrix(pixelMatrix)
+    }
 
     PaletteEditDialogContent(
         paletteEditDialogState,
@@ -47,6 +58,8 @@ fun PaletteEditDialogContent(
     onSaveChangesClick: (PaletteModel) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val pixelImagePreviewSectionState = paletteEditDialogState.pixelImagePreviewSectionState
+
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier
@@ -55,14 +68,22 @@ fun PaletteEditDialogContent(
         ) {
             Column(
                 modifier = Modifier
+                    .padding(16.dp)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 PaletteEditSection(
-                    modifier = Modifier
-                        .padding(16.dp),
                     paletteEditState = paletteEditDialogState.paletteEditState,
                 )
+
+                if (pixelImagePreviewSectionState != null) {
+                    PixelImagePreviewSection(
+                        modifier = Modifier
+                            .height(128.dp)
+                            .fillMaxWidth(),
+                        state = pixelImagePreviewSectionState,
+                    )
+                }
 
                 SaveCancelDialogFooter(
                     isSaveEnabled = true,
@@ -80,7 +101,7 @@ fun PaletteEditDialogContent(
 
 @Preview(showBackground = true, widthDp = 320, heightDp = 640)
 @Composable
-fun PaletteEditDialogContentPreview() {
+fun PaletteEditDialogContentNoImagePreview() {
     SimplePixelTheme {
         PaletteEditDialogContent(
             paletteEditDialogState = PaletteEditDialogState(
@@ -91,6 +112,35 @@ fun PaletteEditDialogContentPreview() {
                         Color.Blue.toColorLong(),
                     ),
                     selectedPaletteIndex = 1,
+                ),
+            ),
+            onSaveChangesClick = {},
+            onDismiss = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 640, heightDp = 1080)
+@Composable
+fun PaletteEditDialogContentPreview() {
+    val pixelImage = createCheckersPixelImage(
+        width = 32,
+        height = 32,
+        color1 = Color.Black.toColorLong(),
+        color2 = Color.Yellow.toColorLong(),
+    )
+
+    SimplePixelTheme {
+        PaletteEditDialogContent(
+            paletteEditDialogState = PaletteEditDialogState(
+                paletteEditState = PaletteEditState(
+                    paletteColors = pixelImage.paletteModel.colors,
+                    selectedPaletteIndex = 1,
+                ),
+                pixelImagePreviewSectionState = PixelImagePreviewSectionState(
+                    pixelImageModel = pixelImage,
+                    isFitAvailableSpace = true,
+                    onPreviewBackgroundColorSelected = {},
                 ),
             ),
             onSaveChangesClick = {},

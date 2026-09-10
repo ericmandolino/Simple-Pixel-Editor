@@ -10,3 +10,8 @@ data class PixelImagePreviewSectionState(
     val selectedPreviewBackgroundColorLong: Long = Color.White.toColorLong(),
     val onPreviewBackgroundColorSelected: (Color) -> Unit,
 )
+
+fun PixelImagePreviewSectionState.updateSelectedPreviewBackgroundColor(color: Color) =
+    copy(
+        selectedPreviewBackgroundColorLong = color.toColorLong(),
+    )

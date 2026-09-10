@@ -74,3 +74,42 @@ fun PixelMatrixModel.isBlank(): Boolean {
 
     return true
 }
+
+fun PixelImageModel.deletePaletteColor(
+    paletteIndex: Int
+): PixelImageModel {
+    val currentPaletteColors = paletteModel.colors
+
+    if (paletteIndex !in currentPaletteColors.indices) {
+        return this
+    }
+
+    val newPalette = PaletteModel(
+        colors = currentPaletteColors.toMutableList().apply { removeAt(paletteIndex) }.toList()
+    )
+    val currentPixelMatrixContent = pixelMatrixModel.content
+    val newPixelMatrixContent = mutableListOf<List<PixelModel>>()
+
+    currentPixelMatrixContent.forEach { row ->
+        val newRow = mutableListOf<PixelModel>()
+        row.forEach { pixel ->
+            val currentPaletteIndex = pixel.paletteIndex
+            val newPixel = when {
+                currentPaletteIndex == paletteIndex -> PixelModel(
+                    paletteIndex = EMPTY_PIXEL_PALETTE_INDEX,
+                )
+                currentPaletteIndex > paletteIndex -> PixelModel(
+                    paletteIndex = currentPaletteIndex- 1
+                )
+                else -> pixel
+            }
+            newRow.add(newPixel)
+        }
+        newPixelMatrixContent.add(newRow)
+    }
+
+    return PixelImageModel(
+        pixelMatrixModel = PixelMatrixModel(newPixelMatrixContent.toList()),
+        paletteModel = newPalette,
+    )
+}

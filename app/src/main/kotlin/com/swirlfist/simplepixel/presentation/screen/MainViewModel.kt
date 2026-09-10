@@ -35,6 +35,7 @@ import com.swirlfist.simplepixel.presentation.state.ActionsSectionState
 import com.swirlfist.simplepixel.presentation.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.state.MainScreenState
 import com.swirlfist.simplepixel.presentation.state.PixelImagePreviewSectionState
+import com.swirlfist.simplepixel.presentation.state.updateSelectedPreviewBackgroundColor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -215,9 +216,7 @@ class MainViewModel @Inject constructor(
     ) {
         _mainScreenState.update { state ->
             state.copy(
-                pixelImagePreviewSectionState = state.pixelImagePreviewSectionState.copy(
-                    selectedPreviewBackgroundColorLong = color.toColorLong(),
-                )
+                pixelImagePreviewSectionState = state.pixelImagePreviewSectionState.updateSelectedPreviewBackgroundColor(color)
             )
         }
     }

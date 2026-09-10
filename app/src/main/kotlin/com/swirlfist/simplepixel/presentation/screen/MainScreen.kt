@@ -87,10 +87,11 @@ fun MainScreen(
             )
         }
     } else if (mainScreenState.isShowEditPalette) {
-        val palette = mainScreenState.canvasSectionState.pixelImageModel?.paletteModel
-        if (palette != null) {
+        val pixelImage = mainScreenState.canvasSectionState.pixelImageModel
+        if (pixelImage != null) {
             PaletteEditDialog(
-                originalPalette = palette,
+                originalPalette = pixelImage.paletteModel,
+                pixelMatrix = pixelImage.pixelMatrixModel,
                 onSaveChangesClick = {}, // TODO
                 onDismiss = viewModel::hideEditPalette,
             )

@@ -98,6 +98,7 @@ fun PaletteEditSection(
 
         PaletteColorEdit(
             color = color,
+            isDeleteEnabled = color != null && colors.size > 1,
             onDeleteClick = paletteEditState.onDeletePaletteColorClick,
             onColorComponentRedSliderChange = paletteEditState.onColorComponentRedSliderChange,
             onColorComponentGreenSliderChange = paletteEditState.onColorComponentGreenSliderChange,
@@ -110,6 +111,7 @@ fun PaletteEditSection(
 fun PaletteColorEdit(
     modifier: Modifier = Modifier,
     color: Color?,
+    isDeleteEnabled: Boolean,
     onDeleteClick: () -> Unit,
     onColorComponentRedSliderChange: (Float) -> Unit,
     onColorComponentGreenSliderChange: (Float) -> Unit,
@@ -153,7 +155,7 @@ fun PaletteColorEdit(
             )
             TextButton(
                 onClick = onDeleteClick,
-                enabled = color != null,
+                enabled = isDeleteEnabled,
             ) {
                 Text(
                     text = stringResource(R.string.delete)

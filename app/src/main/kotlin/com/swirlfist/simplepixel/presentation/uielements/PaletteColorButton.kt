@@ -30,7 +30,6 @@ fun PaletteColorButton(
 ) {
     Button(
         modifier = modifier
-            .size(size)
             .border(
                 border = BorderStroke(
                     width = 1.dp,
@@ -38,6 +37,7 @@ fun PaletteColorButton(
                 ),
                 shape = RoundedCornerShape(4.dp),
             )
+            .size(size)
             .semantics {
                 contentDescription = contentDescriptionValue
             },
@@ -80,7 +80,7 @@ fun PaletteColorSelectButton(
     }
 }
 
-@Preview(showBackground = true, widthDp = 320, heightDp = 320)
+@Preview(showBackground = true)
 @Composable
 fun PaletteColorSelectButtonPreview() {
     SimplePixelTheme {
@@ -90,6 +90,20 @@ fun PaletteColorSelectButtonPreview() {
             isEnabled = true,
             contentDescriptionValue = "",
             isSelected = true,
+            onClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PaletteColorButtonPreview() {
+    SimplePixelTheme {
+        PaletteColorButton(
+            color = Color.Red,
+            size = 48.dp,
+            isEnabled = true,
+            contentDescriptionValue = "",
             onClick = {},
         )
     }
