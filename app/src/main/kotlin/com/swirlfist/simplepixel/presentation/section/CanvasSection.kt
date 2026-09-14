@@ -25,10 +25,11 @@ fun CanvasSection(
         PixelCanvas(
             modifier = modifier,
             pixelImage = pixelImage,
-            zoomFactor = state.zoomFactor,
+            initialZoomFactor = state.zoomFactor,
             isShowGridEnabled = state.isShowGridEnabled,
             isShowCoordinatesEnabled = state.isShowCoordinatesEnabled,
             onPixelTap = { x, y -> onEvent(CanvasSectionEvent.PixelTap(x, y)) },
+            onZoomUpdate = { zoom -> onEvent(CanvasSectionEvent.ZoomUpdate(zoom)) },
         )
     }
 }

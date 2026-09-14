@@ -10,6 +10,8 @@ class GetNextZoomFactorUseCaseImpl @Inject constructor() : GetNextZoomFactorUseC
             getNextZoomFactor(
                 params.currentZoomFactor,
                 params.isZoomIn,
+                params.maxZoomFactor,
+                params.minZoomFactor,
                 params.zoomFactorStep,
             )
         )
@@ -18,12 +20,14 @@ class GetNextZoomFactorUseCaseImpl @Inject constructor() : GetNextZoomFactorUseC
     private fun getNextZoomFactor(
         currentZoomFactor: Float,
         isZoomIn: Boolean,
+        maxZoomFactor: Float,
+        minZoomFactor: Float,
         zoomFactorStep: Float,
     ): Float {
         return if (isZoomIn) {
-            min(MAX_ZOOM_FACTOR, currentZoomFactor + zoomFactorStep)
+            min(maxZoomFactor, currentZoomFactor + zoomFactorStep)
         } else {
-            max(MIN_ZOOM_FACTOR, currentZoomFactor - zoomFactorStep)
+            max(minZoomFactor, currentZoomFactor - zoomFactorStep)
         }
     }
 }
