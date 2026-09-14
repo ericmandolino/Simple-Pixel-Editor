@@ -17,8 +17,6 @@ import com.swirlfist.simplepixel.domain.usecase.GetBasePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseCase
-import com.swirlfist.simplepixel.domain.usecase.MAX_ZOOM_FACTOR
-import com.swirlfist.simplepixel.domain.usecase.MIN_ZOOM_FACTOR
 import com.swirlfist.simplepixel.domain.usecase.MoveDirection
 import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
@@ -37,6 +35,8 @@ import com.swirlfist.simplepixel.presentation.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.state.MainScreenState
 import com.swirlfist.simplepixel.presentation.state.PixelImagePreviewSectionState
 import com.swirlfist.simplepixel.presentation.state.updateSelectedPreviewBackgroundColor
+import com.swirlfist.simplepixel.presentation.uielements.MAX_ZOOM_FACTOR
+import com.swirlfist.simplepixel.presentation.uielements.MIN_ZOOM_FACTOR
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -260,6 +260,20 @@ class MainViewModel @Inject constructor(
     fun onCanvasSectionEvent(event: CanvasSectionEvent) {
         when (event) {
             is CanvasSectionEvent.PixelTap -> onPixelTap(event)
+            is CanvasSectionEvent.ZoomUpdate -> {
+                _mainScreenState.update { mainScreenState ->
+                    val canvasSectionState = mainScreenState.canvasSectionState
+                    val actionsSectionState = mainScreenState.actionsSectionState
+                    mainScreenState.copy(
+                        canvasSectionState = canvasSectionState.copy(
+                            zoomFactor = event.zoom,
+                        ),
+                        actionsSectionState = actionsSectionState.updateZoomButtonState(
+                            zoomFactor = event.zoom
+                        ),
+                    )
+                }
+            }
         }
     }
 
@@ -508,6 +522,8 @@ class MainViewModel @Inject constructor(
                 params = GetNextZoomFactorUseCase.Params(
                     currentZoomFactor = _mainScreenState.value.canvasSectionState.zoomFactor,
                     isZoomIn = isZoomIn,
+                    maxZoomFactor = MAX_ZOOM_FACTOR,
+                    minZoomFactor = MIN_ZOOM_FACTOR,
                 ),
             )
         }
