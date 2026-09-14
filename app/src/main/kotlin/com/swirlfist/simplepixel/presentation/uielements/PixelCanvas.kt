@@ -2,6 +2,10 @@ package com.swirlfist.simplepixel.presentation.uielements
 
 import android.util.SizeF
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
@@ -58,8 +62,8 @@ fun PixelCanvas(
     val textMeasurer = rememberTextMeasurer()
     val offsetSaver = createOffsetSaver()
     val intSizeSaver = createIntSizeSaver()
-    val imageOffset = rememberSaveable(stateSaver = offsetSaver) { mutableStateOf(Offset(0F, 0F)) }
-    val margin = rememberSaveable(stateSaver = offsetSaver) { mutableStateOf(Offset(0F, 0F)) }
+    val imageOffset = rememberSaveable(stateSaver = offsetSaver) { mutableStateOf(Offset.Zero) }
+    val margin = rememberSaveable(stateSaver = offsetSaver) { mutableStateOf(Offset.Zero) }
     val lastCanvasSize =
         rememberSaveable(stateSaver = intSizeSaver) { mutableStateOf(IntSize(-1, -1)) }
 
@@ -70,13 +74,7 @@ fun PixelCanvas(
             .onSizeChanged { size ->
                 onCanvasSizeChanged(size, lastCanvasSize, imageOffset)
             }
-            .pointerInput(zoomFactor) {
-                detectDragGestures { _, dragAmount ->
-                    val pixelSizeDp = PIXEL_SIZE_DP_CANVAS
-                    onCanvasDrag(dragAmount, pixelSizeDp, imagePixelSize, zoomFactor, imageOffset)
-                }
-            }
-            .pointerInput(zoomFactor) {
+            .pointerInput(Unit) {
                 detectTapGestures { tapOffset ->
                     val pixelSizeDp = PIXEL_SIZE_DP_CANVAS
                     val canvasSize = Size(
@@ -93,6 +91,26 @@ fun PixelCanvas(
                         margin.value,
                         onPixelTap
                     )
+                }
+            }
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown()
+                    do {
+                        val event = awaitPointerEvent()
+                        if (event.changes.size != 2) {
+                            continue
+                        }
+                        val pan = event.calculatePan()
+                        val zoom = event.calculateZoom()
+
+                        val pixelSizeDp = PIXEL_SIZE_DP_CANVAS
+                        onCanvasPan(pan, pixelSizeDp, imagePixelSize, zoomFactor, imageOffset)
+
+                        event.changes.forEach { pointerInputChange ->
+                            pointerInputChange.consume()
+                        }
+                    } while (event.changes.any { it.pressed })
                 }
             },
     ) {
@@ -154,7 +172,7 @@ fun PixelCanvasSnapshot(
             .pointerInput(zoomFactor.floatValue) {
                 detectDragGestures { _, dragAmount ->
                     val pixelSizeDp = PIXEL_SIZE_DP_PREVIEW
-                    onCanvasDrag(
+                    onCanvasPan(
                         dragAmount,
                         pixelSizeDp,
                         imagePixelSize,
@@ -222,8 +240,8 @@ private fun onCanvasSizeChanged(
     lastCanvasSize.value = IntSize(currentWidth, currentHeight)
 }
 
-private fun PointerInputScope.onCanvasDrag(
-    dragAmount: Offset,
+private fun PointerInputScope.onCanvasPan(
+    pan: Offset,
     pixelSizeDp: Int,
     imagePixelSize: IntSize,
     zoomFactor: Float,
@@ -246,8 +264,8 @@ private fun PointerInputScope.onCanvasDrag(
     val imageOffsetY = imageOffset.value.y
 
     imageOffset.value = Offset(
-        (imageOffsetX - dragAmount.x).cap(minImageOffset.x, maxImageOffset.x),
-        (imageOffsetY - dragAmount.y).cap(minImageOffset.y, maxImageOffset.y),
+        (imageOffsetX - pan.x).cap(minImageOffset.x, maxImageOffset.x),
+        (imageOffsetY - pan.y).cap(minImageOffset.y, maxImageOffset.y),
     )
 }
 
