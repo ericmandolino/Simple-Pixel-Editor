@@ -4,6 +4,7 @@ import android.util.SizeF
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateCentroid
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -168,7 +169,7 @@ fun PixelCanvas(
                                 PIXEL_SIZE_DP_CANVAS,
                                 imagePixelSize,
                                 zoomFactor,
-                                imageOffset
+                                imageOffset,
                             )
                         } else if (isZooming) {
                             val zoom = event.calculateZoom()
@@ -178,6 +179,22 @@ fun PixelCanvas(
                             } else {
                                 max(MIN_ZOOM_FACTOR, zoomFactor - zoomDelta)
                             }
+
+                            if (zoomFactor > MIN_ZOOM_FACTOR && zoomFactor < MAX_ZOOM_FACTOR) {
+                                val centroid = event.calculateCentroid()
+                                val zoomPan = Offset(
+                                    x = centroid.x * (1 - zoom),
+                                    y = centroid.y * (1- zoom),
+                                )
+                                onCanvasPan(
+                                    pan = zoomPan,
+                                    pixelSizeDp = PIXEL_SIZE_DP_CANVAS,
+                                    imagePixelSize,
+                                    zoomFactor,
+                                    imageOffset,
+                                )
+                            }
+
                             onZoomUpdate(zoomFactor)
                         }
 
@@ -321,7 +338,22 @@ private fun PointerInputScope.onCanvasPan(
     zoomFactor: Float,
     imageOffset: MutableState<Offset>,
 ) {
-    val pixelSizeInt = getPixelSizeInt(pixelSizeDp, zoomFactor)
+    onCanvasPan(
+        pan,
+        pixelSizeInt = getPixelSizeInt(pixelSizeDp, zoomFactor),
+        size,
+        imagePixelSize,
+        imageOffset,
+    )
+}
+
+private fun onCanvasPan(
+    pan: Offset,
+    pixelSizeInt: Int,
+    canvasSize: IntSize,
+    imagePixelSize: IntSize,
+    imageOffset: MutableState<Offset>,
+) {
     val imageWidthInt = imagePixelSize.width * pixelSizeInt
     val imageHeightInt = imagePixelSize.height * pixelSizeInt
 
@@ -330,8 +362,8 @@ private fun PointerInputScope.onCanvasPan(
         y = 0F,
     )
     val maxImageOffset = Offset(
-        x = max(imageWidthInt - size.width, 0).toFloat(),
-        y = max(imageHeightInt - size.height, 0).toFloat(),
+        x = max(imageWidthInt - canvasSize.width, 0).toFloat(),
+        y = max(imageHeightInt - canvasSize.height, 0).toFloat(),
     )
 
     val imageOffsetX = imageOffset.value.x
