@@ -14,7 +14,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -53,10 +52,10 @@ private const val COORDINATE_TEXT_FORMAT = "%s,%s"
 private const val NO_ZOOM_FACTOR = 1F
 private const val PIXEL_SIZE_DP_CANVAS = 32
 private const val PIXEL_SIZE_DP_PREVIEW = 1
+private const val PAN_VS_ZOOM_FACTOR = 0.025F
+private const val ZOOM_STEP = 0.025F
 const val MAX_ZOOM_FACTOR = 2F
 const val MIN_ZOOM_FACTOR = 0.25F
-const val PAN_VS_ZOOM_FACTOR = 0.1F
-const val PAN_VS_ZOOM_COUNT = 3
 
 @Composable
 fun PixelCanvas(
@@ -78,12 +77,7 @@ fun PixelCanvas(
     val lastCanvasSize =
         rememberSaveable(stateSaver = intSizeSaver) { mutableStateOf(IntSize(-1, -1)) }
     var zoomFactor by rememberSaveable { mutableFloatStateOf(initialZoomFactor) }
-    var lastPanDistance by rememberSaveable { mutableFloatStateOf(0F) }
-    var lastZoomDistance by rememberSaveable { mutableFloatStateOf(0F) }
-    var panCount by rememberSaveable { mutableIntStateOf(0) }
-    var zoomCount by rememberSaveable { mutableIntStateOf(0) }
-    var isPanning by rememberSaveable { mutableStateOf(false) }
-    var isZooming by rememberSaveable { mutableStateOf(false) }
+    var zoomAcc by rememberSaveable { mutableFloatStateOf(0F) }
 
     val imagePixelSize = IntSize(pixelImage.getPixelWidth(), pixelImage.getPixelHeight())
 
@@ -121,81 +115,53 @@ fun PixelCanvas(
                     do {
                         val event = awaitPointerEvent()
                         if (event.changes.size != 2) {
-                            lastPanDistance = 0F
-                            lastZoomDistance = 0F
-                            isPanning = false
-                            isZooming = false
-                            panCount = 0
-                            zoomCount = 0
+                            zoomAcc = 0F
                             continue
                         }
 
                         val pan = event.calculatePan()
-                        val panDistance = pan.getDistance()
+
+                        onCanvasPan(
+                            pan,
+                            PIXEL_SIZE_DP_CANVAS,
+                            imagePixelSize,
+                            zoomFactor,
+                            imageOffset,
+                        )
+
                         val zoomDistance = (event.changes[0].position - event.changes[1].position).getDistance()
-
-                        if (lastPanDistance != 0F || lastZoomDistance != 0F) {
-                            val panDistanceDelta = abs(panDistance - lastPanDistance)
-                            val zoomDistanceDelta = abs(zoomDistance - lastZoomDistance)
-
-                            if (panDistanceDelta >= zoomDistanceDelta * PAN_VS_ZOOM_FACTOR) {
-                                panCount++
-                                zoomCount = 0
-                            } else {
-                                zoomCount++
-                                panCount = 0
-                            }
-
-                            if (panCount > PAN_VS_ZOOM_COUNT) {
-                                isPanning = true
-                                isZooming = false
-                                panCount = 0
-                                zoomCount = 0
-                            } else if (zoomCount > PAN_VS_ZOOM_COUNT) {
-                                isPanning = false
-                                isZooming = true
-                                panCount = 0
-                                zoomCount = 0
-                            }
-                        }
-
-                        lastPanDistance = panDistance
-                        lastZoomDistance = zoomDistance
-
-                        if (isPanning) {
-                            val pan = event.calculatePan()
-                            onCanvasPan(
-                                pan,
-                                PIXEL_SIZE_DP_CANVAS,
-                                imagePixelSize,
-                                zoomFactor,
-                                imageOffset,
-                            )
-                        } else if (isZooming) {
+                        if (pan.getDistance() < zoomDistance * PAN_VS_ZOOM_FACTOR) {
                             val zoom = event.calculateZoom()
-                            val zoomDelta = abs(1F - zoom)
-                            zoomFactor = if (zoom >= 1F) {
-                                min(MAX_ZOOM_FACTOR, zoomFactor + zoomDelta)
-                            } else {
-                                max(MIN_ZOOM_FACTOR, zoomFactor - zoomDelta)
-                            }
+                            zoomAcc += zoom - 1F
 
-                            if (zoomFactor > MIN_ZOOM_FACTOR && zoomFactor < MAX_ZOOM_FACTOR) {
-                                val centroid = event.calculateCentroid()
-                                val zoomPan = Offset(
-                                    x = centroid.x * (1 - zoom),
-                                    y = centroid.y * (1- zoom),
-                                )
-                                onCanvasPan(
-                                    pan = zoomPan,
-                                    pixelSizeDp = PIXEL_SIZE_DP_CANVAS,
-                                    imagePixelSize,
-                                    zoomFactor,
-                                    imageOffset,
-                                )
-                            }
+                            if (abs(zoomAcc) > ZOOM_STEP) {
+                                if (zoomAcc > 0) {
+                                    zoomAcc -= ZOOM_STEP
+                                    zoomFactor = min(MAX_ZOOM_FACTOR, zoomFactor + ZOOM_STEP)
+                                } else {
+                                    zoomAcc += ZOOM_STEP
+                                    zoomFactor = max(MIN_ZOOM_FACTOR, zoomFactor - ZOOM_STEP)
+                                }
 
-                            onZoomUpdate(zoomFactor)
+                                if (zoomFactor > MIN_ZOOM_FACTOR && zoomFactor < MAX_ZOOM_FACTOR) {
+                                    val centroid = event.calculateCentroid()
+                                    val centroidFactor = if (zoomAcc > 0) -ZOOM_STEP else ZOOM_STEP
+
+                                    val zoomPan = Offset(
+                                        x = centroid.x * centroidFactor,
+                                        y = centroid.y * centroidFactor,
+                                    )
+                                    onCanvasPan(
+                                        pan = zoomPan,
+                                        pixelSizeDp = PIXEL_SIZE_DP_CANVAS,
+                                        imagePixelSize,
+                                        zoomFactor,
+                                        imageOffset,
+                                    )
+                                }
+
+                                onZoomUpdate(zoomFactor)
+                            }
                         }
 
                         event.changes.forEach { pointerInputChange ->
