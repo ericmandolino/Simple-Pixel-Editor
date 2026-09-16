@@ -9,5 +9,6 @@ interface UpdatePixelColorUseCase : UseCase<UpdatePixelColorUseCase.Params, Pixe
         val x: Int,
         val y: Int,
         val paletteIndex: Int,
+        val isSameAction: Boolean,
     ) : UseCaseParams
 }

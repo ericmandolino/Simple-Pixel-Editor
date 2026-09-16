@@ -44,6 +44,14 @@ class PixelImageEditorActionRepositoryImpl @Inject constructor() :
         updateAvailableOperations()
     }
 
+    override suspend fun updateLastAction(pixelImageResult: PixelImageModel) {
+        if (_currentActionIndex != _actions.size - 1) {
+            return
+        }
+
+        _finalPixelImage = pixelImageResult
+    }
+
     override suspend fun undoAction(): PixelImageModel? {
         if (_currentActionIndex !in _actions.indices) {
             return null

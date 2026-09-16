@@ -17,6 +17,7 @@ class ApplyBucketUseCaseImpl @Inject constructor(
                 x = params.x,
                 y = params.y,
                 paletteIndex = params.paletteIndex,
+                isSameAction = params.isSameAction,
             )
         )
     }
@@ -26,6 +27,7 @@ class ApplyBucketUseCaseImpl @Inject constructor(
         x: Int,
         y: Int,
         paletteIndex: Int,
+        isSameAction: Boolean,
     ): PixelImageModel {
         val pixel = pixelImage.getPixelAt(x, y)
         if (pixel.paletteIndex == paletteIndex) {
@@ -52,15 +54,19 @@ class ApplyBucketUseCaseImpl @Inject constructor(
             )
         )
 
-        pixelImageEditorActionRepository.addAction(
-            PixelImageEditorAction.ApplyBucketColorAction(
-                pixelImage,
-                x,
-                y,
-                paletteIndex,
-            ),
-            pixelImageResult,
-        )
+        if (isSameAction) {
+            pixelImageEditorActionRepository.updateLastAction(pixelImageResult)
+        } else {
+            pixelImageEditorActionRepository.addAction(
+                PixelImageEditorAction.ApplyBucketColorAction(
+                    pixelImage,
+                    x,
+                    y,
+                    paletteIndex,
+                ),
+                pixelImageResult,
+            )
+        }
 
         return pixelImageResult
     }

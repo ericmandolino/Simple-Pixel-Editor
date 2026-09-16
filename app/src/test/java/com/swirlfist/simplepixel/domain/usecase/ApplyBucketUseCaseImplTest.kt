@@ -47,6 +47,7 @@ class ApplyBucketUseCaseImplTest {
             pixelImageModel,
             x,
             y,
+            isSameAction = false,
             paletteIndex = pixelImageModel.getPixelAt(x, y).paletteIndex,
         )
 
@@ -59,7 +60,7 @@ class ApplyBucketUseCaseImplTest {
     }
 
     @Test
-    fun `when the palette index is the same the undo action is not added`() = runTest {
+    fun `when the palette index is the same the undo action is not added or updated`() = runTest {
         // Given
         val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
             pixelImageString = testPixelImageString
@@ -70,6 +71,7 @@ class ApplyBucketUseCaseImplTest {
             pixelImageModel,
             x,
             y,
+            isSameAction = false,
             paletteIndex = pixelImageModel.getPixelAt(x, y).paletteIndex,
         )
 
@@ -79,6 +81,7 @@ class ApplyBucketUseCaseImplTest {
         // Then
         coVerify(exactly = 0) {
             pixelImageEditorActionRepository.addAction(any(), any())
+            pixelImageEditorActionRepository.updateLastAction(any())
         }
     }
 
@@ -94,6 +97,7 @@ class ApplyBucketUseCaseImplTest {
             pixelImageModel,
             x,
             y,
+            isSameAction = false,
             paletteIndex = 0,
         )
         val expected = PixelImageModelTestUtil.createPixelImageModel(
@@ -126,6 +130,7 @@ class ApplyBucketUseCaseImplTest {
             pixelImageModel,
             x,
             y,
+            isSameAction = false,
             paletteIndex = 0,
         )
         val expected = PixelImageModelTestUtil.createPixelImageModel(
@@ -147,7 +152,7 @@ class ApplyBucketUseCaseImplTest {
     }
 
     @Test
-    fun `when the image is updated the undo action is added`() = runTest {
+    fun `when the image is updated if it is not the same action the undo action is added`() = runTest {
         // Given
         val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
             pixelImageString = testPixelImageString
@@ -158,6 +163,7 @@ class ApplyBucketUseCaseImplTest {
             pixelImageModel,
             x,
             y,
+            isSameAction = false,
             paletteIndex = 0,
         )
 
@@ -175,6 +181,39 @@ class ApplyBucketUseCaseImplTest {
                 ),
                 result.getOrThrow(),
             )
+        }
+        coVerify(exactly = 0) {
+            pixelImageEditorActionRepository.updateLastAction(any())
+        }
+    }
+
+    @Test
+    fun `when the image is updated if it is the same action the last action is updated`() = runTest {
+        // Given
+        val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
+            pixelImageString = testPixelImageString
+        )
+        val x = 1
+        val y = 1
+        val useCaseParams = ApplyBucketUseCase.Params(
+            pixelImageModel,
+            x,
+            y,
+            isSameAction = true,
+            paletteIndex = 0,
+        )
+
+        // When
+        val result = useCase(useCaseParams)
+
+        // Then
+        coVerify(exactly = 1) {
+            pixelImageEditorActionRepository.updateLastAction(
+                result.getOrThrow(),
+            )
+        }
+        coVerify(exactly = 0) {
+            pixelImageEditorActionRepository.addAction(any(), any())
         }
     }
 }

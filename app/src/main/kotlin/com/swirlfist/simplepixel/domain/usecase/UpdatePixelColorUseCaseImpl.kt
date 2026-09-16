@@ -18,6 +18,7 @@ class UpdatePixelColorUseCaseImpl @Inject constructor(
                     x = params.x,
                     y = params.y,
                     paletteIndex = params.paletteIndex,
+                    isSameAction = params.isSameAction,
                 )
             )
         } catch (exception: Exception) {
@@ -30,9 +31,15 @@ class UpdatePixelColorUseCaseImpl @Inject constructor(
         x: Int,
         y: Int,
         paletteIndex: Int,
+        isSameAction: Boolean,
     ): PixelImageModel {
         val pixelMatrix = pixelImage.pixelMatrixModel
         val pixel = pixelImage.getPixelAt(x, y)
+
+        if (pixel.paletteIndex == paletteIndex) {
+            return pixelImage
+        }
+
         val updatedPixel = pixel.copy(
             paletteIndex = paletteIndex,
         )
@@ -55,15 +62,19 @@ class UpdatePixelColorUseCaseImpl @Inject constructor(
             pixelMatrixModel = updatedPixelMatrix,
         )
 
-        pixelImageEditorActionRepository.addAction(
-            PixelImageEditorAction.ApplyPixelColorAction(
-                pixelImage,
-                x,
-                y,
-                paletteIndex,
-            ),
-            pixelImageResult,
-        )
+        if (isSameAction) {
+            pixelImageEditorActionRepository.updateLastAction(pixelImageResult)
+        } else {
+            pixelImageEditorActionRepository.addAction(
+                PixelImageEditorAction.ApplyPixelColorAction(
+                    pixelImage,
+                    x,
+                    y,
+                    paletteIndex,
+                ),
+                pixelImageResult,
+            )
+        }
 
         return pixelImageResult
     }

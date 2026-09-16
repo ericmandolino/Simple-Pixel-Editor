@@ -6,6 +6,9 @@ import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 
+private const val MAX_ZOOM_FACTOR = 2F
+private const val MIN_ZOOM_FACTOR = 0.25F
+
 class GetNextZoomFactorUseCaseImplTest {
 
     private lateinit var useCase: GetNextZoomFactorUseCase
@@ -21,6 +24,8 @@ class GetNextZoomFactorUseCaseImplTest {
         val useCaseParams = GetNextZoomFactorUseCase.Params(
             currentZoomFactor = 1F,
             isZoomIn = true,
+            maxZoomFactor = MAX_ZOOM_FACTOR,
+            minZoomFactor = MIN_ZOOM_FACTOR,
             zoomFactorStep = 0.25F,
         )
 
@@ -38,6 +43,8 @@ class GetNextZoomFactorUseCaseImplTest {
         val useCaseParams = GetNextZoomFactorUseCase.Params(
             currentZoomFactor = MAX_ZOOM_FACTOR - 0.1F,
             isZoomIn = true,
+            maxZoomFactor = MAX_ZOOM_FACTOR,
+            minZoomFactor = MIN_ZOOM_FACTOR,
             zoomFactorStep = 0.25F,
         )
 
@@ -55,6 +62,8 @@ class GetNextZoomFactorUseCaseImplTest {
         val useCaseParams = GetNextZoomFactorUseCase.Params(
             currentZoomFactor = 1F,
             isZoomIn = false,
+            maxZoomFactor = MAX_ZOOM_FACTOR,
+            minZoomFactor = MIN_ZOOM_FACTOR,
             zoomFactorStep = 0.25F,
         )
 
@@ -72,6 +81,8 @@ class GetNextZoomFactorUseCaseImplTest {
         val useCaseParams = GetNextZoomFactorUseCase.Params(
             currentZoomFactor = MIN_ZOOM_FACTOR + 0.1F,
             isZoomIn = false,
+            maxZoomFactor = MAX_ZOOM_FACTOR,
+            minZoomFactor = MIN_ZOOM_FACTOR,
             zoomFactorStep = 0.25F,
         )
 

@@ -37,6 +37,56 @@ class UpdatePixelColorUseCaseImplTest {
     }
 
     @Test
+    fun `when the palette index is the same the image does not change`() = runTest {
+        // Given
+        val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
+            pixelImageString = testPixelImageString
+        )
+        val x = 1
+        val y = 1
+        val useCaseParams = UpdatePixelColorUseCase.Params(
+            pixelImageModel,
+            x,
+            y,
+            isSameAction = false,
+            paletteIndex = 1,
+        )
+
+        // When
+        val result = useCase(useCaseParams)
+
+        // Then
+        assertTrue { result.isSuccess }
+        assertEquals(pixelImageModel, result.getOrNull())
+    }
+
+    @Test
+    fun `when the palette index is the same the undo action is not added or updated`() = runTest {
+        // Given
+        val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
+            pixelImageString = testPixelImageString
+        )
+        val x = 1
+        val y = 1
+        val useCaseParams = UpdatePixelColorUseCase.Params(
+            pixelImageModel,
+            x,
+            y,
+            isSameAction = false,
+            paletteIndex = 1,
+        )
+
+        // When
+        useCase(useCaseParams)
+
+        // Then
+        coVerify(exactly = 0) {
+            pixelImageEditorActionRepository.addAction(any(), any())
+            pixelImageEditorActionRepository.updateLastAction(any())
+        }
+    }
+
+    @Test
     fun `when the pixel coordinates are within the image then the palette index for that pixel gets updated`() =
         runTest {
             // Given
@@ -49,6 +99,7 @@ class UpdatePixelColorUseCaseImplTest {
                 pixelImageModel,
                 x,
                 y,
+                isSameAction = false,
                 paletteIndex = 3,
             )
             val expected = PixelImageModelTestUtil.createPixelImageModel(
@@ -81,6 +132,7 @@ class UpdatePixelColorUseCaseImplTest {
             pixelImageModel,
             x,
             y,
+            isSameAction = false,
             paletteIndex = 3,
         )
 
@@ -93,7 +145,7 @@ class UpdatePixelColorUseCaseImplTest {
     }
 
     @Test
-    fun `when the use case fails the undo action is not added`() = runTest {
+    fun `when the use case fails the undo action is not added or updated`() = runTest {
         // Given
         val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
             pixelImageString = testPixelImageString
@@ -104,6 +156,7 @@ class UpdatePixelColorUseCaseImplTest {
             pixelImageModel,
             x,
             y,
+            isSameAction = false,
             paletteIndex = 3,
         )
 
@@ -113,11 +166,12 @@ class UpdatePixelColorUseCaseImplTest {
         // Then
         coVerify(exactly = 0) {
             pixelImageEditorActionRepository.addAction(any(), any())
+            pixelImageEditorActionRepository.updateLastAction(any())
         }
     }
 
     @Test
-    fun `when the use case succeeds the undo action is added`() =
+    fun `when the use case succeeds if it is not the same action the undo action is added`() =
         runTest {
             // Given
             val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
@@ -129,6 +183,7 @@ class UpdatePixelColorUseCaseImplTest {
                 pixelImageModel,
                 x,
                 y,
+                isSameAction = false,
                 paletteIndex = 3,
             )
 
@@ -146,6 +201,40 @@ class UpdatePixelColorUseCaseImplTest {
                     ),
                     result.getOrThrow(),
                 )
+            }
+            coVerify(exactly = 0) {
+                pixelImageEditorActionRepository.updateLastAction(any())
+            }
+        }
+
+    @Test
+    fun `when the use case succeeds if it is the same action the last action is updated`() =
+        runTest {
+            // Given
+            val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
+                pixelImageString = testPixelImageString
+            )
+            val x = 1
+            val y = 1
+            val useCaseParams = UpdatePixelColorUseCase.Params(
+                pixelImageModel,
+                x,
+                y,
+                isSameAction = true,
+                paletteIndex = 3,
+            )
+
+            // When
+            val result = useCase(useCaseParams)
+
+            // Then
+            coVerify(exactly = 1) {
+                pixelImageEditorActionRepository.updateLastAction(
+                    result.getOrThrow(),
+                )
+            }
+            coVerify(exactly = 0) {
+                pixelImageEditorActionRepository.addAction(any(), any())
             }
         }
 }

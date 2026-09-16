@@ -28,7 +28,8 @@ fun CanvasSection(
             initialZoomFactor = state.zoomFactor,
             isShowGridEnabled = state.isShowGridEnabled,
             isShowCoordinatesEnabled = state.isShowCoordinatesEnabled,
-            onPixelTap = { x, y -> onEvent(CanvasSectionEvent.PixelTap(x, y)) },
+            onPixelVisited = { x, y -> onEvent(CanvasSectionEvent.PixelVisited(x, y)) },
+            onPixelVisitFinish = { onEvent(CanvasSectionEvent.PixelVisitEnd) },
             onZoomUpdate = { zoom -> onEvent(CanvasSectionEvent.ZoomUpdate(zoom)) },
         )
     }

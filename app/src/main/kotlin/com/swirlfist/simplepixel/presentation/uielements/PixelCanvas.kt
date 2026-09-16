@@ -8,7 +8,6 @@ import androidx.compose.foundation.gestures.calculateCentroid
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -66,7 +65,8 @@ fun PixelCanvas(
     isShowCoordinatesEnabled: Boolean = false,
     backgroundColor: Color? = null,
     backGroundCheckersColors: Pair<Color, Color>? = Pair(Color.Gray, Color.LightGray),
-    onPixelTap: (xPixel: Int, yPixel: Int) -> Unit,
+    onPixelVisited: (xPixel: Int, yPixel: Int) -> Unit,
+    onPixelVisitFinish: () -> Unit,
     onZoomUpdate: (Float) -> Unit,
 ) {
     val textMeasurer = rememberTextMeasurer()
@@ -78,6 +78,7 @@ fun PixelCanvas(
         rememberSaveable(stateSaver = intSizeSaver) { mutableStateOf(IntSize(-1, -1)) }
     var zoomFactor by rememberSaveable { mutableFloatStateOf(initialZoomFactor) }
     var zoomAcc by rememberSaveable { mutableFloatStateOf(0F) }
+    var lastPixelVisited by rememberSaveable { mutableStateOf<Pair<Int, Int>?>(null) }
 
     val imagePixelSize = IntSize(pixelImage.getPixelWidth(), pixelImage.getPixelHeight())
 
@@ -91,22 +92,45 @@ fun PixelCanvas(
                 onCanvasSizeChanged(size, lastCanvasSize, imageOffset)
             }
             .pointerInput(Unit) {
-                detectTapGestures { tapOffset ->
-                    val pixelSizeDp = PIXEL_SIZE_DP_CANVAS
-                    val canvasSize = Size(
-                        lastCanvasSize.value.width.toFloat(),
-                        lastCanvasSize.value.height.toFloat()
-                    )
-                    onCanvasTap(
-                        tapOffset,
-                        pixelSizeDp,
-                        imagePixelSize,
-                        zoomFactor,
-                        canvasSize,
-                        imageOffset.value,
-                        margin.value,
-                        onPixelTap
-                    )
+                awaitEachGesture {
+                    awaitFirstDown()
+                    do {
+                        val event = awaitPointerEvent()
+                        if (event.changes.size != 1) {
+                            lastPixelVisited = null
+                            onPixelVisitFinish()
+                            continue
+                        }
+
+                        val pixelVisited = getPixelCoordinatesAt(
+                            offset = event.changes[0].position,
+                            pixelSizeInt = getPixelSizeInt(PIXEL_SIZE_DP_CANVAS, zoomFactor),
+                            imagePixelSize,
+                            canvasSize = Size(
+                                lastCanvasSize.value.width.toFloat(),
+                                lastCanvasSize.value.height.toFloat()
+                            ),
+                            imageOffset.value,
+                            margin.value,
+                        )
+
+                        if (pixelVisited != null && pixelVisited != lastPixelVisited) {
+                            lastPixelVisited = pixelVisited
+                            android.util.Log.e("gus", "visit $pixelVisited")
+                            onPixelVisited(
+                                pixelVisited.first,
+                                pixelVisited.second,
+                            )
+                        }
+
+                        event.changes.forEach { pointerInputChange ->
+                            pointerInputChange.consume()
+                        }
+
+                    } while (event.changes.any { it.pressed })
+
+                    lastPixelVisited = null
+                    onPixelVisitFinish()
                 }
             }
             .pointerInput(Unit) {
@@ -341,31 +365,29 @@ private fun onCanvasPan(
     )
 }
 
-private fun PointerInputScope.onCanvasTap(
-    tapOffset: Offset,
-    pixelSizeDp: Int,
+private fun getPixelCoordinatesAt(
+    offset: Offset,
+    pixelSizeInt: Int,
     imagePixelSize: IntSize,
-    zoomFactor: Float,
     canvasSize: Size,
     imageOffset: Offset,
     margin: Offset,
-    onPixelTap: (Int, Int) -> Unit,
-) {
-    if (tapOffset.x - margin.x !in 0F..canvasSize.width ||
-        tapOffset.y - margin.y !in 0F..canvasSize.height
+): Pair<Int, Int>? {
+    if (offset.x - margin.x !in 0F..canvasSize.width ||
+        offset.y - margin.y !in 0F..canvasSize.height
     ) {
-        return
+        return null
     }
 
-    val pixelSizeInt = getPixelSizeInt(pixelSizeDp, zoomFactor)
-    val xPixel = ((imageOffset.x + tapOffset.x - margin.x) / pixelSizeInt).toInt()
+    val xPixel = ((imageOffset.x + offset.x - margin.x) / pixelSizeInt).toInt()
     val yPixel =
-        imagePixelSize.height - 1 - ((imageOffset.y + tapOffset.y - margin.y) / pixelSizeInt).toInt()
+        imagePixelSize.height - 1 - ((imageOffset.y + offset.y - margin.y) / pixelSizeInt).toInt()
 
-    if (xPixel !in 0..<imagePixelSize.width) return
-    if (yPixel !in 0..<imagePixelSize.height) return
-
-    onPixelTap(xPixel, yPixel)
+    return if (xPixel !in 0..<imagePixelSize.width || yPixel !in 0..<imagePixelSize.height) {
+        null
+    } else {
+        Pair(xPixel, yPixel)
+    }
 }
 
 private fun Density.getPixelSizeInt(

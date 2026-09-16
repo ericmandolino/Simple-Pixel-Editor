@@ -381,4 +381,61 @@ class PixelImageEditorActionRepositoryImplTest {
             assertEquals(MAX_UNDO_ACTIONS, actionsInRepository.size)
             assertEquals(actions[1], actionsInRepository[0])
         }
+
+    @Test
+    fun `when updating the last current action then the number of actions does not increase`() =
+        runTest {
+            // Given
+            val pixelImage1 = mockk<PixelImageModel>()
+            val action1 = mockk<PixelImageEditorAction>().also { action ->
+                every { action.pixelImage }.returns(pixelImage1)
+            }
+            repository.addAction(action1, mockk())
+
+            // When
+            repository.updateLastAction(mockk())
+
+            // Then
+            val actions = repository.getActions()
+            assertEquals(1, actions.size)
+            assertEquals(action1, actions[0])
+        }
+
+    @Test
+    fun `when updating the last current action then an undo returns the original action image`() =
+        runTest {
+            // Given
+            val pixelImage1 = mockk<PixelImageModel>()
+            val action1 = mockk<PixelImageEditorAction>().also { action ->
+                every { action.pixelImage }.returns(pixelImage1)
+            }
+            repository.addAction(action1, mockk())
+
+            // When
+            repository.updateLastAction(mockk())
+            val result = repository.undoAction()
+
+            // Then
+            assertEquals(pixelImage1, result)
+        }
+
+    @Test
+    fun `when updating the last current action then a redo after an undo returns the final image`() =
+        runTest {
+            // Given
+            val pixelImage1 = mockk<PixelImageModel>()
+            val action1 = mockk<PixelImageEditorAction>().also { action ->
+                every { action.pixelImage }.returns(pixelImage1)
+            }
+            repository.addAction(action1, mockk())
+            val finalPixelImage = mockk<PixelImageModel>()
+
+            // When
+            repository.updateLastAction(finalPixelImage)
+            repository.undoAction()
+            val result = repository.redoAction()
+
+            // Then
+            assertEquals(finalPixelImage, result)
+        }
 }

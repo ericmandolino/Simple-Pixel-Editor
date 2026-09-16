@@ -9,5 +9,6 @@ interface ApplyBucketUseCase : UseCase<ApplyBucketUseCase.Params, PixelImageMode
         val x: Int,
         val y: Int,
         val paletteIndex: Int,
+        val isSameAction: Boolean,
     ) : UseCaseParams
 }

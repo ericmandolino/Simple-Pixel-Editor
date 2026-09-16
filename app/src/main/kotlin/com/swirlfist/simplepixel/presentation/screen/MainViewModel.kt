@@ -74,6 +74,8 @@ class MainViewModel @Inject constructor(
     )
     val mainScreenState = _mainScreenState.asStateFlow()
 
+    private var isVisitingPixels = false
+
     init {
         viewModelScope.launch {
             val pixelImageModel = getBasePixelImageUseCase(UseCaseParams.NoParams).getOrNull()
@@ -259,7 +261,8 @@ class MainViewModel @Inject constructor(
 
     fun onCanvasSectionEvent(event: CanvasSectionEvent) {
         when (event) {
-            is CanvasSectionEvent.PixelTap -> onPixelTap(event)
+            is CanvasSectionEvent.PixelVisited -> onPixelVisited(event)
+            is CanvasSectionEvent.PixelVisitEnd -> onPixelVisitFinish()
             is CanvasSectionEvent.ZoomUpdate -> {
                 _mainScreenState.update { mainScreenState ->
                     val canvasSectionState = mainScreenState.canvasSectionState
@@ -334,7 +337,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun onPixelTap(event: CanvasSectionEvent.PixelTap) {
+    private fun onPixelVisited(event: CanvasSectionEvent.PixelVisited) {
         val x = event.x
         val y = event.y
 
@@ -343,6 +346,12 @@ class MainViewModel @Inject constructor(
             is ActionButtonType.InkBucketActionButtonType -> applyBucket(x, y)
             else -> {}
         }
+
+        isVisitingPixels = true
+    }
+
+    private fun onPixelVisitFinish() {
+        isVisitingPixels = false
     }
 
     private fun updatePixelImage(
@@ -390,6 +399,7 @@ class MainViewModel @Inject constructor(
                     x = x,
                     y = y,
                     paletteIndex,
+                    isSameAction = isVisitingPixels,
                 ),
             )
         }
@@ -413,6 +423,7 @@ class MainViewModel @Inject constructor(
                     x = x,
                     y = y,
                     paletteIndex,
+                    isSameAction = isVisitingPixels,
                 ),
             )
         }
