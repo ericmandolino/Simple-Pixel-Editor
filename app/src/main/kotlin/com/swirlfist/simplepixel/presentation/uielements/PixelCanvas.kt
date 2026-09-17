@@ -97,9 +97,16 @@ fun PixelCanvas(
                     do {
                         val event = awaitPointerEvent()
                         if (event.changes.size != 1) {
-                            lastPixelVisited = null
-                            onPixelVisitFinish()
-                            continue
+                            if (lastPixelVisited != null) {
+                                lastPixelVisited = null
+                                onPixelVisitFinish()
+                            }
+
+                            do {
+                                val eventToConsume = awaitPointerEvent()
+                            } while (eventToConsume.changes.any { it.pressed })
+
+                            break
                         }
 
                         val pixelVisited = getPixelCoordinatesAt(
@@ -116,7 +123,6 @@ fun PixelCanvas(
 
                         if (pixelVisited != null && pixelVisited != lastPixelVisited) {
                             lastPixelVisited = pixelVisited
-                            android.util.Log.e("gus", "visit $pixelVisited")
                             onPixelVisited(
                                 pixelVisited.first,
                                 pixelVisited.second,
