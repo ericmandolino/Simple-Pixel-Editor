@@ -7,6 +7,10 @@ import com.swirlfist.simplepixel.domain.model.PaletteModel
 
 sealed interface ActionButtonType {
 
+    data object NoParentActionUndoRedoButtonGroupType : NoParentActionButtonGroupType
+
+    data object NoParentActionZoomButtonGroupType : NoParentActionButtonGroupType
+
     data object InkBucketActionButtonType : ActionIconButtonType(
         icon = R.drawable.ic_actions_section_ink_bucket_24dp,
         contentDescription = R.string.cd_actions_section_button_ink_bucket,
@@ -107,3 +111,5 @@ abstract class ActionIconButtonType(
     @DrawableRes val icon: Int,
     @StringRes val contentDescription: Int,
 )
+
+sealed interface NoParentActionButtonGroupType : ActionButtonType

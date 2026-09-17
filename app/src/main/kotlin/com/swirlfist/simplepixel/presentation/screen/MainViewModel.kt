@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.toColorLong
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swirlfist.simplepixel.domain.model.ActionModel
+import com.swirlfist.simplepixel.domain.model.BaseButtonGroupActionModel
 import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
@@ -100,6 +101,9 @@ class MainViewModel @Inject constructor(
                                 actionType = ActionButtonType.OpenPaletteActionButtonType,
                                 childButtonActionModels = pixelImageModel.paletteModel.createPaletteButtons(),
                             ),
+                            ActionButtonType.EditPaletteActionButtonType to ActionModel.ButtonActionModel(
+                                actionType = ActionButtonType.EditPaletteActionButtonType,
+                            ),
                             ActionButtonType.OpenToolsActionButtonType to ActionModel.SelectableButtonGroupActionModel(
                                 actionType = ActionButtonType.OpenToolsActionButtonType,
                                 childButtonActionModels = listOf(
@@ -112,21 +116,18 @@ class MainViewModel @Inject constructor(
                                     ),
                                 ),
                             ),
-                            ActionButtonType.UndoActionButtonType to ActionModel.ButtonActionModel(
-                                actionType = ActionButtonType.UndoActionButtonType,
-                                isEnabled = false,
-                            ),
-                            ActionButtonType.RedoActionButtonType to ActionModel.ButtonActionModel(
-                                actionType = ActionButtonType.RedoActionButtonType,
-                                isEnabled = false,
-                            ),
-                            ActionButtonType.ZoomInActionButtonType to ActionModel.ButtonActionModel(
-                                actionType = ActionButtonType.ZoomInActionButtonType,
-                                isEnabled = true,
-                            ),
-                            ActionButtonType.ZoomOutActionButtonType to ActionModel.ButtonActionModel(
-                                actionType = ActionButtonType.ZoomOutActionButtonType,
-                                isEnabled = true,
+                            ActionButtonType.NoParentActionUndoRedoButtonGroupType to ActionModel.ButtonGroupActionModel(
+                                actionType = ActionButtonType.NoParentActionUndoRedoButtonGroupType,
+                                childButtonActionModels = listOf(
+                                    ActionModel.ButtonActionModel(
+                                        actionType = ActionButtonType.UndoActionButtonType,
+                                        isEnabled = false,
+                                    ),
+                                    ActionModel.ButtonActionModel(
+                                        actionType = ActionButtonType.RedoActionButtonType,
+                                        isEnabled = false,
+                                    ),
+                                ),
                             ),
                             ActionButtonType.MoveImageActionButtonType to ActionModel.ButtonGroupActionModel(
                                 actionType = ActionButtonType.MoveImageActionButtonType,
@@ -145,8 +146,18 @@ class MainViewModel @Inject constructor(
                                     ),
                                 ),
                             ),
-                            ActionButtonType.EditPaletteActionButtonType to ActionModel.ButtonActionModel(
-                                actionType = ActionButtonType.EditPaletteActionButtonType,
+                            ActionButtonType.NoParentActionZoomButtonGroupType to ActionModel.ButtonGroupActionModel(
+                                actionType = ActionButtonType.NoParentActionZoomButtonGroupType,
+                                childButtonActionModels = listOf(
+                                    ActionModel.ButtonActionModel(
+                                        actionType = ActionButtonType.ZoomInActionButtonType,
+                                        isEnabled = true,
+                                    ),
+                                    ActionModel.ButtonActionModel(
+                                        actionType = ActionButtonType.ZoomOutActionButtonType,
+                                        isEnabled = true,
+                                    ),
+                                ),
                             ),
                             ActionButtonType.SavePixelImageActionButtonType to ActionModel.ButtonActionModel(
                                 actionType = ActionButtonType.SavePixelImageActionButtonType,
@@ -282,6 +293,8 @@ class MainViewModel @Inject constructor(
 
     fun onActionsSectionEvent(event: ActionSectionEvent) {
         when (event) {
+            ActionSectionEvent.NoActionSectionEvent -> {}
+
             ActionSectionEvent.OpenPaletteButtonClicked
                 -> showPalette()
 
@@ -739,22 +752,73 @@ private fun ActionsSectionState.updateButtonEnabled(
     actionButtonType: ActionButtonType,
     isEnabled: Boolean,
 ): ActionsSectionState {
-    val buttonModel = actionModels[actionButtonType] ?: return this
+    val buttonModel = actionModels[actionButtonType]
 
-    return if (buttonModel.isEnabled == isEnabled) {
-        this
+    return if (buttonModel != null) {
+        if (buttonModel.isEnabled == isEnabled) {
+            this
+        } else {
+            val updatedModel = when (buttonModel) {
+                is ActionModel.ButtonActionModel -> buttonModel.copy(isEnabled = isEnabled)
+                is ActionModel.ButtonGroupActionModel -> buttonModel.copy(isEnabled = isEnabled)
+                is ActionModel.SelectableButtonGroupActionModel -> buttonModel.copy(isEnabled = isEnabled)
+            }
+            copy(
+                actionModels = actionModels.toMutableMap().also { actionModels ->
+                    actionModels[actionButtonType] = updatedModel
+                }
+            )
+        }
     } else {
-        val updatedModel = when (buttonModel) {
-            is ActionModel.ButtonActionModel -> buttonModel.copy(isEnabled = isEnabled)
-            is ActionModel.ButtonGroupActionModel -> buttonModel.copy(isEnabled = isEnabled)
-            is ActionModel.SelectableButtonGroupActionModel -> buttonModel.copy(isEnabled = isEnabled)
+        updateChildButtonEnabled(
+            actionButtonType,
+            isEnabled,
+        )
+    }
+}
+
+private fun ActionsSectionState.updateChildButtonEnabled(
+    actionButtonType: ActionButtonType,
+    isEnabled: Boolean,
+): ActionsSectionState {
+    val buttonGroups = actionModels.values.filterIsInstance<BaseButtonGroupActionModel>()
+    if (buttonGroups.isEmpty()) {
+        return this
+    }
+
+    return buttonGroups.findChildActionModel(actionButtonType)?.let { (buttonGroup, childIndex) ->
+        val updatedChildButtons = buttonGroup.childButtonActionModels.toMutableList().apply {
+            val childButton = get(childIndex)
+            set(childIndex, childButton.copy(isEnabled = isEnabled))
+        }
+        val updatedButtonGroup = when (buttonGroup) {
+            is ActionModel.ButtonGroupActionModel -> buttonGroup.copy(
+                childButtonActionModels = updatedChildButtons
+            )
+            is ActionModel.SelectableButtonGroupActionModel -> buttonGroup.copy(
+                childButtonActionModels = updatedChildButtons
+            )
         }
         copy(
             actionModels = actionModels.toMutableMap().also { actionModels ->
-                actionModels[actionButtonType] = updatedModel
+                actionModels[buttonGroup.actionType] = updatedButtonGroup
             }
         )
+    } ?: this
+}
+
+private fun Collection<BaseButtonGroupActionModel>.findChildActionModel(
+    actionButtonType: ActionButtonType,
+): Pair<BaseButtonGroupActionModel, Int>? {
+    forEach { buttonGroupActionModel ->
+        buttonGroupActionModel.childButtonActionModels.forEachIndexed { index, childButtonActionModel ->
+            if (childButtonActionModel.actionType == actionButtonType) {
+                return Pair(buttonGroupActionModel, index)
+            }
+        }
     }
+
+    return null
 }
 
 private fun ActionsSectionState.toggleSelectableButton(

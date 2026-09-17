@@ -100,9 +100,10 @@ private fun ButtonGroupAction(
     isSelectable: Boolean,
     onEvent: (ActionSectionEvent) -> Unit,
 ) {
-    if (isEnabled && childButtonActionModels.size in 1..MAX_BUTTON_GROUP_RENDER
+    if (actionType is NoParentActionButtonGroupType ||
+        (isEnabled && childButtonActionModels.size in 1..MAX_BUTTON_GROUP_RENDER)
     ) {
-        ButtonGroupAction(
+        ButtonGroupActionComponent(
             childButtonActionModels,
             onEvent,
         )
@@ -111,7 +112,7 @@ private fun ButtonGroupAction(
             actionModel.isSelected
         }
         if (selected != null) {
-            ButtonGroupAction(
+            ButtonGroupActionComponent(
                 childButtonActionModels = listOf(
                     ActionModel.ButtonActionModel(
                         actionType,
@@ -142,7 +143,7 @@ private fun ButtonGroupAction(
 }
 
 @Composable
-private fun ButtonGroupAction(
+private fun ButtonGroupActionComponent(
     childButtonActionModels: List<ActionModel.ButtonActionModel>,
     onEvent: (ActionSectionEvent) -> Unit,
 ) {
@@ -386,6 +387,10 @@ fun SelectableButtonGroupDialogPreview() {
 }
 
 fun ActionButtonType.toActionsSectionEvent(): ActionSectionEvent = when (this) {
+    ActionButtonType.NoParentActionUndoRedoButtonGroupType,
+    ActionButtonType.NoParentActionZoomButtonGroupType
+        -> ActionSectionEvent.NoActionSectionEvent
+
     ActionButtonType.InkBucketActionButtonType -> ActionSectionEvent.InkBucketButtonClicked
     ActionButtonType.InkEraserActionButtonType -> ActionSectionEvent.InkEraserButtonClicked
     ActionButtonType.InkPenActionButtonType -> ActionSectionEvent.InkPenButtonClicked

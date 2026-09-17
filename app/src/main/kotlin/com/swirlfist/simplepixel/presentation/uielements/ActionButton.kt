@@ -34,6 +34,10 @@ fun ActionButton(
             ),
     ) {
         when (actionButtonType) {
+            ActionButtonType.NoParentActionUndoRedoButtonGroupType,
+            ActionButtonType.NoParentActionZoomButtonGroupType
+                -> {}
+
             ActionButtonType.InkBucketActionButtonType,
             ActionButtonType.InkEraserActionButtonType,
             ActionButtonType.InkPenActionButtonType,
