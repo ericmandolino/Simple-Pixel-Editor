@@ -413,4 +413,5 @@ fun ActionButtonType.toActionsSectionEvent(): ActionSectionEvent = when (this) {
     ActionButtonType.SavePixelImageActionButtonType -> ActionSectionEvent.SavePixelImageButtonClicked
     ActionButtonType.OpenPixelImageActionButtonType -> ActionSectionEvent.OpenPixelImageButtonClicked
     ActionButtonType.ExportPixelImageActionButtonType -> ActionSectionEvent.ExportPixelImageButtonClicked
+    ActionButtonType.TogglePreviewActionButtonType -> ActionSectionEvent.TogglePreviewButtonClicked
 }

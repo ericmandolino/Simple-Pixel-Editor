@@ -2,12 +2,14 @@ package com.swirlfist.simplepixel.presentation
 
 import androidx.compose.ui.graphics.Color
 import com.swirlfist.simplepixel.domain.model.ActionModel
+import com.swirlfist.simplepixel.domain.model.BaseButtonGroupActionModel
 import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
 import com.swirlfist.simplepixel.presentation.section.ActionButtonType
+import com.swirlfist.simplepixel.presentation.state.ActionsSectionState
 
 private const val HEX_FORMAT = "#%02x%02x%02x"
 
@@ -112,4 +114,23 @@ fun PixelImageModel.deletePaletteColor(
         pixelMatrixModel = PixelMatrixModel(newPixelMatrixContent.toList()),
         paletteModel = newPalette,
     )
+}
+
+fun ActionsSectionState.isSelected(
+    actionButtonType: ActionButtonType
+): Boolean {
+    return actionModels[actionButtonType]?.let { actionModel ->
+        when (actionModel) {
+            is ActionModel.ButtonActionModel -> actionModel.isSelected
+            is BaseButtonGroupActionModel -> actionModel.isSelected(actionButtonType)
+        }
+    } ?: false
+}
+
+fun BaseButtonGroupActionModel.isSelected(
+    actionButtonType: ActionButtonType
+): Boolean {
+    return childButtonActionModels.firstOrNull{ actionModel ->
+        actionModel.actionType == actionButtonType
+    }?.isSelected ?: false
 }

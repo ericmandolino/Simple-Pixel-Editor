@@ -128,6 +128,10 @@ class MainViewModel @Inject constructor(
                                     ),
                                 ),
                             ),
+                            ActionButtonType.TogglePreviewActionButtonType to ActionModel.ButtonActionModel(
+                                actionType = ActionButtonType.TogglePreviewActionButtonType,
+                                isSelected = true,
+                            ),
                             ActionButtonType.MoveImageActionButtonType to ActionModel.ButtonGroupActionModel(
                                 actionType = ActionButtonType.MoveImageActionButtonType,
                                 childButtonActionModels = listOf(
@@ -346,6 +350,9 @@ class MainViewModel @Inject constructor(
 
             ActionSectionEvent.MoveImageUpActionButtonClicked
                 -> moveImage(MoveDirection.UP)
+
+            ActionSectionEvent.TogglePreviewButtonClicked
+                -> togglePreview()
         }
     }
 
@@ -458,6 +465,10 @@ class MainViewModel @Inject constructor(
                 ),
             )
         }
+    }
+
+    private fun togglePreview() {
+        toggleSelectableActionButton(ActionButtonType.TogglePreviewActionButtonType)
     }
 
     private fun updateSelectedPaletteIndex(

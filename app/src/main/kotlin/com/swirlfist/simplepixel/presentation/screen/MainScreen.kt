@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swirlfist.simplepixel.domain.model.ActionModel
+import com.swirlfist.simplepixel.presentation.isSelected
 import com.swirlfist.simplepixel.presentation.launcher.ExportPixelImageLocationLauncher
 import com.swirlfist.simplepixel.presentation.launcher.OpenPixelImageLocationLauncher
 import com.swirlfist.simplepixel.presentation.launcher.SavePixelImageLocationLauncher
@@ -189,6 +190,7 @@ fun MainScreenContent(
     }
 
     val actionsSection = @Composable { modifier: Modifier ->
+        val actionsSectionState = mainScreenState.actionsSectionState
         Column(
             modifier = modifier,
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -197,16 +199,18 @@ fun MainScreenContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .weight(0.7F),
-                state = mainScreenState.actionsSectionState,
+                state = actionsSectionState,
                 onEvent = onActionsSectionEvent,
             )
 
-            PixelImagePreviewSection(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(0.3F),
-                state = mainScreenState.pixelImagePreviewSectionState,
-            )
+            if (actionsSectionState.isSelected(ActionButtonType.TogglePreviewActionButtonType)) {
+                PixelImagePreviewSection(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(0.3F),
+                    state = mainScreenState.pixelImagePreviewSectionState,
+                )
+            }
         }
     }
 

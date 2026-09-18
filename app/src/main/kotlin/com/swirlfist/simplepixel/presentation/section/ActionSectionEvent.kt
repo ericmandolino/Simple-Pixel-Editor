@@ -43,4 +43,6 @@ sealed interface ActionSectionEvent {
     data object OpenPixelImageButtonClicked : ActionSectionEvent
 
     data object ExportPixelImageButtonClicked : ActionSectionEvent
+
+    data object TogglePreviewButtonClicked : ActionSectionEvent
 }

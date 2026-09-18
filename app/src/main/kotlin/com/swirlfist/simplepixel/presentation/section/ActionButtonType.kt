@@ -105,6 +105,11 @@ sealed interface ActionButtonType {
         icon = R.drawable.ic_actions_section_export_pixel_image_24dp,
         contentDescription = R.string.cd_actions_section_button_export_pixel_image,
     ), ActionButtonType
+
+    data object TogglePreviewActionButtonType : ActionIconButtonType(
+        icon = R.drawable.ic_actions_section_preview_24dp,
+        contentDescription = R.string.cd_actions_section_button_toggle_preview,
+    ), ActionButtonType
 }
 
 abstract class ActionIconButtonType(

@@ -56,6 +56,7 @@ fun ActionButton(
             ActionButtonType.MoveImageLeftActionButtonType,
             ActionButtonType.MoveImageRightActionButtonType,
             ActionButtonType.MoveImageUpActionButtonType,
+            ActionButtonType.TogglePreviewActionButtonType,
                 -> {
                 ActionIconButton(
                     modifier,
