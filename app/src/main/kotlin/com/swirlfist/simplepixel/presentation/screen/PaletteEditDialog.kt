@@ -38,7 +38,7 @@ fun PaletteEditDialog(
     pixelMatrix: PixelMatrixModel? = null,
     viewModel: PaletteEditViewModel = hiltViewModel(),
     onSaveChangesClick: (PaletteModel, PixelMatrixModel?) -> Unit,
-    onDismiss: () -> Unit,
+    onCancelClick: () -> Unit,
 ) {
     val paletteEditDialogState = viewModel.paletteEditDialogState.collectAsStateWithLifecycle().value
     var viewModelInitialized by rememberSaveable { mutableStateOf(false) }
@@ -54,7 +54,7 @@ fun PaletteEditDialog(
     PaletteEditDialogContent(
         paletteEditDialogState,
         onSaveChangesClick,
-        onDismiss,
+        onCancelClick,
     )
 }
 
@@ -62,11 +62,11 @@ fun PaletteEditDialog(
 fun PaletteEditDialogContent(
     paletteEditDialogState: PaletteEditDialogState,
     onSaveChangesClick: (PaletteModel, PixelMatrixModel?) -> Unit,
-    onDismiss: () -> Unit,
+    onCancelClick: () -> Unit,
 ) {
     val pixelImagePreviewSectionState = paletteEditDialogState.pixelImagePreviewSectionState
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(onDismissRequest = { }) {
         Card {
             Column(
                 modifier = Modifier
@@ -95,7 +95,7 @@ fun PaletteEditDialogContent(
                             pixelImagePreviewSectionState?.pixelImageModel?.pixelMatrixModel,
                         )
                     },
-                    onCancelClick = onDismiss,
+                    onCancelClick = onCancelClick,
                 )
             }
         }
@@ -118,7 +118,7 @@ fun PaletteEditDialogContentNoImagePreview() {
                 ),
             ),
             onSaveChangesClick = { _, _ -> },
-            onDismiss = {},
+            onCancelClick = {},
         )
     }
 }
@@ -147,7 +147,7 @@ fun PaletteEditDialogContentPreview() {
                 ),
             ),
             onSaveChangesClick = { _, _ -> },
-            onDismiss = {},
+            onCancelClick = {},
         )
     }
 }
