@@ -26,10 +26,6 @@ import androidx.compose.ui.graphics.fromColorLong
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -41,13 +37,10 @@ import com.swirlfist.simplepixel.presentation.getColor
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.getPixelHeight
 import com.swirlfist.simplepixel.presentation.getPixelWidth
-import com.swirlfist.simplepixel.presentation.invert
-import com.swirlfist.simplepixel.presentation.invertColors
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-private const val COORDINATE_TEXT_FORMAT = "%s,%s"
 private const val NO_ZOOM_FACTOR = 1F
 private const val PIXEL_SIZE_DP_CANVAS = 32
 private const val PIXEL_SIZE_DP_PREVIEW = 1
@@ -62,14 +55,12 @@ fun PixelCanvas(
     pixelImage: PixelImageModel,
     initialZoomFactor: Float = NO_ZOOM_FACTOR,
     isShowGridEnabled: Boolean = true,
-    isShowCoordinatesEnabled: Boolean = false,
     backgroundColor: Color? = null,
     backGroundCheckersColors: Pair<Color, Color>? = Pair(Color.Gray, Color.LightGray),
     onPixelVisited: (xPixel: Int, yPixel: Int) -> Unit,
     onPixelVisitFinish: () -> Unit,
     onZoomUpdate: (Float) -> Unit,
 ) {
-    val textMeasurer = rememberTextMeasurer()
     val offsetSaver = createOffsetSaver()
     val intSizeSaver = createIntSizeSaver()
     val imageOffset = rememberSaveable(stateSaver = offsetSaver) { mutableStateOf(Offset.Zero) }
@@ -202,20 +193,6 @@ fun PixelCanvas(
             },
     ) {
         val pixelSizeInt = getPixelSizeInt(PIXEL_SIZE_DP_CANVAS, zoomFactor)
-        val twoThirdsPixelSize = pixelSizeInt * 2F / 3F
-
-        val coordinateTextTemplate = "%s,%s"
-        val maxVisibleCoordinateTextSize = textMeasurer.measure(
-            text = String.format(
-                coordinateTextTemplate,
-                imagePixelSize.width,
-                imagePixelSize.height
-            )
-        ).size
-        val isShowCoordinates =
-            isShowCoordinatesEnabled &&
-                    maxVisibleCoordinateTextSize.width < twoThirdsPixelSize &&
-                    maxVisibleCoordinateTextSize.height < twoThirdsPixelSize
 
         drawCanvas(
             pixelImage,
@@ -225,10 +202,8 @@ fun PixelCanvas(
             margin,
             isShowBorderEnabled = false,
             isShowGridEnabled,
-            isShowCoordinates,
             backgroundColor,
             backGroundCheckersColors,
-            textMeasurer,
         )
     }
 }
@@ -240,7 +215,6 @@ fun PixelCanvasSnapshot(
     isFitAvailableSpace: Boolean = false,
     backgroundColor: Color? = Color.White,
 ) {
-    val textMeasurer = rememberTextMeasurer()
     val offsetSaver = createOffsetSaver()
     val intSizeSaver = createIntSizeSaver()
     val imageOffset = rememberSaveable(stateSaver = offsetSaver) { mutableStateOf(Offset(0F, 0F)) }
@@ -288,10 +262,8 @@ fun PixelCanvasSnapshot(
             margin,
             isShowBorderEnabled = true,
             isShowGridEnabled = false,
-            isShowCoordinates = false,
             backgroundColor,
             backGroundCheckersColors = null,
-            textMeasurer,
         )
     }
 }
@@ -409,20 +381,16 @@ private fun DrawScope.drawCanvas(
     margin: MutableState<Offset>,
     isShowBorderEnabled: Boolean,
     isShowGridEnabled: Boolean,
-    isShowCoordinates: Boolean,
     backgroundColor: Color?,
     backGroundCheckersColors: Pair<Color, Color>?,
-    textMeasurer: TextMeasurer,
 ) {
     val canvasSize = Size(size.width, size.height)
     val imageSize = Size(
         width = (imagePixelSize.width * pixelSizeInt).toFloat(),
         height = (imagePixelSize.height * pixelSizeInt).toFloat(),
     )
-    val halfPixelSize = pixelSizeInt / 2F
     val gridLineWidth = 1.dp.toPx()
     val palette = pixelImage.paletteModel.colors.map { color -> Color.fromColorLong(color) }
-    val invertedPalette = palette.invertColors()
 
     adjustImageOffset(imageOffset, margin, canvasSize, imageSize)
 
@@ -472,12 +440,7 @@ private fun DrawScope.drawCanvas(
                 yMatrixCoordinate,
                 offset = Offset(x, y),
                 canvasSize,
-                backgroundColor,
                 backGroundCheckersColors,
-                isShowCoordinates,
-                textMeasurer,
-                coordinateTextPalette = invertedPalette,
-                halfPixelSize,
             )
 
             if (isShowGridEnabled) {
@@ -594,12 +557,7 @@ private fun DrawScope.drawPixel(
     yMatrixCoordinate: Int,
     offset: Offset,
     canvasSize: Size,
-    backgroundColor: Color?,
     backGroundCheckersColors: Pair<Color, Color>?,
-    isShowCoordinates: Boolean,
-    textMeasurer: TextMeasurer,
-    coordinateTextPalette: List<Color>,
-    halfPixelSize: Float,
 ) {
     val isXMatrixCoordinateEven = xMatrixCoordinate % 2 == 0
     val isYMatrixCoordinateEven = yMatrixCoordinate % 2 == 0
@@ -621,45 +579,6 @@ private fun DrawScope.drawPixel(
                 height = min(pixelRectSize.height, canvasSize.height - offset.y),
             ),
         )
-    }
-
-    if (isShowCoordinates) {
-        val textColor = getColor(
-            pixel,
-            coordinateTextPalette,
-            isXMatrixCoordinateEven,
-            isYMatrixCoordinateEven,
-            backGroundCheckersColors?.let { checkerBackgroundColors ->
-                Pair(
-                    checkerBackgroundColors.second,
-                    checkerBackgroundColors.first,
-                )
-            },
-        ) ?: backgroundColor?.invert()
-
-        textColor?.let { color ->
-            val coordinateText = COORDINATE_TEXT_FORMAT.format(
-                xMatrixCoordinate + 1, yMatrixCoordinate + 1
-            )
-            val textSize = textMeasurer.measure(
-                text = coordinateText
-            ).size
-
-            val coordinateTextOffset = offset + Offset(
-                x = width - halfPixelSize - textSize.width / 2,
-                y = height - halfPixelSize - textSize.height / 2,
-            )
-
-            drawText(
-                textMeasurer,
-                topLeft = coordinateTextOffset,
-                text = coordinateText,
-                style = TextStyle.Default.copy(
-                    color = color,
-                ),
-                softWrap = false,
-            )
-        }
     }
 }
 

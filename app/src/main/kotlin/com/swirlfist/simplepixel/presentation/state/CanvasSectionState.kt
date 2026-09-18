@@ -6,5 +6,4 @@ data class CanvasSectionState(
     val pixelImageModel: PixelImageModel? = null,
     val zoomFactor: Float = 1F,
     val isShowGridEnabled: Boolean = true,
-    val isShowCoordinatesEnabled: Boolean = true,
 )

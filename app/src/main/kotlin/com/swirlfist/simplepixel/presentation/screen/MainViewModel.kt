@@ -92,7 +92,6 @@ class MainViewModel @Inject constructor(
                     canvasSectionState = mainScreenState.canvasSectionState.copy(
                         pixelImageModel = pixelImageModel,
                         zoomFactor = zoomFactor,
-                        isShowCoordinatesEnabled = true,
                         isShowGridEnabled = true,
                     ),
                     actionsSectionState = mainScreenState.actionsSectionState.copy(

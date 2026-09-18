@@ -27,7 +27,6 @@ fun CanvasSection(
             pixelImage = pixelImage,
             initialZoomFactor = state.zoomFactor,
             isShowGridEnabled = state.isShowGridEnabled,
-            isShowCoordinatesEnabled = state.isShowCoordinatesEnabled,
             onPixelVisited = { x, y -> onEvent(CanvasSectionEvent.PixelVisited(x, y)) },
             onPixelVisitFinish = { onEvent(CanvasSectionEvent.PixelVisitEnd) },
             onZoomUpdate = { zoom -> onEvent(CanvasSectionEvent.ZoomUpdate(zoom)) },
@@ -49,7 +48,6 @@ fun CanvasSectionPreview() {
                     color2 = Color.Yellow.toColorLong(),
                 ),
                 zoomFactor = 4F,
-                isShowCoordinatesEnabled = true,
             )
         ) { event ->
             Log.d("CanvasSection", "event: $event")
@@ -70,7 +68,6 @@ fun CanvasSectionEmptyImagePreview() {
                     colors = listOf(Color.Black.toColorLong(), Color.Yellow.toColorLong()),
                 ),
                 zoomFactor = 1F,
-                isShowCoordinatesEnabled = true,
             )
         ) { event ->
             Log.d("CanvasSection", "event: $event")
