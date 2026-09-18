@@ -108,7 +108,7 @@ class ExportPixelImageUseCaseImpl @Inject constructor(
             hexColorMap,
         )
 
-        val pixelStr = """  <rect width="1" height="1" x="$x" y="$y" fill="$color" />
+        val pixelStr = """  <rect width="1" height="1" x="$x" y="$y" fill="$color" shape-rendering="crispEdges" />
             |
         """.trimMargin()
         stringBuilder.append(pixelStr)
