@@ -43,4 +43,5 @@
     <string name="loading_palette_presets">Loading palette presets…</string>
     <string name="palette_preset_name">Preset name</string>
     <string name="save">Save</string>
+    <string name="once_more_to_exit">Once more to exit</string>
 </resources>

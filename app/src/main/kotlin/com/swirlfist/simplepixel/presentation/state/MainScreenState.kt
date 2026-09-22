@@ -6,6 +6,7 @@ data class MainScreenState(
     val pixelImagePreviewSectionState: PixelImagePreviewSectionState,
     val isShowPalette: Boolean = false,
     val isShowEditPalette: Boolean = false,
+    val isBackHandlerEnabled: Boolean = true,
     val launcherState: MainScreenLauncherState = MainScreenLauncherState(),
 )
 

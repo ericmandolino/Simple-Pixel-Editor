@@ -1,6 +1,7 @@
 package com.swirlfist.simplepixel.presentation.screen
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -16,6 +17,10 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDragHandle
@@ -37,9 +42,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.swirlfist.simplepixel.R
 import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.presentation.isSelected
 import com.swirlfist.simplepixel.presentation.launcher.ExportPixelImageLocationLauncher
@@ -63,9 +70,12 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun MainScreen(
-    viewModel: MainViewModel = hiltViewModel()
+    viewModel: MainViewModel = hiltViewModel(),
 ) {
     val mainScreenState = viewModel.mainScreenState.collectAsStateWithLifecycle().value
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val onceMoreToExitString = stringResource(R.string.once_more_to_exit)
 
     MainScreenLaunchers(
         mainScreenState.launcherState,
@@ -99,20 +109,43 @@ fun MainScreen(
         }
     }
 
-    Surface(
+    BackHandler(
+        enabled = mainScreenState.isBackHandlerEnabled,
+    ) {
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                message = onceMoreToExitString,
+                duration = SnackbarDuration.Short,
+            )
+        }
+        viewModel.disableBackHandlerTemporarily()
+    }
+
+    Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
             .safeContentPadding()
             .padding(16.dp),
-    ) {
-        MainScreenContent(
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+            )
+        }
+    ) { contentPadding ->
+        Surface(
             modifier = Modifier
-                .fillMaxSize(),
-            mainScreenState,
-            onCanvasSectionEvent = viewModel::onCanvasSectionEvent,
-            onActionsSectionEvent = viewModel::onActionsSectionEvent,
-        )
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(contentPadding),
+        ) {
+            MainScreenContent(
+                modifier = Modifier
+                    .fillMaxSize(),
+                mainScreenState,
+                onCanvasSectionEvent = viewModel::onCanvasSectionEvent,
+                onActionsSectionEvent = viewModel::onActionsSectionEvent,
+            )
+        }
     }
 }
 

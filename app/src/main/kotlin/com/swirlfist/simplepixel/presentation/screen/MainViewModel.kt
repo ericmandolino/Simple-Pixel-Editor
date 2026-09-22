@@ -39,14 +39,17 @@ import com.swirlfist.simplepixel.presentation.state.updateSelectedPreviewBackgro
 import com.swirlfist.simplepixel.presentation.uielements.MAX_ZOOM_FACTOR
 import com.swirlfist.simplepixel.presentation.uielements.MIN_ZOOM_FACTOR
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
 
 private const val DEFAULT_ZOOM_FACTOR = 1F
 private const val ERASER_TOOL_PALETTE_INDEX = EMPTY_PIXEL_PALETTE_INDEX
+private const val ONCE_MORE_TO_EXIT_DURATION_SECONDS = 4
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -208,6 +211,22 @@ class MainViewModel @Inject constructor(
                             )
                         }
                     }
+            }
+        }
+    }
+
+    fun disableBackHandlerTemporarily() {
+        viewModelScope.launch {
+            _mainScreenState.update { state ->
+                state.copy(
+                    isBackHandlerEnabled = false,
+                )
+            }
+            delay(ONCE_MORE_TO_EXIT_DURATION_SECONDS.seconds)
+            _mainScreenState.update { state ->
+                state.copy(
+                    isBackHandlerEnabled = true,
+                )
             }
         }
     }
