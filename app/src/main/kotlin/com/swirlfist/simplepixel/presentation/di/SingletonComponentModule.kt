@@ -1,7 +1,9 @@
 package com.swirlfist.simplepixel.presentation.di
 
+import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToPngUseCase
 import com.swirlfist.simplepixel.domain.usecase.ReadFromFileUseCase
 import com.swirlfist.simplepixel.domain.usecase.WriteToFileUseCase
+import com.swirlfist.simplepixel.presentation.usecase.ExportPixelImageToPngUseCaseImpl
 import com.swirlfist.simplepixel.presentation.usecase.ReadFromFileUseCaseImpl
 import com.swirlfist.simplepixel.presentation.usecase.WriteToFileUseCaseImpl
 import dagger.Binds
@@ -22,4 +24,9 @@ abstract class SingletonComponentModule {
     abstract fun bindReadFromFileUseCase(
         impl: ReadFromFileUseCaseImpl,
     ): ReadFromFileUseCase
+
+    @Binds
+    abstract fun bindExportPixelImageToPngUseCase(
+        impl: ExportPixelImageToPngUseCaseImpl,
+    ): ExportPixelImageToPngUseCase
 }

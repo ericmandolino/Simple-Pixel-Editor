@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.swirlfist.simplepixel.domain.error.ExportPixelImageError
 import com.swirlfist.simplepixel.domain.error.OpenPixelImageError
 import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.domain.model.BaseButtonGroupActionModel
@@ -14,6 +15,7 @@ import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCase
 import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCase
+import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToPngUseCase
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToSvgUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetBasePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
@@ -35,6 +37,7 @@ import com.swirlfist.simplepixel.presentation.section.CanvasSectionEvent
 import com.swirlfist.simplepixel.presentation.state.ActionsSectionState
 import com.swirlfist.simplepixel.presentation.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.state.MainScreenState
+import com.swirlfist.simplepixel.presentation.state.PixelImageExportFormat
 import com.swirlfist.simplepixel.presentation.state.PixelImagePreviewSectionState
 import com.swirlfist.simplepixel.presentation.state.updateSelectedPreviewBackgroundColor
 import com.swirlfist.simplepixel.presentation.uielements.MAX_ZOOM_FACTOR
@@ -57,6 +60,7 @@ class MainViewModel @Inject constructor(
     private val getBasePixelImageUseCase: GetBasePixelImageUseCase,
     private val savePixelImageUseCase: SavePixelImageUseCase,
     private val exportPixelImageToSvgUseCase: ExportPixelImageToSvgUseCase,
+    private val exportPixelImageToPngUseCase: ExportPixelImageToPngUseCase,
     private val openPixelImageUseCase: OpenPixelImageUseCase,
     private val getNextZoomFactorUseCase: GetNextZoomFactorUseCase,
     private val updatePixelColorUseCase: UpdatePixelColorUseCase,
@@ -354,7 +358,7 @@ class MainViewModel @Inject constructor(
                 -> selectOpenPixelImageLocation()
 
             ActionSectionEvent.ExportPixelImageButtonClicked
-                -> selectExportPixelImageLocation()
+                -> selectExportPixelImageFormat()
 
             ActionSectionEvent.InkEraserButtonClicked
                 -> updateSelectedPaletteIndex(ActionButtonType.InkEraserActionButtonType)
@@ -611,11 +615,37 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun selectExportPixelImageLocation() {
+    private fun selectExportPixelImageFormat() {
         _mainScreenState.update { mainScreenState ->
             mainScreenState.copy(
+                isShowSelectPixelImageExportFormat = true,
+            )
+        }
+    }
+
+    fun hideExportPixelImageFormatSelection() {
+        _mainScreenState.update { mainScreenState ->
+            mainScreenState.copy(
+                isShowSelectPixelImageExportFormat = false,
+            )
+        }
+    }
+
+    fun onPixelImageExportFormatSelected(
+        exportFormat: PixelImageExportFormat,
+    ) {
+        selectExportPixelImageLocation(exportFormat)
+    }
+
+    private fun selectExportPixelImageLocation(
+        exportFormat: PixelImageExportFormat,
+    ) {
+        _mainScreenState.update { mainScreenState ->
+            mainScreenState.copy(
+                isShowSelectPixelImageExportFormat = false,
                 launcherState = mainScreenState.launcherState.copy(
                     launchSelectExportPixelImage = true,
+                    selectedPixelImageExportFormat = exportFormat,
                 ),
             )
         }
@@ -689,22 +719,63 @@ class MainViewModel @Inject constructor(
             onSuccess = { uri ->
                 val pixelImageModel =
                     _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
-                exportPixelImage(pixelImageModel, uri)
+                exportPixelImage(pixelImageModel, uri, _mainScreenState.value.launcherState.selectedPixelImageExportFormat)
             },
             onFailure = {
                 // TODO
             }
         )
+        _mainScreenState.update { state ->
+            state.copy(
+                launcherState = state.launcherState.copy(
+                    selectedPixelImageExportFormat = null,
+                ),
+            )
+        }
     }
 
     private fun exportPixelImage(
         pixelImageModel: PixelImageModel,
         uri: Uri,
+        exportFormat: PixelImageExportFormat?,
+    ) {
+        val onSuccess: () -> Unit = {} // TODO
+        val onFailure: (ExportPixelImageError?) -> Unit = {} // TODO
+
+        when(exportFormat) {
+            PixelImageExportFormat.PNG -> exportPixelImageToPng(pixelImageModel, uri, onSuccess, onFailure)
+            PixelImageExportFormat.SVG, null -> exportPixelImageToSvg(pixelImageModel, uri, onSuccess, onFailure)
+        }
+    }
+
+    private fun exportPixelImageToPng(
+        pixelImageModel: PixelImageModel,
+        uri: Uri,
+        onSuccess: () -> Unit,
+        onFailure: (ExportPixelImageError?) -> Unit,
+    ) {
+        viewModelScope.launch {
+            exportPixelImageToPngUseCase.execute(
+                successBlock = { onSuccess() },
+                failureBlock = { error -> onFailure(error as? ExportPixelImageError) },
+                params = ExportPixelImageToPngUseCase.Params(
+                    pixelImageModel,
+                    uri,
+                ),
+            )
+        }
+    }
+
+    private fun exportPixelImageToSvg(
+        pixelImageModel: PixelImageModel,
+        uri: Uri,
+        onSuccess: () -> Unit,
+        onFailure: (ExportPixelImageError?) -> Unit,
     ) {
         viewModelScope.launch {
             exportPixelImageToSvgUseCase.execute(
-                successBlock = { }, // TODO
-                failureBlock = { }, // TODO
+                successBlock = { onSuccess() },
+                failureBlock = { error -> onFailure(error as? ExportPixelImageError) },
                 params = ExportPixelImageToSvgUseCase.Params(
                     pixelImageModel,
                     uri,

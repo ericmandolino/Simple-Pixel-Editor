@@ -63,6 +63,7 @@ import com.swirlfist.simplepixel.presentation.state.ActionsSectionState
 import com.swirlfist.simplepixel.presentation.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.state.MainScreenLauncherState
 import com.swirlfist.simplepixel.presentation.state.MainScreenState
+import com.swirlfist.simplepixel.presentation.state.PixelImageExportFormat
 import com.swirlfist.simplepixel.presentation.state.PixelImagePreviewSectionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -107,6 +108,11 @@ fun MainScreen(
                 onCancelClick = viewModel::hideEditPalette,
             )
         }
+    } else if (mainScreenState.isShowSelectPixelImageExportFormat) {
+        PixelImageExportFormatSelectionDialog(
+            onFormatSelected = viewModel::onPixelImageExportFormatSelected,
+            onDismiss = viewModel::hideExportPixelImageFormatSelection,
+        )
     }
 
     BackHandler(
@@ -199,7 +205,9 @@ fun MainScreenLaunchers(
             selectSavePixelImageLocationLauncher.launch(intent)
             onSelectSavePixelImageLocationLaunched()
         } else if (launcherState.launchSelectExportPixelImage) {
-            val intent = ExportPixelImageLocationLauncher.getLaunchIntent()
+            val intent = ExportPixelImageLocationLauncher.getLaunchIntent(
+                exportFormat = launcherState.selectedPixelImageExportFormat ?: PixelImageExportFormat.SVG,
+            )
             selectExportPixelImageLocationLauncher.launch(intent)
             onSelectExportPixelImageLocationLaunched()
         } else if (launcherState.launchSelectOpenPixelImage) {

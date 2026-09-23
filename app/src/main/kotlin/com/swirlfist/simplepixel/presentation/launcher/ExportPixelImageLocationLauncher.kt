@@ -6,17 +6,27 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.result.ActivityResult
 import com.swirlfist.simplepixel.presentation.screen.SelectExportPixelImageLocationError
+import com.swirlfist.simplepixel.presentation.state.PixelImageExportFormat
 
-private const val DEFAULT_EXPORT_FILE_NAME = "pixelImage.svg"
+private const val DEFAULT_EXPORT_FILE_NAME = "pixelImage"
+private const val EXPORT_FILE_EXTENSION_PNG = ".png"
+private const val EXPORT_FILE_EXTENSION_SVG = ".svg"
 
 class ExportPixelImageLocationLauncher {
     companion object {
 
-        fun getLaunchIntent(): Intent {
+        fun getLaunchIntent(
+            exportFormat: PixelImageExportFormat,
+        ): Intent {
+            val fileExtension = when(exportFormat) {
+                PixelImageExportFormat.PNG -> EXPORT_FILE_EXTENSION_PNG
+                PixelImageExportFormat.SVG -> EXPORT_FILE_EXTENSION_SVG
+            }
+
             return Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "*/*"
-                putExtra(Intent.EXTRA_TITLE, DEFAULT_EXPORT_FILE_NAME)
+                putExtra(Intent.EXTRA_TITLE, "$DEFAULT_EXPORT_FILE_NAME$fileExtension")
             }
         }
 

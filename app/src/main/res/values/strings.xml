@@ -45,4 +45,7 @@
     <string name="save">Save</string>
     <string name="once_more_to_exit">Once more to exit</string>
     <string name="error_open_pixel_image">No pixel image could be loaded</string>
+    <string name="pixel_image_export_format_svg">SVG</string>
+    <string name="pixel_image_export_format_png">PNG</string>
+
 </resources>

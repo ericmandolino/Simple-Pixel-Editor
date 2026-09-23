@@ -8,6 +8,7 @@ data class MainScreenState(
     val pixelImagePreviewSectionState: PixelImagePreviewSectionState,
     val isShowPalette: Boolean = false,
     val isShowEditPalette: Boolean = false,
+    val isShowSelectPixelImageExportFormat: Boolean = false,
     val isBackHandlerEnabled: Boolean = true,
     val openPixelImageError: OpenPixelImageError? = null,
     val launcherState: MainScreenLauncherState = MainScreenLauncherState(),
@@ -17,4 +18,10 @@ data class MainScreenLauncherState(
     val launchSelectSavePixelImage: Boolean = false,
     val launchSelectExportPixelImage: Boolean = false,
     val launchSelectOpenPixelImage: Boolean = false,
+    val selectedPixelImageExportFormat: PixelImageExportFormat? = null,
 )
+
+enum class PixelImageExportFormat {
+    PNG,
+    SVG,
+}
