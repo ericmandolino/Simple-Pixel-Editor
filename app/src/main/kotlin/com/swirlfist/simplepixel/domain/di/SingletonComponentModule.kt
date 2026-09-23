@@ -6,8 +6,8 @@ import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCase
 import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.DeletePalettePresetUseCase
 import com.swirlfist.simplepixel.domain.usecase.DeletePalettePresetUseCaseImpl
-import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCase
-import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToSvgUseCase
+import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToSvgUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetBasePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetBasePixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
@@ -59,9 +59,9 @@ abstract class SingletonComponentModule {
     ): SavePixelImageUseCase
 
     @Binds
-    abstract fun bindExportPixelImageUseCase(
-        impl: ExportPixelImageUseCaseImpl,
-    ): ExportPixelImageUseCase
+    abstract fun bindExportPixelImageToSvgUseCase(
+        impl: ExportPixelImageToSvgUseCaseImpl,
+    ): ExportPixelImageToSvgUseCase
 
     @Binds
     abstract fun bindOpenPixelImageUseCase(

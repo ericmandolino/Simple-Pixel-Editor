@@ -17,9 +17,9 @@ import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 
-class ExportPixelImageUseCaseImplTest {
+class ExportPixelImageToSvgUseCaseImplTest {
 
-    private lateinit var useCase: ExportPixelImageUseCase
+    private lateinit var useCase: ExportPixelImageToSvgUseCase
 
     @MockK
     private lateinit var uri: Uri
@@ -37,7 +37,7 @@ class ExportPixelImageUseCaseImplTest {
 
     @Before
     fun setup() {
-        useCase = ExportPixelImageUseCaseImpl(
+        useCase = ExportPixelImageToSvgUseCaseImpl(
             writeToFileUseCase
         )
     }
@@ -58,7 +58,7 @@ class ExportPixelImageUseCaseImplTest {
               <rect width="1" height="1" x="1" y="0" fill="$hexColor1" />
             </svg>
         """.trimIndent()
-        val useCaseParams = ExportPixelImageUseCase.Params(
+        val useCaseParams = ExportPixelImageToSvgUseCase.Params(
             pixelImageModel,
             uri,
         )
@@ -84,7 +84,7 @@ class ExportPixelImageUseCaseImplTest {
         val pixelImageModel = PixelImageModelTestUtil.createPixelImageModel(
             pixelImageString = testPixelImageString
         )
-        val useCaseParams = ExportPixelImageUseCase.Params(
+        val useCaseParams = ExportPixelImageToSvgUseCase.Params(
             pixelImageModel,
             uri,
         )

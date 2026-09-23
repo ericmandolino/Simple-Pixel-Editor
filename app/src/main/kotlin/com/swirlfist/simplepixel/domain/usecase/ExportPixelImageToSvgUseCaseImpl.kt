@@ -13,10 +13,10 @@ import com.swirlfist.simplepixel.presentation.toHexCode
 import com.swirlfist.simplepixel.presentation.width
 import javax.inject.Inject
 
-class ExportPixelImageUseCaseImpl @Inject constructor(
+class ExportPixelImageToSvgUseCaseImpl @Inject constructor(
     private val writeToFileUseCase: WriteToFileUseCase,
-) : ExportPixelImageUseCase {
-    override suspend fun invoke(params: ExportPixelImageUseCase.Params): Result<Unit> {
+) : ExportPixelImageToSvgUseCase {
+    override suspend fun invoke(params: ExportPixelImageToSvgUseCase.Params): Result<Unit> {
         return try {
             exportPixelImage(
                 params.pixelImageModel,

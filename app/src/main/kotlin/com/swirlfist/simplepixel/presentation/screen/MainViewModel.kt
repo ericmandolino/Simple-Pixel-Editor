@@ -14,7 +14,7 @@ import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCase
 import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCase
-import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToSvgUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetBasePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCase
@@ -56,7 +56,7 @@ private const val ONCE_MORE_TO_EXIT_DURATION_SECONDS = 4
 class MainViewModel @Inject constructor(
     private val getBasePixelImageUseCase: GetBasePixelImageUseCase,
     private val savePixelImageUseCase: SavePixelImageUseCase,
-    private val exportPixelImageUseCase: ExportPixelImageUseCase,
+    private val exportPixelImageToSvgUseCase: ExportPixelImageToSvgUseCase,
     private val openPixelImageUseCase: OpenPixelImageUseCase,
     private val getNextZoomFactorUseCase: GetNextZoomFactorUseCase,
     private val updatePixelColorUseCase: UpdatePixelColorUseCase,
@@ -702,10 +702,10 @@ class MainViewModel @Inject constructor(
         uri: Uri,
     ) {
         viewModelScope.launch {
-            exportPixelImageUseCase.execute(
+            exportPixelImageToSvgUseCase.execute(
                 successBlock = { }, // TODO
                 failureBlock = { }, // TODO
-                params = ExportPixelImageUseCase.Params(
+                params = ExportPixelImageToSvgUseCase.Params(
                     pixelImageModel,
                     uri,
                 ),
