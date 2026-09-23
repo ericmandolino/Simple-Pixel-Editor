@@ -16,16 +16,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.swirlfist.simplepixel.R
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
+import com.swirlfist.simplepixel.presentation.section.ActionCancelButtonsDialogFooter
 import com.swirlfist.simplepixel.presentation.section.PaletteEditSection
 import com.swirlfist.simplepixel.presentation.section.PixelImagePreviewSection
-import com.swirlfist.simplepixel.presentation.section.SaveCancelDialogFooter
 import com.swirlfist.simplepixel.presentation.state.PaletteEditDialogState
 import com.swirlfist.simplepixel.presentation.state.PaletteEditState
 import com.swirlfist.simplepixel.presentation.state.PixelImagePreviewSectionState
@@ -87,9 +89,11 @@ fun PaletteEditDialogContent(
                     )
                 }
 
-                SaveCancelDialogFooter(
-                    isSaveEnabled = true,
-                    onSaveClick = {
+                ActionCancelButtonsDialogFooter(
+                    isActionEnabled = true,
+                    actionText = stringResource(R.string.save),
+                    cancelText = stringResource(android.R.string.cancel),
+                    onActionClick = {
                         onSaveChangesClick(
                             PaletteModel(paletteEditDialogState.paletteEditState.paletteColors),
                             pixelImagePreviewSectionState?.pixelImageModel?.pixelMatrixModel,
