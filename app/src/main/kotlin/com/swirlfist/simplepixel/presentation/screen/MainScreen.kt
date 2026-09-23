@@ -77,6 +77,7 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val onceMoreToExitString = stringResource(R.string.once_more_to_exit)
+    val pixelImageExportSuccessString = stringResource(R.string.success_export_pixel_image)
 
     MainScreenLaunchers(
         mainScreenState.launcherState,
@@ -115,6 +116,19 @@ fun MainScreen(
         )
     }
 
+    LaunchedEffect(mainScreenState.isShowPixelImageExportSuccess) {
+        if (mainScreenState.isShowPixelImageExportSuccess) {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = pixelImageExportSuccessString,
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Short,
+                )
+            }
+        }
+        viewModel.onPixelImageExportSuccessDisplayed()
+    }
+
     BackHandler(
         enabled = mainScreenState.isBackHandlerEnabled,
     ) {
@@ -131,6 +145,13 @@ fun MainScreen(
         NoActionErrorDialog(
             errorMessage = stringResource(R.string.error_open_pixel_image),
             onDismiss = viewModel::clearOpenPixelImageError,
+        )
+    }
+
+    mainScreenState.exportPixelImageError?.let {
+        NoActionErrorDialog(
+            errorMessage = stringResource(R.string.error_export_pixel_image),
+            onDismiss = viewModel::clearExportPixelImageError,
         )
     }
 

@@ -236,10 +236,26 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun onPixelImageExportSuccessDisplayed() {
+        _mainScreenState.update { state ->
+            state.copy(
+                isShowPixelImageExportSuccess = false,
+            )
+        }
+    }
+
     fun clearOpenPixelImageError() {
         _mainScreenState.update { state ->
             state.copy(
                 openPixelImageError = null,
+            )
+        }
+    }
+
+    fun clearExportPixelImageError()  {
+        _mainScreenState.update { state ->
+            state.copy(
+                exportPixelImageError = null,
             )
         }
     }
@@ -739,8 +755,20 @@ class MainViewModel @Inject constructor(
         uri: Uri,
         exportFormat: PixelImageExportFormat?,
     ) {
-        val onSuccess: () -> Unit = {} // TODO
-        val onFailure: (ExportPixelImageError?) -> Unit = {} // TODO
+        val onSuccess: () -> Unit = {
+            _mainScreenState.update { state ->
+                state.copy(
+                    isShowPixelImageExportSuccess = true,
+                )
+            }
+        }
+        val onFailure: (ExportPixelImageError?) -> Unit = { error ->
+            _mainScreenState.update { state ->
+                state.copy(
+                    exportPixelImageError = error,
+                )
+            }
+        }
 
         when(exportFormat) {
             PixelImageExportFormat.PNG -> exportPixelImageToPng(pixelImageModel, uri, onSuccess, onFailure)
