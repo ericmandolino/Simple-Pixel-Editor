@@ -121,6 +121,13 @@ fun MainScreen(
         viewModel.disableBackHandlerTemporarily()
     }
 
+    mainScreenState.openPixelImageError?.let {
+        NoActionErrorDialog(
+            errorMessage = stringResource(R.string.error_open_pixel_image),
+            onDismiss = viewModel::clearOpenPixelImageError,
+        )
+    }
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()

@@ -53,6 +53,13 @@ fun StartScreen(
         }
     }
 
+    startScreenState.openPixelImageError?.let {
+        NoActionErrorDialog(
+            errorMessage = stringResource(R.string.error_open_pixel_image),
+            onDismiss = viewModel::clearOpenPixelImageError,
+        )
+    }
+
     Surface(
         modifier = Modifier
             .fillMaxSize()

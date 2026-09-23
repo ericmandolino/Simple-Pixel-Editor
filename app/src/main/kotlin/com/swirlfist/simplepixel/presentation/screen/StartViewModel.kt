@@ -3,6 +3,7 @@ package com.swirlfist.simplepixel.presentation.screen
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.swirlfist.simplepixel.domain.error.OpenPixelImageError
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdateBasePixelImageUseCase
 import com.swirlfist.simplepixel.presentation.state.StartScreenState
@@ -22,6 +23,14 @@ class StartViewModel @Inject constructor(
         value = StartScreenState()
     )
     val startScreenState = _startScreenState.asStateFlow()
+
+    fun clearOpenPixelImageError() {
+        _startScreenState.update { startScreenState ->
+            startScreenState.copy(
+                openPixelImageError = null,
+            )
+        }
+    }
 
     fun openImageSelection() {
         _startScreenState.update { startScreenState ->
@@ -83,13 +92,13 @@ class StartViewModel @Inject constructor(
                         )
                     }
                 },
-                onFailure = {
+                onFailure = { error ->
                     _startScreenState.update { startScreenState ->
                         startScreenState.copy(
                             isLoadingImage = false,
+                            openPixelImageError = error as? OpenPixelImageError,
                         )
                     }
-                    // TODO: Image could not be loaded
                 }
             )
         }

@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.swirlfist.simplepixel.domain.error.OpenPixelImageError
 import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.domain.model.BaseButtonGroupActionModel
 import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
@@ -228,6 +229,14 @@ class MainViewModel @Inject constructor(
                     isBackHandlerEnabled = true,
                 )
             }
+        }
+    }
+
+    fun clearOpenPixelImageError() {
+        _mainScreenState.update { state ->
+            state.copy(
+                openPixelImageError = null,
+            )
         }
     }
 
@@ -723,22 +732,28 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             openPixelImageUseCase.execute(
                 successBlock = { pixelImage ->
-                    _mainScreenState.update { mainScreenState ->
-                        mainScreenState.copy(
-                            canvasSectionState = mainScreenState.canvasSectionState.copy(
+                    _mainScreenState.update { state ->
+                        state.copy(
+                            canvasSectionState = state.canvasSectionState.copy(
                                 pixelImageModel = pixelImage,
                                 zoomFactor = DEFAULT_ZOOM_FACTOR,
                             ),
-                            actionsSectionState = mainScreenState.actionsSectionState.updatePaletteButtons(
+                            actionsSectionState = state.actionsSectionState.updatePaletteButtons(
                                 palette = pixelImage.paletteModel,
                             ),
-                            pixelImagePreviewSectionState = mainScreenState.pixelImagePreviewSectionState.copy(
+                            pixelImagePreviewSectionState = state.pixelImagePreviewSectionState.copy(
                                 pixelImageModel = pixelImage,
                             )
                         )
                     }
                 },
-                failureBlock = { }, // TODO
+                failureBlock = { error ->
+                    _mainScreenState.update { state ->
+                        state.copy(
+                            openPixelImageError = error as? OpenPixelImageError,
+                        )
+                    }
+                },
                 params = OpenPixelImageUseCase.Params(
                     uri,
                 ),

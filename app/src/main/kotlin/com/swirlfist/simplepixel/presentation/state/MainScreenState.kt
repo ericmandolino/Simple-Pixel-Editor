@@ -1,5 +1,7 @@
 package com.swirlfist.simplepixel.presentation.state
 
+import com.swirlfist.simplepixel.domain.error.OpenPixelImageError
+
 data class MainScreenState(
     val canvasSectionState: CanvasSectionState,
     val actionsSectionState: ActionsSectionState,
@@ -7,6 +9,7 @@ data class MainScreenState(
     val isShowPalette: Boolean = false,
     val isShowEditPalette: Boolean = false,
     val isBackHandlerEnabled: Boolean = true,
+    val openPixelImageError: OpenPixelImageError? = null,
     val launcherState: MainScreenLauncherState = MainScreenLauncherState(),
 )
 
