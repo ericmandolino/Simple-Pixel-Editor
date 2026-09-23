@@ -35,6 +35,7 @@ import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import kotlin.collections.forEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swirlfist.simplepixel.domain.model.PalettePresetModel
+import com.swirlfist.simplepixel.presentation.section.CancelButtonDialogFooter
 import com.swirlfist.simplepixel.presentation.uielements.LoadingIndeterminateProgress
 
 @Composable
@@ -68,13 +69,25 @@ fun PalettePresetsDialogContent(
                     message = stringResource(R.string.loading_palette_presets)
                 )
             } else {
-                PalettePresets(
+                Column(
                     modifier = Modifier
+                        .fillMaxSize()
                         .padding(16.dp),
-                    palettePresets = palettePresetsDialogState.palettePresets,
-                    onPalettePresetSelected,
-                    onDeletePalettePresetClick,
-                )
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    PalettePresets(
+                        modifier = Modifier
+                            .weight(1F)
+                            .padding(16.dp),
+                        palettePresets = palettePresetsDialogState.palettePresets,
+                        onPalettePresetSelected,
+                        onDeletePalettePresetClick,
+                    )
+
+                    CancelButtonDialogFooter(
+                        onCancelClick = onDismiss,
+                    )
+                }
             }
         }
     }
