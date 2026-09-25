@@ -451,7 +451,7 @@ private fun DrawScope.drawCanvas(
             xMatrixCoordinate++
         }
 
-        if (isShowGridEnabled && xMatrixCoordinate == imagePixelSize.width) {
+        if (isShowGridEnabled && xMatrixCoordinate == imagePixelSize.width && x <= canvasSize.width) {
             drawVerticalGridLine(x, canvasSize, imageSize, gridLineWidth, marginY)
         }
 
@@ -463,12 +463,12 @@ private fun DrawScope.drawCanvas(
         yMatrixCoordinate--
     }
 
-    if (isShowGridEnabled && yMatrixCoordinate == -1) {
+    if (isShowGridEnabled && yMatrixCoordinate == -1 && y <= canvasSize.height) {
         drawHorizontalGridLine(y, canvasSize, imageSize, gridLineWidth, marginX)
     }
 
     if (isShowBorderEnabled) {
-        if (marginX >= 0) {
+        if (imageSize.width <= canvasSize.width) {
             drawVerticalGridLine(marginX, canvasSize, imageSize, gridLineWidth, marginY)
             drawVerticalGridLine(
                 canvasSize.width - marginX,
@@ -478,7 +478,7 @@ private fun DrawScope.drawCanvas(
                 marginY
             )
         }
-        if (marginY >= 0) {
+        if (imageSize.height <= canvasSize.height) {
             drawHorizontalGridLine(marginY, canvasSize, imageSize, gridLineWidth, marginX)
             drawHorizontalGridLine(
                 canvasSize.height - marginY,
