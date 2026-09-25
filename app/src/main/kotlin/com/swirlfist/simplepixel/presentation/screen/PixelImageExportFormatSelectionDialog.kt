@@ -34,7 +34,6 @@ fun PixelImageExportFormatSelectionDialog(
             ) {
                 LazyColumn(
                     modifier = Modifier
-                        .weight(1F)
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
