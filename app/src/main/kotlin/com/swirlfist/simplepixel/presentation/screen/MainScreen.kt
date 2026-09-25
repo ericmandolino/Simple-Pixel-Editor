@@ -158,6 +158,7 @@ fun MainScreen(
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface)
             .safeContentPadding()
             .padding(16.dp),
         snackbarHost = {
@@ -169,7 +170,6 @@ fun MainScreen(
         Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
                 .padding(contentPadding),
         ) {
             MainScreenContent(
