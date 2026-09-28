@@ -8,6 +8,7 @@ import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
+import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import com.swirlfist.simplepixel.presentation.section.ActionButtonType
 import com.swirlfist.simplepixel.presentation.state.ActionsSectionState
 
@@ -133,4 +134,42 @@ fun BaseButtonGroupActionModel.isSelected(
     return childButtonActionModels.firstOrNull{ actionModel ->
         actionModel.actionType == actionButtonType
     }?.isSelected ?: false
+}
+
+fun PixelSelectionModel.isSelected(
+    x: Int,
+    y: Int,
+): Boolean {
+    if (y !in selected.indices) {
+        return false
+    }
+
+    val row = selected[y]
+    if (x !in row.indices) {
+        return false
+    }
+
+    return row[x] != null
+}
+
+fun PixelImageModel.createSelection(
+    selectedCoordinates: List<Pair<Int, Int>>,
+): PixelSelectionModel {
+    val selection = mutableListOf<MutableList<PixelModel?>>()
+    val matrixHeight = pixelMatrixModel.height()
+    val matrixWidth = pixelMatrixModel.width()
+
+    repeat(matrixHeight) {
+        val selectionRow = mutableListOf<PixelModel?>()
+        repeat(matrixWidth) {
+            selectionRow.add(null)
+        }
+        selection.add(selectionRow)
+    }
+
+    selectedCoordinates.forEach { (x, y) ->
+        selection[y][x] = pixelMatrixModel.content[y][x]
+    }
+
+    return PixelSelectionModel(selected = selection)
 }

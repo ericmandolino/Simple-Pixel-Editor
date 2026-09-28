@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.tooling.preview.Preview
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
+import com.swirlfist.simplepixel.presentation.createSelection
 import com.swirlfist.simplepixel.presentation.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
 import com.swirlfist.simplepixel.presentation.uielements.PixelCanvas
@@ -25,6 +26,7 @@ fun CanvasSection(
         PixelCanvas(
             modifier = modifier,
             pixelImage = pixelImage,
+            pixelSelection = state.pixelSelectionModel,
             initialZoomFactor = state.zoomFactor,
             isShowGridEnabled = state.isShowGridEnabled,
             onPixelVisited = { x, y -> onEvent(CanvasSectionEvent.PixelVisited(x, y)) },
@@ -38,16 +40,63 @@ fun CanvasSection(
 @Composable
 fun CanvasSectionPreview() {
     SimplePixelTheme {
+        val pixelImage = createCheckersPixelImage(
+            width = 5,
+            height = 4,
+            color1 = Color.Black.toColorLong(),
+            color2 = Color.Yellow.toColorLong(),
+        )
+        val pixelSelection = pixelImage.createSelection(
+            selectedCoordinates = listOf(
+                Pair(1, 2),
+                Pair(2, 2),
+                Pair(1, 1),
+                Pair(2, 3),
+                Pair(0, 1),
+            )
+        )
+
         CanvasSection(
             modifier = Modifier.fillMaxSize(),
             state = CanvasSectionState().copy(
-                pixelImageModel = createCheckersPixelImage(
-                    width = 5,
-                    height = 3,
-                    color1 = Color.Black.toColorLong(),
-                    color2 = Color.Yellow.toColorLong(),
-                ),
+                pixelImageModel = pixelImage,
+                pixelSelectionModel = pixelSelection,
+                zoomFactor = 1F,
+                isShowGridEnabled = false,
+            )
+        ) { event ->
+            Log.d("CanvasSection", "event: $event")
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 320)
+@Composable
+fun CanvasSectionZoomedPreview() {
+    SimplePixelTheme {
+        val pixelImage = createCheckersPixelImage(
+            width = 5,
+            height = 4,
+            color1 = Color.Black.toColorLong(),
+            color2 = Color.Yellow.toColorLong(),
+        )
+        val pixelSelection = pixelImage.createSelection(
+            selectedCoordinates = listOf(
+                Pair(1, 2),
+                Pair(2, 2),
+                Pair(1, 1),
+                Pair(2, 3),
+                Pair(0, 1),
+            )
+        )
+
+        CanvasSection(
+            modifier = Modifier.fillMaxSize(),
+            state = CanvasSectionState().copy(
+                pixelImageModel = pixelImage,
+                pixelSelectionModel = pixelSelection,
                 zoomFactor = 4F,
+                isShowGridEnabled = false,
             )
         ) { event ->
             Log.d("CanvasSection", "event: $event")

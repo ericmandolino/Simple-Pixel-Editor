@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.fromColorLong
 import androidx.compose.ui.input.pointer.PointerInputScope
@@ -33,10 +34,12 @@ import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
+import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import com.swirlfist.simplepixel.presentation.getColor
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.getPixelHeight
 import com.swirlfist.simplepixel.presentation.getPixelWidth
+import com.swirlfist.simplepixel.presentation.isSelected
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -44,6 +47,7 @@ import kotlin.math.min
 private const val NO_ZOOM_FACTOR = 1F
 private const val PIXEL_SIZE_DP_CANVAS = 32
 private const val PIXEL_SIZE_DP_PREVIEW = 1
+private const val SELECTION_STROKE_WIDTH_DP = 3
 private const val PAN_VS_ZOOM_FACTOR = 0.025F
 private const val ZOOM_STEP = 0.025F
 const val MAX_ZOOM_FACTOR = 2F
@@ -53,6 +57,7 @@ const val MIN_ZOOM_FACTOR = 0.25F
 fun PixelCanvas(
     modifier: Modifier,
     pixelImage: PixelImageModel,
+    pixelSelection: PixelSelectionModel? = null,
     initialZoomFactor: Float = NO_ZOOM_FACTOR,
     isShowGridEnabled: Boolean = true,
     backgroundColor: Color? = null,
@@ -196,6 +201,7 @@ fun PixelCanvas(
 
         drawCanvas(
             pixelImage,
+            pixelSelection,
             pixelSizeInt,
             imagePixelSize,
             imageOffset,
@@ -256,6 +262,7 @@ fun PixelCanvasSnapshot(
 
         drawCanvas(
             pixelImage,
+            pixelSelection = null,
             pixelSizeInt,
             imagePixelSize,
             imageOffset,
@@ -375,6 +382,7 @@ private fun Density.getPixelSizeInt(
 
 private fun DrawScope.drawCanvas(
     pixelImage: PixelImageModel,
+    pixelSelection: PixelSelectionModel?,
     pixelSizeInt: Int,
     imagePixelSize: IntSize,
     imageOffset: MutableState<Offset>,
@@ -391,6 +399,7 @@ private fun DrawScope.drawCanvas(
     )
     val gridLineWidth = 1.dp.toPx()
     val palette = pixelImage.paletteModel.colors.map { color -> Color.fromColorLong(color) }
+    val selectionLines = mutableListOf<Pair<Offset, Offset>>()
 
     adjustImageOffset(imageOffset, margin, canvasSize, imageSize)
 
@@ -433,9 +442,12 @@ private fun DrawScope.drawCanvas(
 
             drawPixel(
                 pixel,
+                pixelSelection,
+                selectionLines,
                 palette = palette,
                 width = pixelWidth,
                 height = pixelHeight,
+                pixelSizeInt,
                 xMatrixCoordinate,
                 yMatrixCoordinate,
                 offset = Offset(x, y),
@@ -486,6 +498,32 @@ private fun DrawScope.drawCanvas(
                 imageSize,
                 gridLineWidth,
                 marginX
+            )
+        }
+    }
+
+    if (selectionLines.isNotEmpty()) {
+        val strokeWidth = SELECTION_STROKE_WIDTH_DP.dp.toPx()
+        selectionLines.forEach { (start, end) ->
+            drawLine(
+                color = Color.Black,
+                strokeWidth = strokeWidth,
+                start = start,
+                end = end,
+                pathEffect = PathEffect.dashPathEffect(
+                    intervals = floatArrayOf(10F, 10F),
+                    phase = 0F
+                )
+            )
+            drawLine(
+                color = Color.White,
+                strokeWidth = strokeWidth,
+                start = start,
+                end = end,
+                pathEffect = PathEffect.dashPathEffect(
+                    intervals = floatArrayOf(10F, 10F),
+                    phase = 30F
+                )
             )
         }
     }
@@ -550,9 +588,12 @@ private fun adjustImageOffset(
 
 private fun DrawScope.drawPixel(
     pixel: PixelModel,
+    pixelSelection: PixelSelectionModel?,
+    selectionLines: MutableList<Pair<Offset, Offset>>,
     palette: List<Color>,
     width: Int,
     height: Int,
+    pixelSizeInt: Int,
     xMatrixCoordinate: Int,
     yMatrixCoordinate: Int,
     offset: Offset,
@@ -571,14 +612,58 @@ private fun DrawScope.drawPixel(
 
     pixelColor?.let { color ->
         val pixelRectSize = Size(width.toFloat(), height.toFloat())
+        val width = min(pixelRectSize.width, canvasSize.width - offset.x)
+        val height = min(pixelRectSize.height, canvasSize.height - offset.y)
         drawRect(
             color,
             topLeft = offset,
-            size = Size(
-                width = min(pixelRectSize.width, canvasSize.width - offset.x),
-                height = min(pixelRectSize.height, canvasSize.height - offset.y),
-            ),
+            size = Size(width, height),
         )
+
+        val isSelected = pixelSelection?.isSelected(
+            x = xMatrixCoordinate,
+            y = yMatrixCoordinate
+        ) ?: false
+
+        if (isSelected) {
+            val fullWidth = width == pixelSizeInt.toFloat()
+            val fullHeight = height == pixelSizeInt.toFloat()
+            val widthOffset = offset.x + width
+            val heightOffset = offset.y + height
+
+            val isSelectedAbove = pixelSelection.isSelected(
+                x = xMatrixCoordinate,
+                y = yMatrixCoordinate + 1,
+            )
+            val isSelectedBelow = pixelSelection.isSelected(
+                x = xMatrixCoordinate,
+                y = yMatrixCoordinate - 1,
+            )
+            val isSelectedLeft = pixelSelection.isSelected(
+                x = xMatrixCoordinate - 1,
+                y = yMatrixCoordinate,
+            )
+            val isSelectedRight = pixelSelection.isSelected(
+                x = xMatrixCoordinate + 1,
+                y = yMatrixCoordinate,
+            )
+
+            if (!isSelectedAbove && (fullHeight || heightOffset > pixelSizeInt)) {
+                selectionLines.add(Pair(offset, offset.copy(x = widthOffset)))
+            }
+
+            if (!isSelectedBelow && (fullHeight || heightOffset < canvasSize.height)) {
+                selectionLines.add(Pair(offset.copy(y = heightOffset), offset.copy(y = heightOffset, x = widthOffset)))
+            }
+
+            if (!isSelectedLeft && (fullWidth || widthOffset > pixelSizeInt)) {
+                selectionLines.add(Pair(offset, offset.copy(y = heightOffset)))
+            }
+
+            if (!isSelectedRight && (fullWidth || widthOffset < canvasSize.width)) {
+                selectionLines.add(Pair(offset.copy(x = widthOffset), offset.copy(x = widthOffset, y = heightOffset)))
+            }
+        }
     }
 }
 
