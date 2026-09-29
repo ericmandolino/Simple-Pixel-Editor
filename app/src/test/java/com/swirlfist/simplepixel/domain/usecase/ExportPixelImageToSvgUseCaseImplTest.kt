@@ -52,10 +52,10 @@ class ExportPixelImageToSvgUseCaseImplTest {
         val hexColor1 = Color.fromColorLong(PixelImageModelTestUtil.paletteColors[1]).toHexCode()
         val expectedContent = """
             <svg width="2" height="2" xmlns="http://www.w3.org/2000/svg">
-              <rect width="1" height="1" x="0" y="1" fill="$hexColor1" />
-              <rect width="1" height="1" x="1" y="1" fill="$hexColor0" />
-              <rect width="1" height="1" x="0" y="0" fill="$hexColor1" />
-              <rect width="1" height="1" x="1" y="0" fill="$hexColor1" />
+              <rect width="1" height="1" x="0" y="1" fill="$hexColor1" shape-rendering="crispEdges" />
+              <rect width="1" height="1" x="1" y="1" fill="$hexColor0" shape-rendering="crispEdges" />
+              <rect width="1" height="1" x="0" y="0" fill="$hexColor1" shape-rendering="crispEdges" />
+              <rect width="1" height="1" x="1" y="0" fill="$hexColor1" shape-rendering="crispEdges" />
             </svg>
         """.trimIndent()
         val useCaseParams = ExportPixelImageToSvgUseCase.Params(

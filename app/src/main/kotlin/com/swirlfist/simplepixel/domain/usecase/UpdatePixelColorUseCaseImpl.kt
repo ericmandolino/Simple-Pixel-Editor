@@ -48,7 +48,7 @@ class UpdatePixelColorUseCaseImpl @Inject constructor(
                 index = x,
                 element = updatedPixel,
             )
-        }
+        }.toList()
         val updatedPixelMatrix = pixelMatrix.copy(
             content = pixelMatrix.content.toMutableList().apply {
                 set(

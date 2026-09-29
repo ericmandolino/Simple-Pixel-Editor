@@ -13,6 +13,7 @@ import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
+import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCase
 import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCase
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToPngUseCase
@@ -26,6 +27,7 @@ import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.RedoEditorActionUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.TogglePixelSelectionUseCase
 import com.swirlfist.simplepixel.domain.usecase.UndoEditorActionUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.UseCaseParams
@@ -72,6 +74,7 @@ class MainViewModel @Inject constructor(
     private val undoEditorActionUseCase: UndoEditorActionUseCase,
     private val redoEditorActionUseCase: RedoEditorActionUseCase,
     private val clearEditorActionUseCase: ClearEditorActionsUseCase,
+    private val togglePixelSelectionUseCase: TogglePixelSelectionUseCase,
 ) : ViewModel() {
     private val _mainScreenState = MutableStateFlow(
         value = MainScreenState(
@@ -439,9 +442,15 @@ class MainViewModel @Inject constructor(
         val x = event.x
         val y = event.y
 
-        when (_mainScreenState.value.getSelectedPaintTool()) {
-            is ActionButtonType.InkPenActionButtonType -> updatePixelColor(x, y)
-            is ActionButtonType.InkBucketActionButtonType -> applyBucket(x, y)
+        val mainScreenState = _mainScreenState.value
+        val selectedPaintTool = mainScreenState.getSelectedPaintTool()
+
+        when {
+            mainScreenState.isSelectRectSelected() -> {} // TODO
+            mainScreenState.isSelectTouchSelected() -> togglePixelSelected(x, y)
+            mainScreenState.isSelectMagicWandSelected() -> {} // TODO
+            selectedPaintTool is ActionButtonType.InkPenActionButtonType -> updatePixelColor(x, y)
+            selectedPaintTool is ActionButtonType.InkBucketActionButtonType -> applyBucket(x, y)
             else -> {}
         }
 
@@ -479,12 +488,56 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private fun updatePixelSelection(
+        pixelSelection: PixelSelectionModel?,
+    ) {
+        _mainScreenState.update { state ->
+            state.copy(
+                canvasSectionState = state.canvasSectionState.copy(
+                    pixelSelectionModel = pixelSelection,
+                ),
+            )
+        }
+    }
+
+    private fun togglePixelSelected(
+        x: Int,
+        y: Int,
+    ) {
+        val mainScreenState = _mainScreenState.value
+        val canvasSectionState = mainScreenState.canvasSectionState
+        val pixelImage = canvasSectionState.pixelImageModel ?: return
+
+        viewModelScope.launch {
+            togglePixelSelectionUseCase.execute(
+                successBlock = { pixelSelection ->
+                    _mainScreenState.update { state ->
+                        state.copy(
+                            canvasSectionState = state.canvasSectionState.copy(
+                                pixelSelectionModel = pixelSelection,
+                            )
+                        )
+                    }
+                },
+                failureBlock = { },
+                params = TogglePixelSelectionUseCase.Params(
+                    pixelImageModel = pixelImage,
+                    pixelSelectionModel = canvasSectionState.pixelSelectionModel,
+                    x,
+                    y,
+                    isSameAction = isVisitingPixels,
+                )
+            )
+        }
+    }
+
     private fun updatePixelColor(
         x: Int,
         y: Int,
     ) {
-        val pixelImage = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
-        val paletteIndex = _mainScreenState.value.getPaletteIndex()
+        val mainScreenState = _mainScreenState.value
+        val pixelImage = mainScreenState.canvasSectionState.pixelImageModel ?: return
+        val paletteIndex = mainScreenState.getPaletteIndex()
 
         viewModelScope.launch {
             updatePixelColorUseCase.execute(
@@ -627,8 +680,9 @@ class MainViewModel @Inject constructor(
     private fun undoEditorAction() {
         viewModelScope.launch {
             undoEditorActionUseCase(UseCaseParams.NoParams).fold(
-                onSuccess = { pixelImage ->
+                onSuccess = { (pixelImage, pixelSelection) ->
                     updatePixelImage(pixelImage)
+                    updatePixelSelection(pixelSelection)
                 },
                 onFailure = {}, // TODO
             )
@@ -638,8 +692,9 @@ class MainViewModel @Inject constructor(
     private fun redoEditorAction() {
         viewModelScope.launch {
             redoEditorActionUseCase(UseCaseParams.NoParams).fold(
-                onSuccess = { pixelImage ->
+                onSuccess = { (pixelImage, pixelSelection) ->
                     updatePixelImage(pixelImage)
+                    updatePixelSelection(pixelSelection)
                 },
                 onFailure = {}, // TODO
             )
@@ -1144,6 +1199,18 @@ private fun MainScreenState.getPaletteIndex(): Int {
 
 private fun MainScreenState.isEraserSelected() = actionsSectionState.isSelected(
     ActionButtonType.InkEraserActionButtonType,
+)
+
+private fun MainScreenState.isSelectRectSelected() = actionsSectionState.isSelected(
+    ActionButtonType.SelectRectangleActionButtonType,
+)
+
+private fun MainScreenState.isSelectTouchSelected() = actionsSectionState.isSelected(
+    ActionButtonType.SelectTouchActionButtonType,
+)
+
+private fun MainScreenState.isSelectMagicWandSelected() = actionsSectionState.isSelected(
+    ActionButtonType.SelectTouchActionButtonType,
 )
 
 private fun MainScreenState.getSelectedPaintTool() = actionsSectionState.getSelectedPaintTool()

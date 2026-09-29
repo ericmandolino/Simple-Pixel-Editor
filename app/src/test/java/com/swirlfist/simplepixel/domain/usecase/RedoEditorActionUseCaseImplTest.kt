@@ -35,14 +35,14 @@ class RedoEditorActionUseCaseImplTest {
         runTest {
             // Given
             val pixelImage = mockk<PixelImageModel>()
-            coEvery { pixelImageEditorActionRepository.redoAction() }.returns(pixelImage)
+            coEvery { pixelImageEditorActionRepository.redoAction() }.returns(Pair(pixelImage, null))
 
             // When
             val result = useCase.invoke(UseCaseParams.NoParams)
 
             // Then
             assertTrue(result.isSuccess)
-            assertEquals(pixelImage, result.getOrThrow())
+            assertEquals(pixelImage, result.getOrThrow().first)
         }
 
     @Test

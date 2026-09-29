@@ -2,6 +2,7 @@ package com.swirlfist.simplepixel.data.repository
 
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
+import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,6 +16,7 @@ class PixelImageEditorActionRepositoryImpl @Inject constructor() :
     private var _undoAvailableFlow = MutableStateFlow(false)
     private var _redoAvailableFlow = MutableStateFlow(false)
     private var _finalPixelImage: PixelImageModel? = null
+    private var _finalPixelSelection: PixelSelectionModel? = null
 
     override suspend fun getCurrentAction(): PixelImageEditorAction? {
         return _actions.getOrNull(_currentActionIndex)
@@ -33,6 +35,7 @@ class PixelImageEditorActionRepositoryImpl @Inject constructor() :
     override suspend fun addAction(
         action: PixelImageEditorAction,
         pixelImageResult: PixelImageModel,
+        pixelSelectionResult: PixelSelectionModel?,
     ) {
         clearActionsFromIndex(_currentActionIndex + 1)
         if (_actions.size == MAX_UNDO_ACTIONS) {
@@ -41,30 +44,37 @@ class PixelImageEditorActionRepositoryImpl @Inject constructor() :
         _actions.add(action)
         _currentActionIndex = _actions.size - 1
         _finalPixelImage = pixelImageResult
+        _finalPixelSelection = pixelSelectionResult
         updateAvailableOperations()
     }
 
-    override suspend fun updateLastAction(pixelImageResult: PixelImageModel) {
+    override suspend fun updateLastAction(
+        pixelImageResult: PixelImageModel,
+        pixelSelectionResult: PixelSelectionModel?,
+    ) {
         if (_currentActionIndex != _actions.size - 1) {
             return
         }
 
         _finalPixelImage = pixelImageResult
+        _finalPixelSelection = pixelSelectionResult
     }
 
-    override suspend fun undoAction(): PixelImageModel? {
+    override suspend fun undoAction(): Pair<PixelImageModel, PixelSelectionModel?>? {
         if (_currentActionIndex !in _actions.indices) {
             return null
         }
 
-        val pixelImage = _actions[_currentActionIndex].pixelImage
+        val currentAction = _actions[_currentActionIndex]
+        val pixelImage = currentAction.pixelImage
+        val pixelSelection = currentAction.pixelSelection
         _currentActionIndex--
         updateAvailableOperations()
 
-        return pixelImage
+        return Pair(pixelImage, pixelSelection)
     }
 
-    override suspend fun redoAction(): PixelImageModel? {
+    override suspend fun redoAction(): Pair<PixelImageModel, PixelSelectionModel?>? {
         val newCurrentActionIndex = _currentActionIndex + 1
         return if (newCurrentActionIndex !in _actions.indices) {
             null
@@ -73,9 +83,12 @@ class PixelImageEditorActionRepositoryImpl @Inject constructor() :
             updateAvailableOperations()
             val nextActionIndex = _currentActionIndex + 1
             if (nextActionIndex in _actions.indices) {
-                _actions[nextActionIndex].pixelImage
+                val nextAction = _actions[nextActionIndex]
+                Pair(nextAction.pixelImage, nextAction.pixelSelection)
             } else {
-                _finalPixelImage
+                _finalPixelImage?.let { pixelImage ->
+                    Pair(pixelImage, _finalPixelSelection)
+                }
             }
         }
     }

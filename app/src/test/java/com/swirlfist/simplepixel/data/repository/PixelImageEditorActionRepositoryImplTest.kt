@@ -66,12 +66,15 @@ class PixelImageEditorActionRepositoryImplTest {
             // Given
             val action1 = mockk<PixelImageEditorAction>().also { action ->
                 every { action.pixelImage }.returns(mockk())
+                every { action.pixelSelection }.returns(null)
             }
             val action2 = mockk<PixelImageEditorAction>().also { action ->
                 every { action.pixelImage }.returns(mockk())
+                every { action.pixelSelection }.returns(null)
             }
             val action3 = mockk<PixelImageEditorAction>().also { action ->
                 every { action.pixelImage }.returns(mockk())
+                every { action.pixelSelection }.returns(null)
             }
             repository.addAction(action1, mockk())
             repository.addAction(action2, mockk())
@@ -137,6 +140,7 @@ class PixelImageEditorActionRepositoryImplTest {
         // Given
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(mockk())
+            every { action.pixelSelection }.returns(null)
         }
         repository.addAction(action, mockk())
         repository.undoAction()
@@ -154,9 +158,11 @@ class PixelImageEditorActionRepositoryImplTest {
         val pixelImage2 = mockk<PixelImageModel>()
         val action1 = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(mockk())
+            every { action.pixelSelection }.returns(null)
         }
         val action2 = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage2)
+            every { action.pixelSelection }.returns(null)
         }
         repository.addAction(action1, mockk())
         repository.addAction(action2, mockk())
@@ -165,7 +171,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val result = repository.undoAction()
 
         // Then
-        assertEquals(pixelImage2, result)
+        assertEquals(pixelImage2, result?.first)
     }
 
     @Test
@@ -174,9 +180,11 @@ class PixelImageEditorActionRepositoryImplTest {
         val pixelImage2 = mockk<PixelImageModel>()
         val action1 = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(mockk())
+            every { action.pixelSelection }.returns(null)
         }
         val action2 = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage2)
+            every { action.pixelSelection }.returns(null)
         }
         repository.addAction(action1, mockk())
         repository.addAction(action2, mockk())
@@ -193,6 +201,7 @@ class PixelImageEditorActionRepositoryImplTest {
         // Given
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(mockk())
+            every { action.pixelSelection }.returns(null)
         }
         repository.addAction(action, mockk())
 
@@ -208,6 +217,7 @@ class PixelImageEditorActionRepositoryImplTest {
         // Given
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(mockk())
+            every { action.pixelSelection }.returns(null)
         }
         repository.addAction(action, mockk())
 
@@ -225,6 +235,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val pixelImageResult = mockk<PixelImageModel>()
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage)
+            every { action.pixelSelection }.returns(null)
         }
         repository.addAction(action, pixelImageResult)
         repository.undoAction()
@@ -234,7 +245,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val currentAction = repository.getCurrentAction()
 
         // Then
-        assertEquals(pixelImageResult, result)
+        assertEquals(pixelImageResult, result?.first)
         assertEquals(action, currentAction)
     }
 
@@ -244,10 +255,12 @@ class PixelImageEditorActionRepositoryImplTest {
         val pixelImage1 = mockk<PixelImageModel>()
         val action1 = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage1)
+            every { action.pixelSelection }.returns(null)
         }
         val pixelImage2 = mockk<PixelImageModel>()
         val action2 = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage2)
+            every { action.pixelSelection }.returns(null)
         }
         repository.addAction(action1, mockk())
         repository.addAction(action2, mockk())
@@ -258,7 +271,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val result = repository.redoAction()
 
         // Then
-        assertEquals(pixelImage2, result)
+        assertEquals(pixelImage2, result?.first)
         assertEquals(action1, repository.getCurrentAction())
     }
 
@@ -268,6 +281,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val pixelImage = mockk<PixelImageModel>()
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage)
+            every { action.pixelSelection }.returns(null)
         }
         repository.addAction(action, mockk())
 
@@ -300,6 +314,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val pixelImage = mockk<PixelImageModel>()
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage)
+            every { action.pixelSelection }.returns(null)
         }
         repository.addAction(action, mockk())
 
@@ -316,6 +331,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val pixelImage = mockk<PixelImageModel>()
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage)
+            every { action.pixelSelection }.returns(null)
         }
         repository.addAction(action, mockk())
         repository.undoAction()
@@ -333,6 +349,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val pixelImage = mockk<PixelImageModel>()
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage)
+            every { action.pixelSelection }.returns(null)
         }
         repository.addAction(action, mockk())
 
@@ -349,6 +366,7 @@ class PixelImageEditorActionRepositoryImplTest {
         val pixelImage = mockk<PixelImageModel>()
         val action = mockk<PixelImageEditorAction>().also { action ->
             every { action.pixelImage }.returns(pixelImage)
+            every { action.pixelSelection }.returns(null)
         }
         repository.addAction(action, mockk())
         repository.undoAction()
@@ -408,6 +426,7 @@ class PixelImageEditorActionRepositoryImplTest {
             val pixelImage1 = mockk<PixelImageModel>()
             val action1 = mockk<PixelImageEditorAction>().also { action ->
                 every { action.pixelImage }.returns(pixelImage1)
+                every { action.pixelSelection }.returns(null)
             }
             repository.addAction(action1, mockk())
 
@@ -416,7 +435,7 @@ class PixelImageEditorActionRepositoryImplTest {
             val result = repository.undoAction()
 
             // Then
-            assertEquals(pixelImage1, result)
+            assertEquals(pixelImage1, result?.first)
         }
 
     @Test
@@ -426,6 +445,7 @@ class PixelImageEditorActionRepositoryImplTest {
             val pixelImage1 = mockk<PixelImageModel>()
             val action1 = mockk<PixelImageEditorAction>().also { action ->
                 every { action.pixelImage }.returns(pixelImage1)
+                every { action.pixelSelection }.returns(null)
             }
             repository.addAction(action1, mockk())
             val finalPixelImage = mockk<PixelImageModel>()
@@ -436,6 +456,6 @@ class PixelImageEditorActionRepositoryImplTest {
             val result = repository.redoAction()
 
             // Then
-            assertEquals(finalPixelImage, result)
+            assertEquals(finalPixelImage, result?.first)
         }
 }
