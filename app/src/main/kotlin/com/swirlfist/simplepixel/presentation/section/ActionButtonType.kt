@@ -11,6 +11,8 @@ sealed interface ActionButtonType {
 
     data object NoParentActionZoomButtonGroupType : NoParentActionButtonGroupType
 
+    data object NoParentActionSelectionButtonGroupType : NoParentActionButtonGroupType
+
     data object InkBucketActionButtonType : ActionIconButtonType(
         icon = R.drawable.ic_actions_section_ink_bucket_24dp,
         contentDescription = R.string.cd_actions_section_button_ink_bucket,
@@ -109,6 +111,26 @@ sealed interface ActionButtonType {
     data object TogglePreviewActionButtonType : ActionIconButtonType(
         icon = R.drawable.ic_actions_section_preview_24dp,
         contentDescription = R.string.cd_actions_section_button_toggle_preview,
+    ), ActionButtonType
+
+    data object SelectRectangleActionButtonType : ActionIconButtonType(
+        icon = R.drawable.ic_actions_section_select_rect_24dp,
+        contentDescription = R.string.cd_actions_section_button_select_rectangle,
+    ), ActionButtonType
+
+    data object SelectTouchActionButtonType : ActionIconButtonType(
+        icon = R.drawable.ic_actions_section_select_pointer_24dp,
+        contentDescription = R.string.cd_actions_section_button_select_touch,
+    ), ActionButtonType
+
+    data object SelectMagicWandActionButtonType : ActionIconButtonType(
+        icon = R.drawable.ic_actions_section_select_wand_24dp,
+        contentDescription = R.string.cd_actions_section_button_select_magic_wand,
+    ), ActionButtonType
+
+    data object DeselectActionButtonType : ActionIconButtonType(
+        icon = R.drawable.ic_actions_section_deselect_24dp,
+        contentDescription = R.string.cd_actions_section_button_deselect,
     ), ActionButtonType
 }
 

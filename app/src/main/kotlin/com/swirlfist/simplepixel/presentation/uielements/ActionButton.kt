@@ -35,7 +35,8 @@ fun ActionButton(
     ) {
         when (actionButtonType) {
             ActionButtonType.NoParentActionUndoRedoButtonGroupType,
-            ActionButtonType.NoParentActionZoomButtonGroupType
+            ActionButtonType.NoParentActionZoomButtonGroupType,
+            ActionButtonType.NoParentActionSelectionButtonGroupType,
                 -> {}
 
             ActionButtonType.InkBucketActionButtonType,
@@ -57,6 +58,10 @@ fun ActionButton(
             ActionButtonType.MoveImageRightActionButtonType,
             ActionButtonType.MoveImageUpActionButtonType,
             ActionButtonType.TogglePreviewActionButtonType,
+            ActionButtonType.SelectRectangleActionButtonType,
+            ActionButtonType.SelectTouchActionButtonType,
+            ActionButtonType.SelectMagicWandActionButtonType,
+            ActionButtonType.DeselectActionButtonType,
                 -> {
                 ActionIconButton(
                     modifier,

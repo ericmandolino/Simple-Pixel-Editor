@@ -388,7 +388,8 @@ fun SelectableButtonGroupDialogPreview() {
 
 fun ActionButtonType.toActionsSectionEvent(): ActionSectionEvent = when (this) {
     ActionButtonType.NoParentActionUndoRedoButtonGroupType,
-    ActionButtonType.NoParentActionZoomButtonGroupType
+    ActionButtonType.NoParentActionZoomButtonGroupType,
+    ActionButtonType.NoParentActionSelectionButtonGroupType,
         -> ActionSectionEvent.NoActionSectionEvent
 
     ActionButtonType.InkBucketActionButtonType -> ActionSectionEvent.InkBucketButtonClicked
@@ -414,4 +415,8 @@ fun ActionButtonType.toActionsSectionEvent(): ActionSectionEvent = when (this) {
     ActionButtonType.OpenPixelImageActionButtonType -> ActionSectionEvent.OpenPixelImageButtonClicked
     ActionButtonType.ExportPixelImageActionButtonType -> ActionSectionEvent.ExportPixelImageButtonClicked
     ActionButtonType.TogglePreviewActionButtonType -> ActionSectionEvent.TogglePreviewButtonClicked
+    ActionButtonType.SelectRectangleActionButtonType -> ActionSectionEvent.SelectRectangleActionButtonClicked
+    ActionButtonType.SelectTouchActionButtonType -> ActionSectionEvent.SelectTouchActionButtonClicked
+    ActionButtonType.SelectMagicWandActionButtonType -> ActionSectionEvent.SelectMagicWandActionButtonClicked
+    ActionButtonType.DeselectActionButtonType -> ActionSectionEvent.DeselectActionButtonClicked
 }

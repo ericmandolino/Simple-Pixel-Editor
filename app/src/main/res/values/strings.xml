@@ -3,6 +3,7 @@
     <string name="cd_new_image_screen_add_palette_color">Add palette color</string>
     <string name="cd_new_image_screen_edit_palette_color">Edit palette color %d</string>
     <string name="cd_new_image_screen_select_palette_preset">Select palette preset</string>
+    <string name="cd_actions_section_button_deselect">Deselect</string>
     <string name="cd_actions_section_button_edit_palette">Edit palette</string>
     <string name="cd_actions_section_button_export_pixel_image">Export pixel image</string>
     <string name="cd_actions_section_button_ink_bucket">Ink bucket</string>
@@ -17,6 +18,9 @@
     <string name="cd_actions_section_button_open_palette">Open palette</string>
     <string name="cd_actions_section_button_open_pixel_image">Open pixel image</string>
     <string name="cd_actions_section_button_pick_palette_color">Pick palette color %d</string>
+    <string name="cd_actions_section_button_select_magic_wand">Select magic wand</string>
+    <string name="cd_actions_section_button_select_rectangle">Select rectangle</string>
+    <string name="cd_actions_section_button_select_touch">Select touch</string>
     <string name="cd_actions_section_button_toggle_preview">Toggle preview</string>
     <string name="cd_actions_section_button_redo">Redo last action</string>
     <string name="cd_actions_section_button_save_pixel_image">Save pixel image</string>

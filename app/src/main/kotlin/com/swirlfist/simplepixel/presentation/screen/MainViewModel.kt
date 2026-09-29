@@ -31,6 +31,7 @@ import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.UseCaseParams
 import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.createPaletteButtons
+import com.swirlfist.simplepixel.presentation.isSelected
 import com.swirlfist.simplepixel.presentation.section.ActionButtonType
 import com.swirlfist.simplepixel.presentation.section.ActionSectionEvent
 import com.swirlfist.simplepixel.presentation.section.CanvasSectionEvent
@@ -139,6 +140,24 @@ class MainViewModel @Inject constructor(
                             ActionButtonType.TogglePreviewActionButtonType to ActionModel.ButtonActionModel(
                                 actionType = ActionButtonType.TogglePreviewActionButtonType,
                                 isSelected = true,
+                            ),
+                            ActionButtonType.NoParentActionSelectionButtonGroupType to ActionModel.SelectableButtonGroupActionModel(
+                                actionType = ActionButtonType.NoParentActionSelectionButtonGroupType,
+                                childButtonActionModels = listOf(
+                                    ActionModel.ButtonActionModel(
+                                        actionType = ActionButtonType.SelectRectangleActionButtonType,
+                                    ),
+                                    ActionModel.ButtonActionModel(
+                                        actionType = ActionButtonType.SelectTouchActionButtonType,
+                                    ),
+                                    ActionModel.ButtonActionModel(
+                                        actionType = ActionButtonType.SelectMagicWandActionButtonType,
+                                    ),
+                                ),
+                            ),
+                            ActionButtonType.DeselectActionButtonType to ActionModel.ButtonActionModel(
+                                actionType = ActionButtonType.DeselectActionButtonType,
+                                isEnabled = false,
                             ),
                             ActionButtonType.MoveImageActionButtonType to ActionModel.ButtonGroupActionModel(
                                 actionType = ActionButtonType.MoveImageActionButtonType,
@@ -401,6 +420,18 @@ class MainViewModel @Inject constructor(
 
             ActionSectionEvent.TogglePreviewButtonClicked
                 -> togglePreview()
+
+            ActionSectionEvent.SelectRectangleActionButtonClicked
+                -> toggleSelectRectangle()
+
+            ActionSectionEvent.SelectTouchActionButtonClicked
+                -> toggleSelectTouch()
+
+            ActionSectionEvent.SelectMagicWandActionButtonClicked
+                -> toggleSelectMagicWand()
+
+            ActionSectionEvent.DeselectActionButtonClicked
+                -> deselectPreviouslySelected()
         }
     }
 
@@ -517,6 +548,40 @@ class MainViewModel @Inject constructor(
 
     private fun togglePreview() {
         toggleSelectableActionButton(ActionButtonType.TogglePreviewActionButtonType)
+    }
+
+    private fun toggleSelectRectangle() {
+        toggleSelectButton(ActionButtonType.SelectRectangleActionButtonType)
+    }
+
+    private fun toggleSelectTouch() {
+        toggleSelectButton(ActionButtonType.SelectTouchActionButtonType)
+    }
+
+    private fun toggleSelectMagicWand() {
+        toggleSelectButton(ActionButtonType.SelectMagicWandActionButtonType)
+    }
+
+    private fun toggleSelectButton(
+        actionButtonType: ActionButtonType,
+    ) {
+        _mainScreenState.update { state ->
+            val actionsSectionState = state.actionsSectionState.updateSelectedChildButton(
+                actionButtonType,
+                isToggle = true,
+            )
+            state.copy(
+                actionsSectionState = if (actionsSectionState.isSelected(actionButtonType)) {
+                    actionsSectionState.disablePaintButtons()
+                } else {
+                    actionsSectionState.enablePaintButtons()
+                }
+            )
+        }
+    }
+
+    private fun deselectPreviouslySelected() {
+
     }
 
     private fun updateSelectedPaletteIndex(
@@ -988,6 +1053,7 @@ private fun ActionsSectionState.toggleSelectableButton(
 
 private fun ActionsSectionState.updateSelectedChildButton(
     actionButtonType: ActionButtonType,
+    isToggle: Boolean = false,
 ): ActionsSectionState {
     val parentActionModel = actionModels.values.find { actionModel ->
         actionModel is ActionModel.SelectableButtonGroupActionModel &&
@@ -1007,8 +1073,13 @@ private fun ActionsSectionState.updateSelectedChildButton(
                         parentActionModel.actionType,
                         parentActionModel.copy(
                             childButtonActionModels = parentActionModel.childButtonActionModels.map { child ->
+                                val isSelected = if (isToggle) {
+                                    (child.actionType == actionButtonType) && !child.isSelected
+                                } else {
+                                    child.actionType == actionButtonType
+                                }
                                 child.copy(
-                                    isSelected = child.actionType == actionButtonType,
+                                    isSelected = isSelected,
                                 )
                             }
                         )
@@ -1017,6 +1088,32 @@ private fun ActionsSectionState.updateSelectedChildButton(
             )
         }
     }
+}
+
+private fun ActionsSectionState.enablePaintButtons() = setPaintButtonsEnabled(true)
+
+private fun ActionsSectionState.disablePaintButtons() = setPaintButtonsEnabled(false)
+
+private fun ActionsSectionState.setPaintButtonsEnabled(
+    isEnabled: Boolean,
+) : ActionsSectionState {
+    val openToolsButtonGroup = actionModels[ActionButtonType.OpenToolsActionButtonType] as ActionModel.SelectableButtonGroupActionModel
+    val childButtons = openToolsButtonGroup.childButtonActionModels
+
+    return copy(
+        actionModels = actionModels.toMutableMap().apply {
+            put(
+                ActionButtonType.OpenToolsActionButtonType,
+                openToolsButtonGroup.copy(
+                    childButtonActionModels = childButtons.map { childButton ->
+                        childButton.copy(
+                            isEnabled = isEnabled,
+                        )
+                    }
+                ),
+            )
+        }
+    )
 }
 
 private fun ActionsSectionState.updatePaletteButtons(
@@ -1045,21 +1142,9 @@ private fun MainScreenState.getPaletteIndex(): Int {
     }
 }
 
-private fun MainScreenState.isEraserSelected() = actionsSectionState.isEraserSelected()
-
-private fun ActionsSectionState.isEraserSelected(): Boolean {
-    actionModels.values.forEach { actionModel ->
-        if (actionModel is ActionModel.SelectableButtonGroupActionModel) {
-            actionModel.childButtonActionModels.forEach { childActionModel ->
-                if (childActionModel.actionType is ActionButtonType.InkEraserActionButtonType) {
-                    return childActionModel.isSelected
-                }
-            }
-        }
-    }
-
-    return false
-}
+private fun MainScreenState.isEraserSelected() = actionsSectionState.isSelected(
+    ActionButtonType.InkEraserActionButtonType,
+)
 
 private fun MainScreenState.getSelectedPaintTool() = actionsSectionState.getSelectedPaintTool()
 
