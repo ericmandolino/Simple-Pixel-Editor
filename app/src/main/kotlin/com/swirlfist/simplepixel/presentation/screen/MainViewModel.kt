@@ -27,6 +27,7 @@ import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.RedoEditorActionUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.SelectWithMagicWandUseCase
 import com.swirlfist.simplepixel.domain.usecase.TogglePixelSelectionUseCase
 import com.swirlfist.simplepixel.domain.usecase.UndoEditorActionUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
@@ -75,6 +76,7 @@ class MainViewModel @Inject constructor(
     private val redoEditorActionUseCase: RedoEditorActionUseCase,
     private val clearEditorActionUseCase: ClearEditorActionsUseCase,
     private val togglePixelSelectionUseCase: TogglePixelSelectionUseCase,
+    private val selectWithMagicWandUseCase: SelectWithMagicWandUseCase,
 ) : ViewModel() {
     private val _mainScreenState = MutableStateFlow(
         value = MainScreenState(
@@ -86,8 +88,6 @@ class MainViewModel @Inject constructor(
         )
     )
     val mainScreenState = _mainScreenState.asStateFlow()
-
-    private var isVisitingPixels = false
 
     init {
         viewModelScope.launch {
@@ -448,17 +448,40 @@ class MainViewModel @Inject constructor(
         when {
             mainScreenState.isSelectRectSelected() -> {} // TODO
             mainScreenState.isSelectTouchSelected() -> togglePixelSelected(x, y)
-            mainScreenState.isSelectMagicWandSelected() -> {} // TODO
             selectedPaintTool is ActionButtonType.InkPenActionButtonType -> updatePixelColor(x, y)
             selectedPaintTool is ActionButtonType.InkBucketActionButtonType -> applyBucket(x, y)
             else -> {}
         }
 
-        isVisitingPixels = true
+        _mainScreenState.update { state ->
+            state.copy(
+                canvasSectionState = state.canvasSectionState.copy(
+                    isVisitingPixels = true,
+                    lastVisitedPixel = Pair(x, y),
+                )
+            )
+        }
     }
 
     private fun onPixelVisitFinish() {
-        isVisitingPixels = false
+        val mainScreenState = _mainScreenState.value
+
+        when {
+            mainScreenState.isSelectMagicWandSelected() -> {
+                mainScreenState.canvasSectionState.lastVisitedPixel?.let { (x, y) ->
+                    selectWithMagicWand(x, y)
+                }
+            }
+            else -> {}
+        }
+
+        _mainScreenState.update { state ->
+            state.copy(
+                canvasSectionState = state.canvasSectionState.copy(
+                    isVisitingPixels = false,
+                )
+            )
+        }
     }
 
     private fun updatePixelImage(
@@ -519,14 +542,42 @@ class MainViewModel @Inject constructor(
                         )
                     }
                 },
-                failureBlock = { },
                 params = TogglePixelSelectionUseCase.Params(
                     pixelImageModel = pixelImage,
                     pixelSelectionModel = canvasSectionState.pixelSelectionModel,
                     x,
                     y,
-                    isSameAction = isVisitingPixels,
+                    isSameAction = canvasSectionState.isVisitingPixels,
                 )
+            )
+        }
+    }
+
+    private fun selectWithMagicWand(
+        x: Int,
+        y: Int,
+    ) {
+        val mainScreenState = _mainScreenState.value
+        val canvasSectionState = mainScreenState.canvasSectionState
+        val pixelImage = canvasSectionState.pixelImageModel ?: return
+
+        viewModelScope.launch {
+            selectWithMagicWandUseCase.execute(
+                successBlock = { pixelSelection ->
+                    _mainScreenState.update { state ->
+                        state.copy(
+                            canvasSectionState = state.canvasSectionState.copy(
+                                pixelSelectionModel = pixelSelection,
+                            )
+                        )
+                    }
+                },
+                params = SelectWithMagicWandUseCase.Params(
+                    pixelImageModel = pixelImage,
+                    pixelSelectionModel = canvasSectionState.pixelSelectionModel,
+                    x,
+                    y,
+                ),
             )
         }
     }
@@ -536,7 +587,8 @@ class MainViewModel @Inject constructor(
         y: Int,
     ) {
         val mainScreenState = _mainScreenState.value
-        val pixelImage = mainScreenState.canvasSectionState.pixelImageModel ?: return
+        val canvasSectionState = mainScreenState.canvasSectionState
+        val pixelImage = canvasSectionState.pixelImageModel ?: return
         val paletteIndex = mainScreenState.getPaletteIndex()
 
         viewModelScope.launch {
@@ -550,7 +602,7 @@ class MainViewModel @Inject constructor(
                     x = x,
                     y = y,
                     paletteIndex,
-                    isSameAction = isVisitingPixels,
+                    isSameAction = canvasSectionState.isVisitingPixels,
                 ),
             )
         }
@@ -560,8 +612,10 @@ class MainViewModel @Inject constructor(
         x: Int,
         y: Int,
     ) {
-        val pixelImage = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
-        val paletteIndex = _mainScreenState.value.getPaletteIndex()
+        val mainScreenState = _mainScreenState.value
+        val canvasSectionState = mainScreenState.canvasSectionState
+        val pixelImage = canvasSectionState.pixelImageModel ?: return
+        val paletteIndex = mainScreenState.getPaletteIndex()
 
         viewModelScope.launch {
             applyBucketUseCase.execute(
@@ -574,7 +628,7 @@ class MainViewModel @Inject constructor(
                     x = x,
                     y = y,
                     paletteIndex,
-                    isSameAction = isVisitingPixels,
+                    isSameAction = canvasSectionState.isVisitingPixels,
                 ),
             )
         }
@@ -1210,7 +1264,7 @@ private fun MainScreenState.isSelectTouchSelected() = actionsSectionState.isSele
 )
 
 private fun MainScreenState.isSelectMagicWandSelected() = actionsSectionState.isSelected(
-    ActionButtonType.SelectTouchActionButtonType,
+    ActionButtonType.SelectMagicWandActionButtonType,
 )
 
 private fun MainScreenState.getSelectedPaintTool() = actionsSectionState.getSelectedPaintTool()

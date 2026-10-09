@@ -36,5 +36,12 @@ sealed interface PixelImageEditorAction {
         val y: Int,
         val selected: Boolean,
     ) : PixelImageEditorAction
+
+    data class SelectMagicWandAction(
+        override val pixelImage: PixelImageModel,
+        override val pixelSelection: PixelSelectionModel,
+        val x: Int,
+        val y: Int,
+    ) : PixelImageEditorAction
 }
 

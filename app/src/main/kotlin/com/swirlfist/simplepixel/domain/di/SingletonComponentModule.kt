@@ -28,6 +28,8 @@ import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.SelectWithMagicWandUseCase
+import com.swirlfist.simplepixel.domain.usecase.SelectWithMagicWandUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.TogglePixelSelectionUseCase
 import com.swirlfist.simplepixel.domain.usecase.TogglePixelSelectionUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.UndoEditorActionUseCase
@@ -134,4 +136,9 @@ abstract class SingletonComponentModule {
     abstract fun bindTogglePixelSelectionUseCase(
         impl: TogglePixelSelectionUseCaseImpl,
     ): TogglePixelSelectionUseCase
+
+    @Binds
+    abstract fun bindSelectWithMagicWandUseCase(
+        impl: SelectWithMagicWandUseCaseImpl,
+    ): SelectWithMagicWandUseCase
 }

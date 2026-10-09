@@ -68,7 +68,7 @@ class TogglePixelSelectionUseCaseImpl @Inject constructor(
             pixelImageEditorActionRepository.addAction(
                 PixelImageEditorAction.SelectTouchAction(
                     pixelImage,
-                    pixelSelection = pixelSelection,
+                    pixelSelection,
                     x,
                     y,
                     selected = !pixelInSelection,

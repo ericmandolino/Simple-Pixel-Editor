@@ -8,4 +8,6 @@ data class CanvasSectionState(
     val pixelSelectionModel: PixelSelectionModel? = null,
     val zoomFactor: Float = 1F,
     val isShowGridEnabled: Boolean = true,
+    val isVisitingPixels: Boolean = false,
+    val lastVisitedPixel: Pair<Int, Int>? = null,
 )
