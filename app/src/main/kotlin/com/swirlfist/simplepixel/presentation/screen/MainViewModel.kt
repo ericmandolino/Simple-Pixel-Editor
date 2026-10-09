@@ -679,24 +679,24 @@ class MainViewModel @Inject constructor(
 
     private fun undoEditorAction() {
         viewModelScope.launch {
-            undoEditorActionUseCase(UseCaseParams.NoParams).fold(
-                onSuccess = { (pixelImage, pixelSelection) ->
+            undoEditorActionUseCase.execute(
+                successBlock = { (pixelImage, pixelSelection) ->
                     updatePixelImage(pixelImage)
                     updatePixelSelection(pixelSelection)
                 },
-                onFailure = {}, // TODO
+                params = UseCaseParams.NoParams,
             )
         }
     }
 
     private fun redoEditorAction() {
         viewModelScope.launch {
-            redoEditorActionUseCase(UseCaseParams.NoParams).fold(
-                onSuccess = { (pixelImage, pixelSelection) ->
+            redoEditorActionUseCase.execute(
+                successBlock = { (pixelImage, pixelSelection) ->
                     updatePixelImage(pixelImage)
                     updatePixelSelection(pixelSelection)
                 },
-                onFailure = {}, // TODO
+                params = UseCaseParams.NoParams,
             )
         }
     }

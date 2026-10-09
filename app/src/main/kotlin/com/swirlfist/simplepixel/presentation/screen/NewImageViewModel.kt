@@ -9,6 +9,7 @@ import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.usecase.DeletePalettePresetUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdateBasePixelImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.state.NewImagePaletteState
 import com.swirlfist.simplepixel.presentation.state.NewImageScreenState
 import com.swirlfist.simplepixel.presentation.state.PaletteEditState
@@ -117,16 +118,8 @@ class NewImageViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            savePalettePresetUseCase(
-                SavePalettePresetUseCase.Params(
-                    PalettePresetModel(
-                        id = 0,
-                        name = presetName,
-                        palette = PaletteModel(paletteColors),
-                    )
-                )
-            ).fold(
-                onSuccess = {
+            savePalettePresetUseCase.execute(
+                successBlock = {
                     _newImageScreenState.update { state ->
                         state.copy(
                             paletteState = state.paletteState.copy(
@@ -135,7 +128,7 @@ class NewImageViewModel @Inject constructor(
                         )
                     }
                 },
-                onFailure = {
+                failureBlock = {
                     _newImageScreenState.update { state ->
                         state.copy(
                             paletteState = state.paletteState.copy(
@@ -145,6 +138,13 @@ class NewImageViewModel @Inject constructor(
                     }
                     // TODO: display error
                 },
+                params = SavePalettePresetUseCase.Params(
+                    PalettePresetModel(
+                        id = 0,
+                        name = presetName,
+                        palette = PaletteModel(paletteColors),
+                    )
+                ),
             )
         }
     }
@@ -177,10 +177,10 @@ class NewImageViewModel @Inject constructor(
         preset: PalettePresetModel,
     ) {
         viewModelScope.launch {
-            deletePalettePresetUseCase(
-                DeletePalettePresetUseCase.Params(
+            deletePalettePresetUseCase.execute(
+                params = DeletePalettePresetUseCase.Params(
                     preset,
-                )
+                ),
             )
         }
     }

@@ -9,8 +9,8 @@ interface UseCase<P : UseCaseParams, T> {
 }
 
 suspend fun <P : UseCaseParams, T> UseCase<P, T>.execute(
-    successBlock: (T) -> Unit,
-    failureBlock: (Throwable) -> Unit,
+    successBlock: (T) -> Unit = {},
+    failureBlock: (Throwable) -> Unit = {},
     params: P,
     coroutineDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) = withContext(coroutineDispatcher) {
