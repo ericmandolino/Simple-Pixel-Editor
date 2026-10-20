@@ -9,24 +9,24 @@ sealed interface PixelImageEditorAction {
 
     data class ApplyPixelColorAction(
         override val pixelImage: PixelImageModel,
+        override val pixelSelection: PixelSelectionModel?,
         val x: Int,
         val y: Int,
         val paletteIndex: Int,
-        override val pixelSelection: PixelSelectionModel? = null,
     ) : PixelImageEditorAction
 
     data class ApplyBucketColorAction(
         override val pixelImage: PixelImageModel,
+        override val pixelSelection: PixelSelectionModel?,
         val x: Int,
         val y: Int,
         val paletteIndex: Int,
-        override val pixelSelection: PixelSelectionModel? = null,
     ) : PixelImageEditorAction
 
     data class MoveImageAction(
         override val pixelImage: PixelImageModel,
+        override val pixelSelection: PixelSelectionModel?,
         val moveDirection: MoveDirection,
-        override val pixelSelection: PixelSelectionModel? = null,
     ) : PixelImageEditorAction
 
     data class SelectTouchAction(

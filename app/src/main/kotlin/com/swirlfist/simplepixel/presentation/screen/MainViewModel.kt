@@ -448,6 +448,7 @@ class MainViewModel @Inject constructor(
         when {
             mainScreenState.isSelectRectSelected() -> {} // TODO
             mainScreenState.isSelectTouchSelected() -> togglePixelSelected(x, y)
+            mainScreenState.isSelectMagicWandSelected() -> {}
             selectedPaintTool is ActionButtonType.InkPenActionButtonType -> updatePixelColor(x, y)
             selectedPaintTool is ActionButtonType.InkBucketActionButtonType -> applyBucket(x, y)
             else -> {}
@@ -590,6 +591,7 @@ class MainViewModel @Inject constructor(
         val canvasSectionState = mainScreenState.canvasSectionState
         val pixelImage = canvasSectionState.pixelImageModel ?: return
         val paletteIndex = mainScreenState.getPaletteIndex()
+        val pixelSelection = canvasSectionState.pixelSelectionModel
 
         viewModelScope.launch {
             updatePixelColorUseCase.execute(
@@ -599,6 +601,7 @@ class MainViewModel @Inject constructor(
                 failureBlock = { },
                 params = UpdatePixelColorUseCase.Params(
                     pixelImageModel = pixelImage,
+                    pixelSelectionModel = pixelSelection,
                     x = x,
                     y = y,
                     paletteIndex,
@@ -616,6 +619,7 @@ class MainViewModel @Inject constructor(
         val canvasSectionState = mainScreenState.canvasSectionState
         val pixelImage = canvasSectionState.pixelImageModel ?: return
         val paletteIndex = mainScreenState.getPaletteIndex()
+        val pixelSelection = canvasSectionState.pixelSelectionModel
 
         viewModelScope.launch {
             applyBucketUseCase.execute(
@@ -625,6 +629,7 @@ class MainViewModel @Inject constructor(
                 failureBlock = { },
                 params = ApplyBucketUseCase.Params(
                     pixelImageModel = pixelImage,
+                    pixelSelectionModel = pixelSelection,
                     x = x,
                     y = y,
                     paletteIndex,
@@ -637,7 +642,9 @@ class MainViewModel @Inject constructor(
     private fun moveImage(
         direction: MoveDirection
     ) {
-        val pixelImage = _mainScreenState.value.canvasSectionState.pixelImageModel ?: return
+        val canvasSectionState = _mainScreenState.value.canvasSectionState
+        val pixelImage = canvasSectionState.pixelImageModel ?: return
+        val pixelSelection = canvasSectionState.pixelSelectionModel
 
         viewModelScope.launch {
             moveImageUseCaseImpl.execute(
@@ -647,6 +654,7 @@ class MainViewModel @Inject constructor(
                 failureBlock = { },
                 params = MoveImageUseCase.Params(
                     pixelImageModel = pixelImage,
+                    pixelSelectionModel = pixelSelection,
                     moveDirection = direction,
                 ),
             )

@@ -4,6 +4,7 @@ import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepositor
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
+import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import javax.inject.Inject
 
@@ -14,6 +15,7 @@ class ApplyBucketUseCaseImpl @Inject constructor(
         return Result.success(
             applyBucket(
                 pixelImage = params.pixelImageModel,
+                pixelSelection = params.pixelSelectionModel,
                 x = params.x,
                 y = params.y,
                 paletteIndex = params.paletteIndex,
@@ -24,6 +26,7 @@ class ApplyBucketUseCaseImpl @Inject constructor(
 
     private suspend fun applyBucket(
         pixelImage: PixelImageModel,
+        pixelSelection: PixelSelectionModel?,
         x: Int,
         y: Int,
         paletteIndex: Int,
@@ -60,6 +63,7 @@ class ApplyBucketUseCaseImpl @Inject constructor(
             pixelImageEditorActionRepository.addAction(
                 PixelImageEditorAction.ApplyBucketColorAction(
                     pixelImage,
+                    pixelSelection,
                     x,
                     y,
                     paletteIndex,

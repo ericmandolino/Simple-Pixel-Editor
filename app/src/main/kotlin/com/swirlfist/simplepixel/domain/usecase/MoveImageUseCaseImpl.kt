@@ -6,6 +6,7 @@ import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
+import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import com.swirlfist.simplepixel.presentation.isBlank
 import javax.inject.Inject
 
@@ -16,6 +17,7 @@ class MoveImageUseCaseImpl @Inject constructor(
         return Result.success(
             moveImage(
                 pixelImage = params.pixelImageModel,
+                pixelSelection = params.pixelSelectionModel,
                 moveDirection = params.moveDirection,
             )
         )
@@ -23,6 +25,7 @@ class MoveImageUseCaseImpl @Inject constructor(
 
     private suspend fun moveImage(
         pixelImage: PixelImageModel,
+        pixelSelection: PixelSelectionModel?,
         moveDirection: MoveDirection,
     ): PixelImageModel {
         if (pixelImage.pixelMatrixModel.isBlank()) {
@@ -39,6 +42,7 @@ class MoveImageUseCaseImpl @Inject constructor(
         pixelImageEditorActionRepository.addAction(
             PixelImageEditorAction.MoveImageAction(
                 pixelImage,
+                pixelSelection,
                 moveDirection,
             ),
             pixelImageResult,
