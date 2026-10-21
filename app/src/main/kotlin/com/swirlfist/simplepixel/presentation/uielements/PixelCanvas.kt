@@ -35,6 +35,7 @@ import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
 import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
+import com.swirlfist.simplepixel.domain.model.RectangleSelectionModel
 import com.swirlfist.simplepixel.presentation.getColor
 import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.getPixelHeight
@@ -48,6 +49,8 @@ private const val NO_ZOOM_FACTOR = 1F
 private const val PIXEL_SIZE_DP_CANVAS = 32
 private const val PIXEL_SIZE_DP_PREVIEW = 1
 private const val SELECTION_STROKE_WIDTH_DP = 3
+private const val SELECTION_RESIZE_SQUARE_SIZE_DP = 16
+private const val SELECTION_RESIZE_SQUARE_BORDER_WIDTH_DP = 1
 private const val PAN_VS_ZOOM_FACTOR = 0.025F
 private const val ZOOM_STEP = 0.025F
 const val MAX_ZOOM_FACTOR = 2F
@@ -497,6 +500,14 @@ private fun DrawScope.drawCanvas(
     }
 
     drawSelectionLines(selectionLines)
+    drawRectangleSelection(
+        rectangleSelection = pixelSelection?.rectangleSelection,
+        pixelSizeInt,
+        canvasSize,
+        imageOffset.value,
+        marginX,
+        marginY,
+    )
 }
 
 private fun DrawScope.drawBorders(
@@ -537,27 +548,207 @@ private fun DrawScope.drawSelectionLines(
 
     val strokeWidth = SELECTION_STROKE_WIDTH_DP.dp.toPx()
     selectionLines.forEach { (start, end) ->
-        drawLine(
-            color = Color.Black,
-            strokeWidth = strokeWidth,
-            start = start,
-            end = end,
-            pathEffect = PathEffect.dashPathEffect(
-                intervals = floatArrayOf(10F, 10F),
-                phase = 0F
-            )
+        drawSelectionLine(start, end, strokeWidth)
+    }
+}
+
+private fun DrawScope.drawSelectionLine(
+    start: Offset,
+    end: Offset,
+    strokeWidth: Float,
+    color1: Color = Color.Black,
+    color2: Color = Color.White,
+) {
+    drawLine(
+        color = color1,
+        strokeWidth = strokeWidth,
+        start = start,
+        end = end,
+        pathEffect = PathEffect.dashPathEffect(
+            intervals = floatArrayOf(10F, 10F),
+            phase = 0F
         )
-        drawLine(
-            color = Color.White,
-            strokeWidth = strokeWidth,
-            start = start,
-            end = end,
-            pathEffect = PathEffect.dashPathEffect(
-                intervals = floatArrayOf(10F, 10F),
-                phase = 30F
-            )
+    )
+    drawLine(
+        color = color2,
+        strokeWidth = strokeWidth,
+        start = start,
+        end = end,
+        pathEffect = PathEffect.dashPathEffect(
+            intervals = floatArrayOf(10F, 10F),
+            phase = 30F
+        )
+    )
+}
+
+private fun DrawScope.drawRectangleSelection(
+    rectangleSelection: RectangleSelectionModel?,
+    pixelSizeInt: Int,
+    canvasSize: Size,
+    imageOffset: Offset,
+    marginX: Float,
+    marginY: Float,
+) {
+    if (rectangleSelection == null) {
+        return
+    }
+
+    val strokeWidth = SELECTION_STROKE_WIDTH_DP.dp.toPx()
+    val resizeSquareSize = SELECTION_RESIZE_SQUARE_SIZE_DP.dp.toPx()
+    val resizeSquareBorderWidth = SELECTION_RESIZE_SQUARE_BORDER_WIDTH_DP.dp.toPx()
+
+    val xSelectionOffset = rectangleSelection.offset.first * pixelSizeInt
+    val ySelectionOffset = rectangleSelection.offset.second * pixelSizeInt
+    val rectMinX = xSelectionOffset - imageOffset.x + marginX
+    val rectMinY = ySelectionOffset - imageOffset.y + marginY
+    val rectMaxX = rectMinX + rectangleSelection.size.first * pixelSizeInt
+    val rectMaxY = rectMinY + rectangleSelection.size.second * pixelSizeInt
+
+    val minXVisible = rectMinX >= 0 && rectMinX < canvasSize.width
+    val maxXVisible = rectMaxX >= 0 && rectMaxX < canvasSize.width
+    val minYVisible = rectMinY >= 0 && rectMinY < canvasSize.height
+    val maxYVisible = rectMaxY >= 0 && rectMaxY < canvasSize.height
+
+    if (minYVisible) {
+        drawRectangleSelectionHorizontalLine(
+            startX = max(0F, rectMinX),
+            endX = min(canvasSize.width, rectMaxX),
+            y = rectMinY,
+            strokeWidth,
         )
     }
+
+    if (maxYVisible) {
+        drawRectangleSelectionHorizontalLine(
+            startX = max(0F, rectMinX),
+            endX = min(canvasSize.width, rectMaxX),
+            y = rectMaxY,
+            strokeWidth,
+        )
+    }
+
+    if (minXVisible) {
+        drawRectangleSelectionVerticalLine(
+            startY = max(0F, rectMinY),
+            endY = min(canvasSize.height, rectMaxY),
+            x = rectMinX,
+            strokeWidth,
+        )
+    }
+
+    if (maxXVisible) {
+        drawRectangleSelectionVerticalLine(
+            startY = max(0F, rectMinY),
+            endY = min(canvasSize.height, rectMaxY),
+            x = rectMaxX,
+            strokeWidth,
+        )
+    }
+
+    val lowerLeftCornerVisible = minXVisible && maxYVisible
+    val upperLeftCornerVisible = minXVisible && minYVisible
+    val lowerRightCornerVisible = maxXVisible && maxYVisible
+    val upperRightCornerVisible = maxXVisible && minYVisible
+
+    if (lowerLeftCornerVisible) {
+        drawRectangleSelectionResizeSquare(rectMinX, rectMaxY, resizeSquareSize, resizeSquareBorderWidth)
+    }
+
+    if (upperLeftCornerVisible) {
+        drawRectangleSelectionResizeSquare(rectMinX, rectMinY, resizeSquareSize, resizeSquareBorderWidth)
+    }
+
+    if (lowerRightCornerVisible) {
+        drawRectangleSelectionResizeSquare(rectMaxX, rectMaxY, resizeSquareSize, resizeSquareBorderWidth)
+    }
+
+    if (upperRightCornerVisible) {
+        drawRectangleSelectionResizeSquare(rectMaxX, rectMinY, resizeSquareSize, resizeSquareBorderWidth)
+    }
+
+    val rectMiddleX = rectMinX + (rectMaxX - rectMinX) / 2
+    val rectMiddleY = rectMinY + (rectMaxY - rectMinY) / 2
+    val middleXVisible = rectMiddleX >= 0 && rectMiddleX < canvasSize.width
+    val middleYVisible = rectMiddleY >= 0 && rectMiddleY < canvasSize.height
+    val lowerMiddleVisible = middleXVisible && maxYVisible
+    val upperMiddleVisible = middleXVisible && minYVisible
+    val leftMiddleVisible = minXVisible && middleYVisible
+    val rightMiddleVisible = maxXVisible && middleYVisible
+
+    if (lowerMiddleVisible) {
+        drawRectangleSelectionResizeSquare(rectMiddleX, rectMaxY, resizeSquareSize, resizeSquareBorderWidth)
+    }
+
+    if (upperMiddleVisible) {
+        drawRectangleSelectionResizeSquare(rectMiddleX, rectMinY, resizeSquareSize, resizeSquareBorderWidth)
+    }
+
+    if (leftMiddleVisible) {
+        drawRectangleSelectionResizeSquare(rectMinX, rectMiddleY, resizeSquareSize, resizeSquareBorderWidth)
+    }
+
+    if (rightMiddleVisible) {
+        drawRectangleSelectionResizeSquare(rectMaxX, rectMiddleY, resizeSquareSize, resizeSquareBorderWidth)
+    }
+}
+
+private fun DrawScope.drawRectangleSelectionHorizontalLine(
+    startX: Float,
+    endX: Float,
+    y: Float,
+    strokeWidth: Float,
+) {
+    val start = Offset(
+        x = startX,
+        y,
+    )
+    val end = Offset(
+        x = endX,
+        y,
+    )
+    drawSelectionLine(start, end, strokeWidth)
+}
+
+private fun DrawScope.drawRectangleSelectionVerticalLine(
+    startY: Float,
+    endY: Float,
+    x: Float,
+    strokeWidth: Float,
+) {
+    val start = Offset(
+        x,
+        y = startY,
+    )
+    val end = Offset(
+        x,
+        y = endY,
+    )
+    drawSelectionLine(start, end, strokeWidth)
+}
+
+private fun DrawScope.drawRectangleSelectionResizeSquare(
+    x: Float,
+    y: Float,
+    size: Float,
+    borderWidth: Float,
+    color: Color = Color.White,
+    borderColor: Color = Color.Black,
+) {
+    val halfSize = size / 2
+    drawRect(
+        borderColor,
+        topLeft = Offset(x - halfSize, y - halfSize),
+        size = Size(size, size),
+    )
+
+    val borderlessSize = size - 2 * borderWidth
+    val halfBorderlessSize = borderlessSize / 2
+
+    drawRect(
+        color,
+        topLeft = Offset(x - halfBorderlessSize, y - halfBorderlessSize),
+        size = Size(borderlessSize, borderlessSize),
+    )
 }
 
 private fun adjustImageOffset(

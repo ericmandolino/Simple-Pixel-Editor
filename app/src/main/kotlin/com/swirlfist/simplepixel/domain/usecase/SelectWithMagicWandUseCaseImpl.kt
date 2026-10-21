@@ -58,7 +58,9 @@ class SelectWithMagicWandUseCaseImpl @Inject constructor(
             paletteIndexToSelect = pixel.paletteIndex,
         )
 
-        val updatedPixelSelection = PixelSelectionModel(mutableSelectionMatrix.toList())
+        val updatedPixelSelection = pixelSelection.copy(
+            selected = mutableSelectionMatrix.toList()
+        )
 
         if (updatedPixelSelection != pixelSelection) {
             pixelImageEditorActionRepository.addAction(

@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.tooling.preview.Preview
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
+import com.swirlfist.simplepixel.domain.model.RectangleSelectionModel
 import com.swirlfist.simplepixel.presentation.createSelection
 import com.swirlfist.simplepixel.presentation.state.CanvasSectionState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
@@ -54,6 +55,11 @@ fun CanvasSectionPreview() {
                 Pair(2, 3),
                 Pair(0, 1),
             )
+        ).copy(
+            rectangleSelection = RectangleSelectionModel(
+                offset = Pair(3, 2),
+                size = Pair(1, 2),
+            )
         )
 
         CanvasSection(
@@ -87,6 +93,11 @@ fun CanvasSectionZoomedPreview() {
                 Pair(1, 1),
                 Pair(2, 3),
                 Pair(0, 1),
+            )
+        ).copy(
+            rectangleSelection = RectangleSelectionModel(
+                offset = Pair(2, 2),
+                size = Pair(1, 2),
             )
         )
 
