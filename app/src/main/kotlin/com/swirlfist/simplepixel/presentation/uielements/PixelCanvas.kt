@@ -609,86 +609,172 @@ private fun DrawScope.drawRectangleSelection(
     val minYVisible = rectMinY >= 0 && rectMinY < canvasSize.height
     val maxYVisible = rectMaxY >= 0 && rectMaxY < canvasSize.height
 
-    if (minYVisible) {
+    val rectangleSelectionContext = RectangleSelectionContext(
+        rectMinX,
+        rectMaxX,
+        rectMinY,
+        rectMaxY,
+        minXVisible,
+        maxXVisible,
+        minYVisible,
+        maxYVisible,
+        canvasSize,
+    )
+
+    drawRectangleSelectionLines(
+        rectangleSelectionContext,
+        strokeWidth,
+    )
+
+    drawRectangleSelectionCornerSquares(
+        rectangleSelectionContext,
+        resizeSquareSize,
+        resizeSquareBorderWidth,
+    )
+
+    drawRectangleSelectionMiddleSquares(
+        rectangleSelectionContext,
+        resizeSquareSize,
+        resizeSquareBorderWidth
+    )
+}
+
+private fun DrawScope.drawRectangleSelectionLines(
+    context: RectangleSelectionContext,
+    strokeWidth: Float,
+) {
+    if (context.minYVisible) {
         drawRectangleSelectionHorizontalLine(
-            startX = max(0F, rectMinX),
-            endX = min(canvasSize.width, rectMaxX),
-            y = rectMinY,
+            startX = max(0F, context.rectMinX),
+            endX = min(context.canvasSize.width, context.rectMaxX),
+            y = context.rectMinY,
             strokeWidth,
         )
     }
 
-    if (maxYVisible) {
+    if (context.maxYVisible) {
         drawRectangleSelectionHorizontalLine(
-            startX = max(0F, rectMinX),
-            endX = min(canvasSize.width, rectMaxX),
-            y = rectMaxY,
+            startX = max(0F, context.rectMinX),
+            endX = min(context.canvasSize.width, context.rectMaxX),
+            y = context.rectMaxY,
             strokeWidth,
         )
     }
 
-    if (minXVisible) {
+    if (context.minXVisible) {
         drawRectangleSelectionVerticalLine(
-            startY = max(0F, rectMinY),
-            endY = min(canvasSize.height, rectMaxY),
-            x = rectMinX,
+            startY = max(0F, context.rectMinY),
+            endY = min(context.canvasSize.height, context.rectMaxY),
+            x = context.rectMinX,
             strokeWidth,
         )
     }
 
-    if (maxXVisible) {
+    if (context.maxXVisible) {
         drawRectangleSelectionVerticalLine(
-            startY = max(0F, rectMinY),
-            endY = min(canvasSize.height, rectMaxY),
-            x = rectMaxX,
+            startY = max(0F, context.rectMinY),
+            endY = min(context.canvasSize.height, context.rectMaxY),
+            x = context.rectMaxX,
             strokeWidth,
         )
     }
+}
 
-    val lowerLeftCornerVisible = minXVisible && maxYVisible
-    val upperLeftCornerVisible = minXVisible && minYVisible
-    val lowerRightCornerVisible = maxXVisible && maxYVisible
-    val upperRightCornerVisible = maxXVisible && minYVisible
+private fun DrawScope.drawRectangleSelectionCornerSquares(
+    context: RectangleSelectionContext,
+    resizeSquareSize: Float,
+    resizeSquareBorderWidth: Float,
+) {
+    val lowerLeftCornerVisible = context.minXVisible && context.maxYVisible
+    val upperLeftCornerVisible = context.minXVisible && context.minYVisible
+    val lowerRightCornerVisible = context.maxXVisible && context.maxYVisible
+    val upperRightCornerVisible = context.maxXVisible && context.minYVisible
 
     if (lowerLeftCornerVisible) {
-        drawRectangleSelectionResizeSquare(rectMinX, rectMaxY, resizeSquareSize, resizeSquareBorderWidth)
+        drawRectangleSelectionResizeSquare(
+            x = context.rectMinX,
+            y = context.rectMaxY,
+            resizeSquareSize,
+            resizeSquareBorderWidth,
+        )
     }
 
     if (upperLeftCornerVisible) {
-        drawRectangleSelectionResizeSquare(rectMinX, rectMinY, resizeSquareSize, resizeSquareBorderWidth)
+        drawRectangleSelectionResizeSquare(
+            x = context.rectMinX,
+            y = context.rectMinY,
+            resizeSquareSize,
+            resizeSquareBorderWidth,
+        )
     }
 
     if (lowerRightCornerVisible) {
-        drawRectangleSelectionResizeSquare(rectMaxX, rectMaxY, resizeSquareSize, resizeSquareBorderWidth)
+        drawRectangleSelectionResizeSquare(
+            x = context.rectMaxX,
+            y = context.rectMaxY,
+            resizeSquareSize,
+            resizeSquareBorderWidth,
+        )
     }
 
     if (upperRightCornerVisible) {
-        drawRectangleSelectionResizeSquare(rectMaxX, rectMinY, resizeSquareSize, resizeSquareBorderWidth)
+        drawRectangleSelectionResizeSquare(
+            x = context.rectMaxX,
+            y = context.rectMinY,
+            resizeSquareSize,
+            resizeSquareBorderWidth,
+        )
     }
+}
 
-    val rectMiddleX = rectMinX + (rectMaxX - rectMinX) / 2
-    val rectMiddleY = rectMinY + (rectMaxY - rectMinY) / 2
-    val middleXVisible = rectMiddleX >= 0 && rectMiddleX < canvasSize.width
-    val middleYVisible = rectMiddleY >= 0 && rectMiddleY < canvasSize.height
-    val lowerMiddleVisible = middleXVisible && maxYVisible
-    val upperMiddleVisible = middleXVisible && minYVisible
-    val leftMiddleVisible = minXVisible && middleYVisible
-    val rightMiddleVisible = maxXVisible && middleYVisible
+private fun DrawScope.drawRectangleSelectionMiddleSquares(
+    context: RectangleSelectionContext,
+    resizeSquareSize: Float,
+    resizeSquareBorderWidth: Float,
+) {
+    val rectMiddleX = context.rectMinX + (context.rectMaxX - context.rectMinX) / 2
+    val rectMiddleY = context.rectMinY + (context.rectMaxY - context.rectMinY) / 2
+    val middleXVisible = rectMiddleX >= 0 && rectMiddleX < context.canvasSize.width
+    val middleYVisible = rectMiddleY >= 0 && rectMiddleY < context.canvasSize.height
+    val lowerMiddleVisible = middleXVisible && context.maxYVisible
+    val upperMiddleVisible = middleXVisible && context.minYVisible
+    val leftMiddleVisible = context.minXVisible && middleYVisible
+    val rightMiddleVisible = context.maxXVisible && middleYVisible
 
     if (lowerMiddleVisible) {
-        drawRectangleSelectionResizeSquare(rectMiddleX, rectMaxY, resizeSquareSize, resizeSquareBorderWidth)
+        drawRectangleSelectionResizeSquare(
+            x = rectMiddleX,
+            y = context.rectMaxY,
+            resizeSquareSize,
+            resizeSquareBorderWidth,
+        )
     }
 
     if (upperMiddleVisible) {
-        drawRectangleSelectionResizeSquare(rectMiddleX, rectMinY, resizeSquareSize, resizeSquareBorderWidth)
+        drawRectangleSelectionResizeSquare(
+            x = rectMiddleX,
+            y = context.rectMinY,
+            resizeSquareSize,
+            resizeSquareBorderWidth,
+        )
     }
 
     if (leftMiddleVisible) {
-        drawRectangleSelectionResizeSquare(rectMinX, rectMiddleY, resizeSquareSize, resizeSquareBorderWidth)
+        drawRectangleSelectionResizeSquare(
+            x = context.rectMinX,
+            y = rectMiddleY,
+            resizeSquareSize,
+            resizeSquareBorderWidth,
+        )
     }
 
     if (rightMiddleVisible) {
-        drawRectangleSelectionResizeSquare(rectMaxX, rectMiddleY, resizeSquareSize, resizeSquareBorderWidth)
+        drawRectangleSelectionResizeSquare(
+            x = context.rectMaxX,
+            y = rectMiddleY,
+            resizeSquareSize,
+            resizeSquareBorderWidth,
+        )
     }
 }
 
@@ -1026,3 +1112,15 @@ fun createCheckersPixelImage(
         paletteModel = PaletteModel(listOf(color1, color2)),
     )
 }
+
+private data class RectangleSelectionContext(
+    val rectMinX: Float,
+    val rectMaxX: Float,
+    val rectMinY: Float,
+    val rectMaxY: Float,
+    val minXVisible: Boolean,
+    val maxXVisible: Boolean,
+    val minYVisible: Boolean,
+    val maxYVisible: Boolean,
+    val canvasSize: Size,
+)
