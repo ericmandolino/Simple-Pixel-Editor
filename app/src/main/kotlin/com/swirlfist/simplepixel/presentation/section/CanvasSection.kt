@@ -57,8 +57,8 @@ fun CanvasSectionPreview() {
             )
         ).copy(
             rectangleSelection = RectangleSelectionModel(
-                offset = Pair(3, 2),
-                size = Pair(1, 2),
+                start = Pair(3, 2),
+                end = Pair(4, 4),
             )
         )
 
@@ -96,8 +96,8 @@ fun CanvasSectionZoomedPreview() {
             )
         ).copy(
             rectangleSelection = RectangleSelectionModel(
-                offset = Pair(2, 2),
-                size = Pair(1, 2),
+                start = Pair(2, 2),
+                end = Pair(3, 4),
             )
         )
 
