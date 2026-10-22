@@ -14,6 +14,8 @@ import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetPalettePresetsUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetPalettePresetsUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.GetRectangleSelectionActionTypeUseCase
+import com.swirlfist.simplepixel.domain.usecase.GetRectangleSelectionActionTypeUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseCase
@@ -38,6 +40,8 @@ import com.swirlfist.simplepixel.domain.usecase.UpdateBasePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdateBasePixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.UpdateRectangleSelectionUseCase
+import com.swirlfist.simplepixel.domain.usecase.UpdateRectangleSelectionUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -141,4 +145,14 @@ abstract class SingletonComponentModule {
     abstract fun bindSelectWithMagicWandUseCase(
         impl: SelectWithMagicWandUseCaseImpl,
     ): SelectWithMagicWandUseCase
+
+    @Binds
+    abstract fun bindGetRectangleSelectionActionTypeUseCase(
+        impl: GetRectangleSelectionActionTypeUseCaseImpl,
+    ): GetRectangleSelectionActionTypeUseCase
+
+    @Binds
+    abstract fun bindUpdateRectangleSelectionUseCase(
+        impl: UpdateRectangleSelectionUseCaseImpl,
+    ): UpdateRectangleSelectionUseCase
 }

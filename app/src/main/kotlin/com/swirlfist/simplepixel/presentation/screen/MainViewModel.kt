@@ -20,17 +20,20 @@ import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToPngUseCase
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToSvgUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetBasePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
+import com.swirlfist.simplepixel.domain.usecase.GetRectangleSelectionActionTypeUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseCase
 import com.swirlfist.simplepixel.domain.usecase.MoveDirection
 import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.RectangleSelectionActionType
 import com.swirlfist.simplepixel.domain.usecase.RedoEditorActionUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.SelectWithMagicWandUseCase
 import com.swirlfist.simplepixel.domain.usecase.TogglePixelSelectionUseCase
 import com.swirlfist.simplepixel.domain.usecase.UndoEditorActionUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
+import com.swirlfist.simplepixel.domain.usecase.UpdateRectangleSelectionUseCase
 import com.swirlfist.simplepixel.domain.usecase.UseCaseParams
 import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.createPaletteButtons
@@ -77,6 +80,8 @@ class MainViewModel @Inject constructor(
     private val clearEditorActionUseCase: ClearEditorActionsUseCase,
     private val togglePixelSelectionUseCase: TogglePixelSelectionUseCase,
     private val selectWithMagicWandUseCase: SelectWithMagicWandUseCase,
+    private val getRectangleSelectionActionTypeUseCase : GetRectangleSelectionActionTypeUseCase,
+    private val updateRectangleSelectionUseCase: UpdateRectangleSelectionUseCase,
 ) : ViewModel() {
     private val _mainScreenState = MutableStateFlow(
         value = MainScreenState(
@@ -446,7 +451,7 @@ class MainViewModel @Inject constructor(
         val selectedPaintTool = mainScreenState.getSelectedPaintTool()
 
         when {
-            mainScreenState.isSelectRectSelected() -> {} // TODO
+            mainScreenState.isSelectRectSelected() -> updateRectangleSelection(x, y)
             mainScreenState.isSelectTouchSelected() -> togglePixelSelected(x, y)
             mainScreenState.isSelectMagicWandSelected() -> {}
             selectedPaintTool is ActionButtonType.InkPenActionButtonType -> updatePixelColor(x, y)
@@ -549,6 +554,89 @@ class MainViewModel @Inject constructor(
                     x,
                     y,
                     isSameAction = canvasSectionState.isVisitingPixels,
+                )
+            )
+        }
+    }
+
+    private fun updateRectangleSelection(
+        x: Int,
+        y: Int,
+    ) {
+        val mainScreenState = _mainScreenState.value
+        val canvasSectionState = mainScreenState.canvasSectionState
+        val pixelImage = canvasSectionState.pixelImageModel ?: return
+        val pixelSelection = canvasSectionState.pixelSelectionModel
+        val isSameAction = canvasSectionState.isVisitingPixels
+        val rectangleSelectionActionType = canvasSectionState.rectangleSelectionActionType
+
+        if (!isSameAction || rectangleSelectionActionType == null) {
+            startRectangleSelectionAction(x, y, pixelImage, pixelSelection)
+        } else {
+            updateRectangleSelection(x, y, pixelImage, pixelSelection, rectangleSelectionActionType,true)
+        }
+    }
+
+    private fun startRectangleSelectionAction(
+        x: Int,
+        y: Int,
+        pixelImage: PixelImageModel,
+        pixelSelection: PixelSelectionModel?,
+    ) {
+        viewModelScope.launch {
+            getRectangleSelectionActionTypeUseCase.execute(
+                successBlock = { rectangleSelectionActionType ->
+                    _mainScreenState.update { state ->
+                        state.copy(
+                            canvasSectionState = state.canvasSectionState.copy(
+                                rectangleSelectionActionType = rectangleSelectionActionType,
+                            )
+                        )
+                    }
+                    updateRectangleSelection(
+                        x,
+                        y,
+                        pixelImage,
+                        pixelSelection,
+                        rectangleSelectionActionType,
+                        isSameAction = false,
+                    )
+                },
+                params = GetRectangleSelectionActionTypeUseCase.Params(
+                    pixelImageModel = pixelImage,
+                    x,
+                    y,
+                )
+            )
+        }
+    }
+
+    private fun updateRectangleSelection(
+        x: Int,
+        y: Int,
+        pixelImage: PixelImageModel,
+        pixelSelection: PixelSelectionModel?,
+        rectangleSelectionActionType: RectangleSelectionActionType,
+        isSameAction: Boolean,
+    ) {
+        viewModelScope.launch {
+            updateRectangleSelectionUseCase.execute(
+                successBlock = { pixelSelection ->
+                    _mainScreenState.update { state ->
+                        state.copy(
+                            canvasSectionState = state.canvasSectionState.copy(
+                                pixelSelectionModel = pixelSelection,
+                            )
+                        )
+                    }
+                },
+                params = UpdateRectangleSelectionUseCase.Params(
+                    pixelImageModel = pixelImage,
+                    pixelSelectionModel = pixelSelection,
+                    x,
+                    y,
+                    rectangleSelectionActionType,
+                    isSameAction = isSameAction,
                 )
             )
         }
