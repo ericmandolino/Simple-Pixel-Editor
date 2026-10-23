@@ -48,7 +48,6 @@ class SelectWithMagicWandUseCaseImpl @Inject constructor(
             }
         }
 
-
         applySelection(
             pixelMatrix,
             visitedPixels,

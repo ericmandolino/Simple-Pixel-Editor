@@ -635,6 +635,7 @@ class MainViewModel @Inject constructor(
                     }
                 },
                 params = UpdateRectangleSelectionUseCase.Params(
+                    pixelImageModel = pixelImage,
                     pixelSelectionModel = pixelSelection ?: pixelImage.createSelection(listOf()),
                     x,
                     y = pixelImage.getPixelHeight() - 1 - y,

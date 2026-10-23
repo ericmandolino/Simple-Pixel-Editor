@@ -2,6 +2,8 @@ package com.swirlfist.simplepixel.domain.usecase
 
 import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
 import com.swirlfist.simplepixel.domain.error.UpdateRectangleSelectionError
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
+import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import com.swirlfist.simplepixel.domain.model.RectangleSelectionModel
 import com.swirlfist.simplepixel.presentation.bottomLeft
@@ -17,6 +19,7 @@ class UpdateRectangleSelectionUseCaseImpl @Inject constructor(
         return try {
             Result.success(
                 updateRectangleSelection(
+                    pixelImage = params.pixelImageModel,
                     pixelSelection = params.pixelSelectionModel,
                     x = params.x,
                     y = params.y,
@@ -29,14 +32,15 @@ class UpdateRectangleSelectionUseCaseImpl @Inject constructor(
         }
     }
 
-    private fun updateRectangleSelection(
+    private suspend fun updateRectangleSelection(
+        pixelImage: PixelImageModel,
         pixelSelection: PixelSelectionModel,
         x: Int,
         y: Int,
         actionType: RectangleSelectionActionType,
         isSameAction: Boolean,
     ): PixelSelectionModel {
-        return when (actionType) {
+        val updatedPixelSelection = when (actionType) {
             RectangleSelectionActionType.NEW_SELECTION -> updateNewSelection(pixelSelection, x, y, isSameAction)
             RectangleSelectionActionType.RESIZE_VERTICAL_TOP,
             RectangleSelectionActionType.RESIZE_VERTICAL_BOTTOM,
@@ -50,6 +54,29 @@ class UpdateRectangleSelectionUseCaseImpl @Inject constructor(
             RectangleSelectionActionType.RESIZE_BOTTOM_RIGHT_CORNER,
                 -> resizeSelectionFromCorner(pixelSelection, x, y, actionType, isSameAction)
         }
+
+        if (pixelSelection != updatedPixelSelection) {
+            if (isSameAction) {
+                pixelImageEditorActionRepository.updateLastAction(
+                    pixelImageResult = pixelImage,
+                    pixelSelectionResult = updatedPixelSelection,
+                )
+            } else {
+                pixelImageEditorActionRepository.addAction(
+                    PixelImageEditorAction.SelectRectangleAction(
+                        pixelImage,
+                        pixelSelection,
+                        actionType,
+                        x,
+                        y,
+                    ),
+                    pixelImageResult = pixelImage,
+                    pixelSelectionResult = updatedPixelSelection,
+                )
+            }
+        }
+
+        return updatedPixelSelection
     }
 
     private fun updateNewSelection(
