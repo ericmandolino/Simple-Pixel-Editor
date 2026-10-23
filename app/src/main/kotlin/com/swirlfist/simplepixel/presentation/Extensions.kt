@@ -212,3 +212,11 @@ fun RectangleSelectionModel.bottomRight() = Pair(
     max(start.first, end.first),
     max(start.second, end.second),
 )
+
+fun RectangleSelectionModel.top() = min(start.second, end.second)
+
+fun RectangleSelectionModel.bottom() = max(start.second, end.second)
+
+fun RectangleSelectionModel.left() = min(start.first, end.first)
+
+fun RectangleSelectionModel.right() = max(start.first, end.first)

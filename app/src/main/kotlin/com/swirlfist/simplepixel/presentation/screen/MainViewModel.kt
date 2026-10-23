@@ -37,6 +37,7 @@ import com.swirlfist.simplepixel.domain.usecase.UpdateRectangleSelectionUseCase
 import com.swirlfist.simplepixel.domain.usecase.UseCaseParams
 import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.createPaletteButtons
+import com.swirlfist.simplepixel.presentation.createSelection
 import com.swirlfist.simplepixel.presentation.getPixelHeight
 import com.swirlfist.simplepixel.presentation.isSelected
 import com.swirlfist.simplepixel.presentation.section.ActionButtonType
@@ -587,31 +588,30 @@ class MainViewModel @Inject constructor(
         zoomFactor: Float,
     ) {
         viewModelScope.launch {
-            getRectangleSelectionActionTypeUseCase.execute(
-                successBlock = { rectangleSelectionActionType ->
-                    _mainScreenState.update { state ->
-                        state.copy(
-                            canvasSectionState = state.canvasSectionState.copy(
-                                rectangleSelectionActionType = rectangleSelectionActionType,
-                            )
-                        )
-                    }
-                    updateRectangleSelection(
-                        x,
-                        y,
-                        pixelImage,
-                        pixelSelection,
-                        rectangleSelectionActionType,
-                        isSameAction = false,
-                    )
-                },
+            getRectangleSelectionActionTypeUseCase.invoke(
                 params = GetRectangleSelectionActionTypeUseCase.Params(
                     rectangleSelectionModel = pixelSelection?.rectangleSelection,
                     x,
                     y = pixelImage.getPixelHeight() - 1 - y,
                     zoomFactor,
                 )
-            )
+            ).getOrNull()?.let { rectangleSelectionActionType ->
+                _mainScreenState.update { state ->
+                    state.copy(
+                        canvasSectionState = state.canvasSectionState.copy(
+                            rectangleSelectionActionType = rectangleSelectionActionType,
+                        )
+                    )
+                }
+                updateRectangleSelection(
+                    x,
+                    y,
+                    pixelImage,
+                    pixelSelection,
+                    rectangleSelectionActionType,
+                    isSameAction = false,
+                )
+            }
         }
     }
 
@@ -635,8 +635,7 @@ class MainViewModel @Inject constructor(
                     }
                 },
                 params = UpdateRectangleSelectionUseCase.Params(
-                    pixelImageModel = pixelImage,
-                    pixelSelectionModel = pixelSelection,
+                    pixelSelectionModel = pixelSelection ?: pixelImage.createSelection(listOf()),
                     x,
                     y = pixelImage.getPixelHeight() - 1 - y,
                     rectangleSelectionActionType,

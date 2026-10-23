@@ -2,12 +2,10 @@ package com.swirlfist.simplepixel.domain.usecase
 
 import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
 import com.swirlfist.simplepixel.domain.error.UpdateRectangleSelectionError
-import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import com.swirlfist.simplepixel.domain.model.RectangleSelectionModel
 import com.swirlfist.simplepixel.presentation.bottomLeft
 import com.swirlfist.simplepixel.presentation.bottomRight
-import com.swirlfist.simplepixel.presentation.createSelection
 import com.swirlfist.simplepixel.presentation.topLeft
 import com.swirlfist.simplepixel.presentation.topRight
 import javax.inject.Inject
@@ -19,9 +17,7 @@ class UpdateRectangleSelectionUseCaseImpl @Inject constructor(
         return try {
             Result.success(
                 updateRectangleSelection(
-                    pixelImage = params.pixelImageModel,
-                    pixelSelection = params.pixelSelectionModel ?:
-                    params.pixelImageModel.createSelection(selectedCoordinates = listOf()),
+                    pixelSelection = params.pixelSelectionModel,
                     x = params.x,
                     y = params.y,
                     actionType = params.actionType,
@@ -34,7 +30,6 @@ class UpdateRectangleSelectionUseCaseImpl @Inject constructor(
     }
 
     private fun updateRectangleSelection(
-        pixelImage: PixelImageModel,
         pixelSelection: PixelSelectionModel,
         x: Int,
         y: Int,
@@ -43,10 +38,12 @@ class UpdateRectangleSelectionUseCaseImpl @Inject constructor(
     ): PixelSelectionModel {
         return when (actionType) {
             RectangleSelectionActionType.NEW_SELECTION -> updateNewSelection(pixelSelection, x, y, isSameAction)
-            RectangleSelectionActionType.RESIZE_VERTICAL_TOP -> TODO()
-            RectangleSelectionActionType.RESIZE_VERTICAL_BOTTOM -> TODO()
-            RectangleSelectionActionType.RESIZE_HORIZONTAL_LEFT -> TODO()
-            RectangleSelectionActionType.RESIZE_HORIZONTAL_BOTTOM -> TODO()
+            RectangleSelectionActionType.RESIZE_VERTICAL_TOP,
+            RectangleSelectionActionType.RESIZE_VERTICAL_BOTTOM,
+                -> resizeSelectionVertically(pixelSelection, y, actionType, isSameAction)
+            RectangleSelectionActionType.RESIZE_HORIZONTAL_LEFT,
+            RectangleSelectionActionType.RESIZE_HORIZONTAL_RIGHT,
+                -> resizeSelectionHorizontally(pixelSelection, x, actionType, isSameAction)
             RectangleSelectionActionType.RESIZE_TOP_LEFT_CORNER,
             RectangleSelectionActionType.RESIZE_TOP_RIGHT_CORNER,
             RectangleSelectionActionType.RESIZE_BOTTOM_LEFT_CORNER,
@@ -108,6 +105,64 @@ class UpdateRectangleSelectionUseCaseImpl @Inject constructor(
             rectangleSelection = adjustedRectangleSelection,
             x,
             y,
+        )
+
+        return pixelSelection.copy(
+            rectangleSelection = updatedRectangleSelection,
+        )
+    }
+
+    private fun resizeSelectionVertically(
+        pixelSelection: PixelSelectionModel,
+        y: Int,
+        actionType: RectangleSelectionActionType,
+        isSameAction: Boolean,
+    ): PixelSelectionModel {
+        val rectangleSelection = pixelSelection.rectangleSelection ?: return pixelSelection
+
+        val adjustedRectangleSelection = if (!isSameAction) {
+            when (actionType) {
+                RectangleSelectionActionType.RESIZE_VERTICAL_TOP -> rectangleSelection.startFromBottomRight()
+                RectangleSelectionActionType.RESIZE_VERTICAL_BOTTOM -> rectangleSelection.startFromTopRight()
+                else -> null
+            }
+        } else {
+            rectangleSelection
+        } ?: return pixelSelection
+
+        val updatedRectangleSelection = resizeSelection(
+            rectangleSelection = adjustedRectangleSelection,
+            x = adjustedRectangleSelection.end.first,
+            y,
+        )
+
+        return pixelSelection.copy(
+            rectangleSelection = updatedRectangleSelection,
+        )
+    }
+
+    private fun resizeSelectionHorizontally(
+        pixelSelection: PixelSelectionModel,
+        x: Int,
+        actionType: RectangleSelectionActionType,
+        isSameAction: Boolean,
+    ): PixelSelectionModel {
+        val rectangleSelection = pixelSelection.rectangleSelection ?: return pixelSelection
+
+        val adjustedRectangleSelection = if (!isSameAction) {
+            when (actionType) {
+                RectangleSelectionActionType.RESIZE_HORIZONTAL_LEFT -> rectangleSelection.startFromTopRight()
+                RectangleSelectionActionType.RESIZE_HORIZONTAL_RIGHT -> rectangleSelection.startFromTopLeft()
+                else -> null
+            }
+        } else {
+            rectangleSelection
+        } ?: return pixelSelection
+
+        val updatedRectangleSelection = resizeSelection(
+            rectangleSelection = adjustedRectangleSelection,
+            x,
+            y = adjustedRectangleSelection.end.second,
         )
 
         return pixelSelection.copy(
