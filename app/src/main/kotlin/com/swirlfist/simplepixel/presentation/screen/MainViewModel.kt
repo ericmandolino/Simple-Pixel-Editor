@@ -37,6 +37,7 @@ import com.swirlfist.simplepixel.domain.usecase.UpdateRectangleSelectionUseCase
 import com.swirlfist.simplepixel.domain.usecase.UseCaseParams
 import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.createPaletteButtons
+import com.swirlfist.simplepixel.presentation.getPixelHeight
 import com.swirlfist.simplepixel.presentation.isSelected
 import com.swirlfist.simplepixel.presentation.section.ActionButtonType
 import com.swirlfist.simplepixel.presentation.section.ActionSectionEvent
@@ -571,7 +572,8 @@ class MainViewModel @Inject constructor(
         val rectangleSelectionActionType = canvasSectionState.rectangleSelectionActionType
 
         if (!isSameAction || rectangleSelectionActionType == null) {
-            startRectangleSelectionAction(x, y, pixelImage, pixelSelection)
+            val zoomFactor = canvasSectionState.zoomFactor
+            startRectangleSelectionAction(x, y, pixelImage, pixelSelection, zoomFactor)
         } else {
             updateRectangleSelection(x, y, pixelImage, pixelSelection, rectangleSelectionActionType,true)
         }
@@ -582,6 +584,7 @@ class MainViewModel @Inject constructor(
         y: Int,
         pixelImage: PixelImageModel,
         pixelSelection: PixelSelectionModel?,
+        zoomFactor: Float,
     ) {
         viewModelScope.launch {
             getRectangleSelectionActionTypeUseCase.execute(
@@ -603,9 +606,10 @@ class MainViewModel @Inject constructor(
                     )
                 },
                 params = GetRectangleSelectionActionTypeUseCase.Params(
-                    pixelImageModel = pixelImage,
+                    rectangleSelectionModel = pixelSelection?.rectangleSelection,
                     x,
-                    y,
+                    y = pixelImage.getPixelHeight() - 1 - y,
+                    zoomFactor,
                 )
             )
         }
@@ -634,7 +638,7 @@ class MainViewModel @Inject constructor(
                     pixelImageModel = pixelImage,
                     pixelSelectionModel = pixelSelection,
                     x,
-                    y,
+                    y = pixelImage.getPixelHeight() - 1 - y,
                     rectangleSelectionActionType,
                     isSameAction = isSameAction,
                 )

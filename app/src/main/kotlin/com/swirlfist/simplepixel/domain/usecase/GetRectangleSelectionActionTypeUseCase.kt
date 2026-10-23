@@ -1,13 +1,14 @@
 package com.swirlfist.simplepixel.domain.usecase
 
-import com.swirlfist.simplepixel.domain.model.PixelImageModel
+import com.swirlfist.simplepixel.domain.model.RectangleSelectionModel
 
 interface GetRectangleSelectionActionTypeUseCase : UseCase<GetRectangleSelectionActionTypeUseCase.Params, RectangleSelectionActionType> {
 
     data class Params(
-        val pixelImageModel: PixelImageModel,
+        val rectangleSelectionModel: RectangleSelectionModel?,
         val x: Int,
         val y: Int,
+        val zoomFactor: Float,
     ) : UseCaseParams
 }
 
@@ -17,8 +18,8 @@ enum class RectangleSelectionActionType {
     RESIZE_VERTICAL_BOTTOM,
     RESIZE_HORIZONTAL_LEFT,
     RESIZE_HORIZONTAL_BOTTOM,
-    RESIZE_UPPER_LEFT_CORNER,
-    RESIZE_UPPER_RIGHT_CORNER,
-    RESIZE_LOWER_LEFT_CORNER,
-    RESIZE_LOWER_RIGHT_CORNER,
+    RESIZE_TOP_LEFT_CORNER,
+    RESIZE_TOP_RIGHT_CORNER,
+    RESIZE_BOTTOM_LEFT_CORNER,
+    RESIZE_BOTTOM_RIGHT_CORNER,
 }

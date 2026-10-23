@@ -9,8 +9,11 @@ import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
 import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
+import com.swirlfist.simplepixel.domain.model.RectangleSelectionModel
 import com.swirlfist.simplepixel.presentation.section.ActionButtonType
 import com.swirlfist.simplepixel.presentation.state.ActionsSectionState
+import kotlin.math.max
+import kotlin.math.min
 
 private const val HEX_FORMAT = "#%02x%02x%02x"
 
@@ -189,3 +192,23 @@ fun PixelImageModel.createSelection(
 
     return PixelSelectionModel(selected = selection)
 }
+
+fun RectangleSelectionModel.topLeft() = Pair(
+    min(start.first, end.first),
+    min(start.second, end.second),
+)
+
+fun RectangleSelectionModel.topRight() = Pair(
+    max(start.first, end.first),
+    min(start.second, end.second),
+)
+
+fun RectangleSelectionModel.bottomLeft() = Pair(
+    min(start.first, end.first),
+    max(start.second, end.second),
+)
+
+fun RectangleSelectionModel.bottomRight() = Pair(
+    max(start.first, end.first),
+    max(start.second, end.second),
+)
