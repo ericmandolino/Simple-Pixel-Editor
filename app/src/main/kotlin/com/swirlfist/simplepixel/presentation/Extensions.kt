@@ -220,3 +220,17 @@ fun RectangleSelectionModel.bottom() = max(start.second, end.second)
 fun RectangleSelectionModel.left() = min(start.first, end.first)
 
 fun RectangleSelectionModel.right() = max(start.first, end.first)
+
+fun PixelImageModel.selectNonEmpty(): PixelSelectionModel {
+    return PixelSelectionModel(
+        selected = pixelMatrixModel.content.map { row ->
+            row.map { pixel ->
+                if (pixel.paletteIndex == EMPTY_PIXEL_PALETTE_INDEX) {
+                    null
+                } else {
+                    pixel
+                }
+            }
+        }
+    )
+}

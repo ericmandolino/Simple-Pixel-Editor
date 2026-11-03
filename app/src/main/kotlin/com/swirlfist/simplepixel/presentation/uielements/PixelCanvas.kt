@@ -31,6 +31,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.swirlfist.simplepixel.domain.model.FloatingPixelImageModel
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
@@ -42,6 +43,7 @@ import com.swirlfist.simplepixel.presentation.getPixelAt
 import com.swirlfist.simplepixel.presentation.getPixelHeight
 import com.swirlfist.simplepixel.presentation.getPixelWidth
 import com.swirlfist.simplepixel.presentation.isSelected
+import com.swirlfist.simplepixel.presentation.selectNonEmpty
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -62,6 +64,7 @@ fun PixelCanvas(
     modifier: Modifier,
     pixelImage: PixelImageModel,
     pixelSelection: PixelSelectionModel? = null,
+    floatingPixelImage: FloatingPixelImageModel? = null,
     initialZoomFactor: Float = NO_ZOOM_FACTOR,
     isShowGridEnabled: Boolean = true,
     backgroundColor: Color? = null,
@@ -206,6 +209,7 @@ fun PixelCanvas(
         drawCanvas(
             pixelImage,
             pixelSelection,
+            floatingPixelImage,
             pixelSizeInt,
             imagePixelSize,
             imageOffset,
@@ -267,6 +271,7 @@ fun PixelCanvasSnapshot(
         drawCanvas(
             pixelImage,
             pixelSelection = null,
+            floatingPixelImage = null,
             pixelSizeInt,
             imagePixelSize,
             imageOffset,
@@ -387,6 +392,7 @@ private fun Density.getPixelSizeInt(
 private fun DrawScope.drawCanvas(
     pixelImage: PixelImageModel,
     pixelSelection: PixelSelectionModel?,
+    floatingPixelImage: FloatingPixelImageModel?,
     pixelSizeInt: Int,
     imagePixelSize: IntSize,
     imageOffset: MutableState<Offset>,
@@ -396,146 +402,207 @@ private fun DrawScope.drawCanvas(
     backgroundColor: Color?,
     backGroundCheckersColors: Pair<Color, Color>?,
 ) {
-    val canvasSize = Size(size.width, size.height)
+    val canvasSize = size
     val imageSize = Size(
         width = (imagePixelSize.width * pixelSizeInt).toFloat(),
         height = (imagePixelSize.height * pixelSizeInt).toFloat(),
     )
     val gridLineWidth = 1.dp.toPx()
     val palette = pixelImage.paletteModel.colors.map { color -> Color.fromColorLong(color) }
-    val selectionLines = mutableListOf<Pair<Offset, Offset>>()
 
     adjustImageOffset(imageOffset, margin, canvasSize, imageSize)
-
-    val imageOffsetX = imageOffset.value.x
-    val imageOffsetY = imageOffset.value.y
-    val marginX = margin.value.x
-    val marginY = margin.value.y
 
     backgroundColor?.let { color ->
         drawRect(
             color,
-            topLeft = Offset(marginX, marginY),
+            topLeft = margin.value,
             size = imageSize,
         )
     }
 
-    var y = marginY
+    val imageLines = drawImageInCanvas(
+        pixelImage,
+        pixelSelection,
+        pixelSizeInt,
+        imagePixelSize,
+        imageOffset.value,
+        margin.value,
+        palette,
+        backGroundCheckersColors,
+    )
+
+    val floatingImageLines = drawFloatingImage(
+        floatingPixelImage,
+        pixelSizeInt,
+        imagePixelSize,
+        imageOffset.value,
+        margin.value,
+    )
+
+    if (isShowGridEnabled) {
+        imageLines.horizontalGridLineYCoordinates.forEach { y ->
+            drawHorizontalGridLine(y, canvasSize, imageSize, gridLineWidth, margin.value.x)
+        }
+        imageLines.verticalGridLineXCoordinates.forEach { x ->
+            drawVerticalGridLine(x, canvasSize, imageSize, gridLineWidth, margin.value.y)
+        }
+    }
+
+    if (isShowBorderEnabled) {
+        drawBorders(imageSize, canvasSize, margin.value, gridLineWidth)
+    }
+
+    drawSelectionLines(imageLines.selectionLines)
+    drawRectangleSelection(
+        rectangleSelection = pixelSelection?.rectangleSelection,
+        pixelSizeInt,
+        canvasSize,
+        imageOffset.value,
+        margin.value,
+    )
+    drawSelectionLines(floatingImageLines.selectionLines)
+}
+
+private fun DrawScope.drawImageInCanvas(
+    pixelImage: PixelImageModel,
+    pixelSelection: PixelSelectionModel?,
+    pixelSizeInt: Int,
+    imagePixelSize: IntSize,
+    imageOffset: Offset,
+    margin: Offset,
+    palette: List<Color>,
+    backGroundCheckersColors: Pair<Color, Color>?,
+    floatingOffset: Pair<Int, Int> = Pair(0, 0),
+): ImageLines {
+    val canvasSize = size
+    val horizontalGridLineYCoordinates = mutableListOf<Float>()
+    val verticalGridLineXCoordinates = mutableListOf<Float>()
+    val selectionLines = mutableListOf<Pair<Offset, Offset>>()
+
+    var y = margin.y
     var yMatrixCoordinate =
-        imagePixelSize.height - 1 - ((imageOffsetY + y - marginY) / pixelSizeInt).toInt()
+        imagePixelSize.height - 1 - ((imageOffset.y + y - margin.y) / pixelSizeInt).toInt()
     while (y < canvasSize.height && yMatrixCoordinate >= 0) {
-        val pixelHeight = if (y - marginY > 0F || imageOffsetY == 0F) {
+        val pixelHeight = if (y - margin.y > 0F || imageOffset.y == 0F) {
             pixelSizeInt
         } else {
-            pixelSizeInt - imageOffsetY.toInt() % pixelSizeInt
+            pixelSizeInt - imageOffset.y.toInt() % pixelSizeInt
         }
 
-        var x = marginX
-        var xMatrixCoordinate = ((imageOffsetX + x - marginX) / pixelSizeInt).toInt()
-        while (x < canvasSize.width && xMatrixCoordinate < imagePixelSize.width) {
-            val pixelWidth = if (x - marginX > 0F || imageOffsetX == 0F) {
-                pixelSizeInt
-            } else {
-                pixelSizeInt - imageOffsetX.toInt() % pixelSizeInt
+        val adjustedYMatrixCoordinate = yMatrixCoordinate - floatingOffset.second
+        if (adjustedYMatrixCoordinate in 0..< pixelImage.getPixelHeight()) {
+
+            var x = margin.x
+            var xMatrixCoordinate = ((imageOffset.x + x - margin.x) / pixelSizeInt).toInt()
+            while (x < canvasSize.width && xMatrixCoordinate < imagePixelSize.width) {
+                val pixelWidth = if (x - margin.x > 0F || imageOffset.x == 0F) {
+                    pixelSizeInt
+                } else {
+                    pixelSizeInt - imageOffset.x.toInt() % pixelSizeInt
+                }
+
+                val adjustedXMatrixCoordinate = xMatrixCoordinate - floatingOffset.first
+                if (adjustedXMatrixCoordinate in 0..<pixelImage.getPixelWidth()) {
+                    val pixel = pixelImage.getPixelAt(
+                        x = adjustedXMatrixCoordinate,
+                        y = adjustedYMatrixCoordinate,
+                    )
+
+                    val pixelOffset = Offset(x, y)
+                    val pixelRectSize = Size(pixelWidth.toFloat(), pixelHeight.toFloat())
+                    val visiblePixelWidth =
+                        min(pixelRectSize.width, canvasSize.width - pixelOffset.x)
+                    val visiblePixelHeight =
+                        min(pixelRectSize.height, canvasSize.height - pixelOffset.y)
+
+                    drawPixel(
+                        pixel,
+                        palette = palette,
+                        visibleWidth = visiblePixelWidth,
+                        visibleHeight = visiblePixelHeight,
+                        xMatrixCoordinate,
+                        yMatrixCoordinate,
+                        offset = pixelOffset,
+                        backGroundCheckersColors,
+                    )
+
+                    addSelectionLines(
+                        pixelSelection,
+                        selectionLines,
+                        pixelSizeInt,
+                        visiblePixelWidth,
+                        visiblePixelHeight,
+                        adjustedXMatrixCoordinate,
+                        adjustedYMatrixCoordinate,
+                        pixelOffset,
+                        canvasSize,
+                    )
+
+                    verticalGridLineXCoordinates.add(x)
+                }
+
+                x += pixelWidth
+                xMatrixCoordinate++
             }
 
-            val pixel = pixelImage.getPixelAt(
-                x = xMatrixCoordinate,
-                y = yMatrixCoordinate
-            )
-
-            val pixelOffset = Offset(x, y)
-            val pixelRectSize = Size(pixelWidth.toFloat(), pixelHeight.toFloat())
-            val visiblePixelWidth = min(pixelRectSize.width, canvasSize.width - pixelOffset.x)
-            val visiblePixelHeight = min(pixelRectSize.height, canvasSize.height - pixelOffset.y)
-
-            drawPixel(
-                pixel,
-                palette = palette,
-                visibleWidth = visiblePixelWidth,
-                visibleHeight = visiblePixelHeight,
-                xMatrixCoordinate,
-                yMatrixCoordinate,
-                offset = pixelOffset,
-                backGroundCheckersColors,
-            )
-
-            addSelectionLines(
-                pixelSelection,
-                selectionLines,
-                pixelSizeInt,
-                visiblePixelWidth,
-                visiblePixelHeight,
-                xMatrixCoordinate,
-                yMatrixCoordinate,
-                pixelOffset,
-                canvasSize,
-            )
-
-            if (isShowGridEnabled) {
-                drawVerticalGridLine(x, canvasSize, imageSize, gridLineWidth, marginY)
+            if (xMatrixCoordinate == imagePixelSize.width && x <= canvasSize.width) {
+                verticalGridLineXCoordinates.add(x)
             }
 
-            x += pixelWidth
-            xMatrixCoordinate++
-        }
-
-        if (isShowGridEnabled && xMatrixCoordinate == imagePixelSize.width && x <= canvasSize.width) {
-            drawVerticalGridLine(x, canvasSize, imageSize, gridLineWidth, marginY)
-        }
-
-        if (isShowGridEnabled) {
-            drawHorizontalGridLine(y, canvasSize, imageSize, gridLineWidth, marginX)
+            horizontalGridLineYCoordinates.add(y)
         }
 
         y += pixelHeight
         yMatrixCoordinate--
     }
 
-    if (isShowGridEnabled && yMatrixCoordinate == -1 && y <= canvasSize.height) {
-        drawHorizontalGridLine(y, canvasSize, imageSize, gridLineWidth, marginX)
+    if (yMatrixCoordinate == -1 && y <= canvasSize.height) {
+        horizontalGridLineYCoordinates.add(y)
     }
 
-    if (isShowBorderEnabled) {
-        drawBorders(imageSize, canvasSize, marginX, marginY, gridLineWidth)
-    }
-
-    drawSelectionLines(selectionLines)
-    drawRectangleSelection(
-        rectangleSelection = pixelSelection?.rectangleSelection,
-        pixelSizeInt,
-        canvasSize,
-        imageOffset.value,
-        marginX,
-        marginY,
+    return ImageLines(
+        verticalGridLineXCoordinates.toList(),
+        horizontalGridLineYCoordinates.toList(),
+        selectionLines.toList(),
     )
 }
 
 private fun DrawScope.drawBorders(
     imageSize: Size,
     canvasSize: Size,
-    marginX: Float,
-    marginY: Float,
+    margin: Offset,
     gridLineWidth: Float,
 ) {
     if (imageSize.width <= canvasSize.width) {
-        drawVerticalGridLine(marginX, canvasSize, imageSize, gridLineWidth, marginY)
         drawVerticalGridLine(
-            canvasSize.width - marginX,
+            margin.x,
             canvasSize,
             imageSize,
             gridLineWidth,
-            marginY
+            margin.y,
+        )
+        drawVerticalGridLine(
+            canvasSize.width - margin.x,
+            canvasSize,
+            imageSize,
+            gridLineWidth,
+            margin.y,
         )
     }
     if (imageSize.height <= canvasSize.height) {
-        drawHorizontalGridLine(marginY, canvasSize, imageSize, gridLineWidth, marginX)
         drawHorizontalGridLine(
-            canvasSize.height - marginY,
+            margin.y,
             canvasSize,
             imageSize,
             gridLineWidth,
-            marginX
+            margin.x,
+        )
+        drawHorizontalGridLine(
+            canvasSize.height - margin.y,
+            canvasSize,
+            imageSize,
+            gridLineWidth,
+            margin.x,
         )
     }
 }
@@ -587,8 +654,7 @@ private fun DrawScope.drawRectangleSelection(
     pixelSizeInt: Int,
     canvasSize: Size,
     imageOffset: Offset,
-    marginX: Float,
-    marginY: Float,
+    margin: Offset,
 ) {
     if (rectangleSelection == null) {
         return
@@ -612,8 +678,8 @@ private fun DrawScope.drawRectangleSelection(
     )
     val xSelectionOffset = selectionRect.topLeft.x * pixelSizeInt
     val ySelectionOffset = selectionRect.topLeft.y * pixelSizeInt
-    val rectMinX = xSelectionOffset - imageOffset.x + marginX
-    val rectMinY = ySelectionOffset - imageOffset.y + marginY
+    val rectMinX = xSelectionOffset - imageOffset.x + margin.x
+    val rectMinY = ySelectionOffset - imageOffset.y + margin.y
     val rectMaxX = rectMinX + selectionRect.width * pixelSizeInt
     val rectMaxY = rectMinY + selectionRect.height * pixelSizeInt
 
@@ -848,6 +914,32 @@ private fun DrawScope.drawRectangleSelectionResizeSquare(
         topLeft = Offset(x - halfBorderlessSize, y - halfBorderlessSize),
         size = Size(borderlessSize, borderlessSize),
     )
+}
+
+private fun DrawScope.drawFloatingImage(
+    floatingPixelImage: FloatingPixelImageModel?,
+    pixelSizeInt: Int,
+    imagePixelSize: IntSize,
+    imageOffset: Offset,
+    margin: Offset,
+): ImageLines {
+    if (floatingPixelImage == null) {
+        return ImageLines()
+    }
+
+    val imageLines = drawImageInCanvas(
+        pixelImage = floatingPixelImage.pixelImageModel,
+        pixelSelection = floatingPixelImage.pixelImageModel.selectNonEmpty(),
+        pixelSizeInt,
+        imagePixelSize,
+        imageOffset,
+        margin,
+        palette =  floatingPixelImage.pixelImageModel.paletteModel.colors.map { color -> Color.fromColorLong(color) },
+        backGroundCheckersColors = null,
+        floatingOffset = floatingPixelImage.offset,
+    )
+
+    return imageLines
 }
 
 private fun adjustImageOffset(
@@ -1125,6 +1217,12 @@ fun createCheckersPixelImage(
         paletteModel = PaletteModel(listOf(color1, color2)),
     )
 }
+
+private data class ImageLines(
+    val verticalGridLineXCoordinates: List<Float> = listOf(),
+    val horizontalGridLineYCoordinates: List<Float> = listOf(),
+    val selectionLines: List<Pair<Offset, Offset>> = listOf(),
+)
 
 private data class RectangleSelectionContext(
     val rectMinX: Float,

@@ -7,7 +7,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.tooling.preview.Preview
+import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
+import com.swirlfist.simplepixel.domain.model.FloatingPixelImageModel
+import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
+import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
+import com.swirlfist.simplepixel.domain.model.PixelModel
 import com.swirlfist.simplepixel.domain.model.RectangleSelectionModel
 import com.swirlfist.simplepixel.presentation.createSelection
 import com.swirlfist.simplepixel.presentation.state.CanvasSectionState
@@ -28,6 +33,7 @@ fun CanvasSection(
             modifier = modifier,
             pixelImage = pixelImage,
             pixelSelection = state.pixelSelectionModel,
+            floatingPixelImage = state.floatingPixelImageModel,
             initialZoomFactor = state.zoomFactor,
             isShowGridEnabled = state.isShowGridEnabled,
             onPixelVisited = { x, y -> onEvent(CanvasSectionEvent.PixelVisited(x, y)) },
@@ -107,7 +113,7 @@ fun CanvasSectionZoomedPreview() {
                 pixelImageModel = pixelImage,
                 pixelSelectionModel = pixelSelection,
                 zoomFactor = 4F,
-                isShowGridEnabled = false,
+                isShowGridEnabled = true,
             )
         ) { event ->
             Log.d("CanvasSection", "event: $event")
@@ -128,6 +134,59 @@ fun CanvasSectionEmptyImagePreview() {
                     colors = listOf(Color.Black.toColorLong(), Color.Yellow.toColorLong()),
                 ),
                 zoomFactor = 1F,
+            )
+        ) { event ->
+            Log.d("CanvasSection", "event: $event")
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 320)
+@Composable
+fun CanvasSectionFloatingImagePreview() {
+    SimplePixelTheme {
+        val pixelImage = createCheckersPixelImage(
+            width = 5,
+            height = 4,
+            color1 = Color.Black.toColorLong(),
+            color2 = Color.Yellow.toColorLong(),
+        )
+
+        val floatingPixelImage = FloatingPixelImageModel(
+            pixelImageModel = PixelImageModel(
+                pixelMatrixModel = PixelMatrixModel(
+                    content = listOf(
+                        listOf(
+                            PixelModel(0),
+                            PixelModel(0),
+                            PixelModel(0),
+                        ),
+                        listOf(
+                            PixelModel(EMPTY_PIXEL_PALETTE_INDEX),
+                            PixelModel(EMPTY_PIXEL_PALETTE_INDEX),
+                            PixelModel(0),
+                        ),
+                        listOf(
+                            PixelModel(EMPTY_PIXEL_PALETTE_INDEX),
+                            PixelModel(EMPTY_PIXEL_PALETTE_INDEX),
+                            PixelModel(0),
+                        ),
+                    )
+                ),
+                paletteModel = PaletteModel(
+                    colors = listOf(Color.White.toColorLong()),
+                )
+            ),
+            offset = Pair(-1, 1),
+        )
+
+        CanvasSection(
+            modifier = Modifier.fillMaxSize(),
+            state = CanvasSectionState().copy(
+                pixelImageModel = pixelImage,
+                floatingPixelImageModel = floatingPixelImage,
+                zoomFactor = 1F,
+                isShowGridEnabled = true,
             )
         ) { event ->
             Log.d("CanvasSection", "event: $event")
