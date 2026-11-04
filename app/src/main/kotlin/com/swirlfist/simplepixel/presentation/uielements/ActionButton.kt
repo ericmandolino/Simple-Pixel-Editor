@@ -62,6 +62,7 @@ fun ActionButton(
             ActionButtonType.SelectTouchActionButtonType,
             ActionButtonType.SelectMagicWandActionButtonType,
             ActionButtonType.DeselectActionButtonType,
+            ActionButtonType.MoveSelectionActionButtonType,
                 -> {
                 ActionIconButton(
                     modifier,

@@ -53,4 +53,6 @@ sealed interface ActionSectionEvent {
     data object SelectMagicWandActionButtonClicked : ActionSectionEvent
 
     data object DeselectActionButtonClicked : ActionSectionEvent
+
+    data object MoveSelectionActionButtonClicked : ActionSectionEvent
 }

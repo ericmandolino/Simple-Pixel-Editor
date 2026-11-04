@@ -165,6 +165,10 @@ class MainViewModel @Inject constructor(
                                     ),
                                 ),
                             ),
+                            ActionButtonType.MoveSelectionActionButtonType to ActionModel.ButtonActionModel(
+                                actionType = ActionButtonType.MoveSelectionActionButtonType,
+                                isEnabled = false,
+                            ),
                             ActionButtonType.DeselectActionButtonType to ActionModel.ButtonActionModel(
                                 actionType = ActionButtonType.DeselectActionButtonType,
                                 isEnabled = false,
@@ -443,6 +447,9 @@ class MainViewModel @Inject constructor(
 
             ActionSectionEvent.DeselectActionButtonClicked
                 -> deselectPreviouslySelected()
+
+            ActionSectionEvent.MoveSelectionActionButtonClicked
+                -> toggleMoveSelection()
         }
     }
 
@@ -801,6 +808,10 @@ class MainViewModel @Inject constructor(
     }
 
     private fun deselectPreviouslySelected() {
+
+    }
+
+    private fun toggleMoveSelection() {
 
     }
 

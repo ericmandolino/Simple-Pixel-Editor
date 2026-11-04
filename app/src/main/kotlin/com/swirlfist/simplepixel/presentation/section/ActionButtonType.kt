@@ -132,6 +132,11 @@ sealed interface ActionButtonType {
         icon = R.drawable.ic_actions_section_deselect_24dp,
         contentDescription = R.string.cd_actions_section_button_deselect,
     ), ActionButtonType
+
+    data object MoveSelectionActionButtonType : ActionIconButtonType(
+        icon = R.drawable.ic_actions_section_move_selection_24,
+        contentDescription = R.string.cd_actions_section_button_move_selection,
+    ), ActionButtonType
 }
 
 abstract class ActionIconButtonType(

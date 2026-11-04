@@ -419,4 +419,5 @@ fun ActionButtonType.toActionsSectionEvent(): ActionSectionEvent = when (this) {
     ActionButtonType.SelectTouchActionButtonType -> ActionSectionEvent.SelectTouchActionButtonClicked
     ActionButtonType.SelectMagicWandActionButtonType -> ActionSectionEvent.SelectMagicWandActionButtonClicked
     ActionButtonType.DeselectActionButtonType -> ActionSectionEvent.DeselectActionButtonClicked
+    ActionButtonType.MoveSelectionActionButtonType -> ActionSectionEvent.MoveSelectionActionButtonClicked
 }

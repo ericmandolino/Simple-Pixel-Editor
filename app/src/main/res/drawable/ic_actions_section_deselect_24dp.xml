@@ -85,12 +85,6 @@
       android:pathData="M20,19h1v1h-1z"
       android:fillColor="#000000"/>
   <path
-      android:pathData="M2,18h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
-      android:pathData="M3,18h1v1h-1z"
-      android:fillColor="#000000"/>
-  <path
       android:pathData="M13,18h1v1h-1z"
       android:fillColor="#000000"/>
   <path
