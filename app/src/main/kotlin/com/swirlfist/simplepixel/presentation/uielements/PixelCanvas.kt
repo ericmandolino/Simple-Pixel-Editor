@@ -70,6 +70,7 @@ fun PixelCanvas(
     backgroundColor: Color? = null,
     backGroundCheckersColors: Pair<Color, Color>? = Pair(Color.Gray, Color.LightGray),
     onPixelVisited: (xPixel: Int, yPixel: Int) -> Unit,
+    onPixelVisitCancel: () -> Unit,
     onPixelVisitFinish: () -> Unit,
     onZoomUpdate: (Float) -> Unit,
 ) {
@@ -102,7 +103,7 @@ fun PixelCanvas(
                         if (event.changes.size != 1) {
                             if (lastPixelVisited != null) {
                                 lastPixelVisited = null
-                                onPixelVisitFinish()
+                                onPixelVisitCancel()
                             }
 
                             do {

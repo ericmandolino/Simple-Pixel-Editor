@@ -353,6 +353,7 @@ class MainViewModel @Inject constructor(
     fun onCanvasSectionEvent(event: CanvasSectionEvent) {
         when (event) {
             is CanvasSectionEvent.PixelVisited -> onPixelVisited(event)
+            is CanvasSectionEvent.PixelVisitCancel -> onPixelVisitCancel()
             is CanvasSectionEvent.PixelVisitEnd -> onPixelVisitFinish()
             is CanvasSectionEvent.ZoomUpdate -> {
                 _mainScreenState.update { mainScreenState ->
@@ -471,12 +472,24 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private fun onPixelVisitCancel() {
+        _mainScreenState.update { state ->
+            state.copy(
+                canvasSectionState = state.canvasSectionState.copy(
+                    isVisitingPixels = false,
+                )
+            )
+        }
+    }
+
     private fun onPixelVisitFinish() {
         val mainScreenState = _mainScreenState.value
+        val canvasSectionState = mainScreenState.canvasSectionState
+        val isVisitingPixels = canvasSectionState.isVisitingPixels
 
         when {
-            mainScreenState.isSelectMagicWandSelected() -> {
-                mainScreenState.canvasSectionState.lastVisitedPixel?.let { (x, y) ->
+            mainScreenState.isSelectMagicWandSelected() && isVisitingPixels -> {
+                canvasSectionState.lastVisitedPixel?.let { (x, y) ->
                     selectWithMagicWand(x, y)
                 }
             }
