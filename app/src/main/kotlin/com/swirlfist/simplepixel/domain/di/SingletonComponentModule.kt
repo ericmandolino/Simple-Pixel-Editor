@@ -6,6 +6,8 @@ import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCase
 import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.DeletePalettePresetUseCase
 import com.swirlfist.simplepixel.domain.usecase.DeletePalettePresetUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.DeselectUseCase
+import com.swirlfist.simplepixel.domain.usecase.DeselectUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToSvgUseCase
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToSvgUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetBasePixelImageUseCase
@@ -155,4 +157,9 @@ abstract class SingletonComponentModule {
     abstract fun bindUpdateRectangleSelectionUseCase(
         impl: UpdateRectangleSelectionUseCaseImpl,
     ): UpdateRectangleSelectionUseCase
+
+    @Binds
+    abstract fun bindDeselectUseCase(
+        impl: DeselectUseCaseImpl,
+    ): DeselectUseCase
 }

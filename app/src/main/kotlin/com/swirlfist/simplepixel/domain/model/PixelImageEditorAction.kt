@@ -52,5 +52,10 @@ sealed interface PixelImageEditorAction {
         val x: Int,
         val y: Int,
     ) : PixelImageEditorAction
+
+    data class DeselectAction(
+        override val pixelImage: PixelImageModel,
+        override val pixelSelection: PixelSelectionModel,
+    ) : PixelImageEditorAction
 }
 
