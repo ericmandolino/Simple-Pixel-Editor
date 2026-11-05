@@ -8,12 +8,12 @@ import androidx.compose.ui.graphics.fromColorLong
 import androidx.compose.ui.graphics.toArgb
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToPngUseCase
-import com.swirlfist.simplepixel.presentation.getPixelHeight
-import com.swirlfist.simplepixel.presentation.getPixelWidth
 import javax.inject.Inject
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.set
 import com.swirlfist.simplepixel.domain.error.ExportPixelImageError
+import com.swirlfist.simplepixel.domain.getPixelHeight
+import com.swirlfist.simplepixel.domain.getPixelWidth
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.FileOutputStream
 

@@ -31,6 +31,10 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.swirlfist.simplepixel.domain.getPixelAt
+import com.swirlfist.simplepixel.domain.getPixelHeight
+import com.swirlfist.simplepixel.domain.getPixelWidth
+import com.swirlfist.simplepixel.domain.isSelected
 import com.swirlfist.simplepixel.domain.model.FloatingPixelImageModel
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
@@ -38,12 +42,8 @@ import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
 import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import com.swirlfist.simplepixel.domain.model.RectangleSelectionModel
+import com.swirlfist.simplepixel.domain.selectNonEmpty
 import com.swirlfist.simplepixel.presentation.getColor
-import com.swirlfist.simplepixel.presentation.getPixelAt
-import com.swirlfist.simplepixel.presentation.getPixelHeight
-import com.swirlfist.simplepixel.presentation.getPixelWidth
-import com.swirlfist.simplepixel.presentation.isSelected
-import com.swirlfist.simplepixel.presentation.selectNonEmpty
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min

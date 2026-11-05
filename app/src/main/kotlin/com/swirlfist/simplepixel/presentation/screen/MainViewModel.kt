@@ -5,8 +5,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.swirlfist.simplepixel.domain.createSelection
 import com.swirlfist.simplepixel.domain.error.ExportPixelImageError
 import com.swirlfist.simplepixel.domain.error.OpenPixelImageError
+import com.swirlfist.simplepixel.domain.getPixelHeight
 import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.domain.model.BaseButtonGroupActionModel
 import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
@@ -38,8 +40,6 @@ import com.swirlfist.simplepixel.domain.usecase.UpdateRectangleSelectionUseCase
 import com.swirlfist.simplepixel.domain.usecase.UseCaseParams
 import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.createPaletteButtons
-import com.swirlfist.simplepixel.presentation.createSelection
-import com.swirlfist.simplepixel.presentation.getPixelHeight
 import com.swirlfist.simplepixel.presentation.isSelected
 import com.swirlfist.simplepixel.presentation.section.ActionButtonType
 import com.swirlfist.simplepixel.presentation.section.ActionSectionEvent

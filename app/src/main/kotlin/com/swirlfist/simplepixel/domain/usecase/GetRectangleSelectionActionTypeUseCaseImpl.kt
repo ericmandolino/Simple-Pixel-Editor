@@ -1,14 +1,14 @@
 package com.swirlfist.simplepixel.domain.usecase
 
+import com.swirlfist.simplepixel.domain.bottom
+import com.swirlfist.simplepixel.domain.bottomLeft
+import com.swirlfist.simplepixel.domain.bottomRight
+import com.swirlfist.simplepixel.domain.left
 import com.swirlfist.simplepixel.domain.model.RectangleSelectionModel
-import com.swirlfist.simplepixel.presentation.bottom
-import com.swirlfist.simplepixel.presentation.bottomLeft
-import com.swirlfist.simplepixel.presentation.bottomRight
-import com.swirlfist.simplepixel.presentation.left
-import com.swirlfist.simplepixel.presentation.right
-import com.swirlfist.simplepixel.presentation.top
-import com.swirlfist.simplepixel.presentation.topLeft
-import com.swirlfist.simplepixel.presentation.topRight
+import com.swirlfist.simplepixel.domain.right
+import com.swirlfist.simplepixel.domain.top
+import com.swirlfist.simplepixel.domain.topLeft
+import com.swirlfist.simplepixel.domain.topRight
 import javax.inject.Inject
 
 class GetRectangleSelectionActionTypeUseCaseImpl @Inject constructor() : GetRectangleSelectionActionTypeUseCase {

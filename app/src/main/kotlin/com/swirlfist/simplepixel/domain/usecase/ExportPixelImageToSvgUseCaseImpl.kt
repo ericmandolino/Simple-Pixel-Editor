@@ -4,13 +4,13 @@ import android.net.Uri
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.fromColorLong
 import com.swirlfist.simplepixel.domain.error.ExportPixelImageError
+import com.swirlfist.simplepixel.domain.height
 import com.swirlfist.simplepixel.domain.model.PaletteModel
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
-import com.swirlfist.simplepixel.presentation.height
-import com.swirlfist.simplepixel.presentation.toHexCode
-import com.swirlfist.simplepixel.presentation.width
+import com.swirlfist.simplepixel.domain.toHexCode
+import com.swirlfist.simplepixel.domain.width
 import javax.inject.Inject
 
 class ExportPixelImageToSvgUseCaseImpl @Inject constructor(

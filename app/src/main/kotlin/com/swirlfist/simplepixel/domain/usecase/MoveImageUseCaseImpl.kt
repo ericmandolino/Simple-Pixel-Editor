@@ -1,13 +1,13 @@
 package com.swirlfist.simplepixel.domain.usecase
 
 import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
+import com.swirlfist.simplepixel.domain.isBlank
 import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
 import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
-import com.swirlfist.simplepixel.presentation.isBlank
 import javax.inject.Inject
 
 class MoveImageUseCaseImpl @Inject constructor(

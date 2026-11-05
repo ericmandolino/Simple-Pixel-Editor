@@ -1,13 +1,13 @@
 package com.swirlfist.simplepixel.domain.usecase
 
 import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
+import com.swirlfist.simplepixel.domain.createSelection
 import com.swirlfist.simplepixel.domain.error.MagicWandSelectionError
+import com.swirlfist.simplepixel.domain.getPixelAt
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
 import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
-import com.swirlfist.simplepixel.presentation.createSelection
-import com.swirlfist.simplepixel.presentation.getPixelAt
 import javax.inject.Inject
 
 class SelectWithMagicWandUseCaseImpl @Inject constructor(

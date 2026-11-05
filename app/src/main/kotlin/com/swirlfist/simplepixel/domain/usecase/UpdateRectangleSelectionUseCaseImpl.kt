@@ -1,15 +1,15 @@
 package com.swirlfist.simplepixel.domain.usecase
 
 import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
+import com.swirlfist.simplepixel.domain.bottomLeft
+import com.swirlfist.simplepixel.domain.bottomRight
 import com.swirlfist.simplepixel.domain.error.UpdateRectangleSelectionError
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import com.swirlfist.simplepixel.domain.model.RectangleSelectionModel
-import com.swirlfist.simplepixel.presentation.bottomLeft
-import com.swirlfist.simplepixel.presentation.bottomRight
-import com.swirlfist.simplepixel.presentation.topLeft
-import com.swirlfist.simplepixel.presentation.topRight
+import com.swirlfist.simplepixel.domain.topLeft
+import com.swirlfist.simplepixel.domain.topRight
 import javax.inject.Inject
 
 class UpdateRectangleSelectionUseCaseImpl @Inject constructor(
