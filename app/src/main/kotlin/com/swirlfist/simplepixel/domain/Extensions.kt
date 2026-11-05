@@ -100,6 +100,8 @@ fun RectangleSelectionModel.left() = min(start.first, end.first)
 
 fun RectangleSelectionModel.right() = max(start.first, end.first)
 
+fun RectangleSelectionModel.isEmpty() = start.first == end.first || start.second == end.second
+
 fun PixelImageModel.selectNonEmpty(): PixelSelectionModel {
     return PixelSelectionModel(
         selected = pixelMatrixModel.content.map { row ->

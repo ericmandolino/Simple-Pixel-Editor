@@ -9,6 +9,7 @@ import com.swirlfist.simplepixel.domain.createSelection
 import com.swirlfist.simplepixel.domain.error.ExportPixelImageError
 import com.swirlfist.simplepixel.domain.error.OpenPixelImageError
 import com.swirlfist.simplepixel.domain.getPixelHeight
+import com.swirlfist.simplepixel.domain.isEmpty
 import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.domain.model.BaseButtonGroupActionModel
 import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
@@ -1160,7 +1161,7 @@ private fun MainScreenState.updateSelection(
         canvasSectionState = canvasSectionState.copy(
             pixelSelectionModel = pixelSelection,
         ),
-        actionsSectionState = actionsSectionState.updateDeselectButtonState(
+        actionsSectionState = actionsSectionState.updateSelectionRelatedButtonsState(
             pixelSelection,
         ),
     )
@@ -1196,22 +1197,45 @@ private fun ActionsSectionState.updateRedoButtonState(
     )
 }
 
-private fun ActionsSectionState.updateDeselectButtonState(
+private fun ActionsSectionState.updateSelectionRelatedButtonsState(
     pixelSelection: PixelSelectionModel?
 ): ActionsSectionState {
-    val isEnabled = pixelSelection?.let { selection ->
-        selection.rectangleSelection != null ||
-        selection.selected.find { row ->
+    if (pixelSelection == null) {
+        return updateButtonEnabled(
+            ActionButtonType.DeselectActionButtonType,
+            isEnabled = false,
+        ).updateButtonEnabled(
+            ActionButtonType.MoveSelectionActionButtonType,
+            isEnabled = false,
+        )
+    }
+
+    val rectangleSelection = pixelSelection.rectangleSelection
+    val isRectangleSelectionEmpty = rectangleSelection?.isEmpty() ?: true
+
+    return if (!isRectangleSelectionEmpty) {
+        updateButtonEnabled(
+            ActionButtonType.DeselectActionButtonType,
+            isEnabled = true,
+        ).updateButtonEnabled(
+            ActionButtonType.MoveSelectionActionButtonType,
+            isEnabled = true,
+        )
+    } else {
+        val isAnyPixelSelected = pixelSelection.selected.find { row ->
             row.find { pixel ->
                 pixel != null
             } != null
         } != null
-    } ?: false
 
-    return updateButtonEnabled(
-        ActionButtonType.DeselectActionButtonType,
-        isEnabled = isEnabled,
-    )
+        updateButtonEnabled(
+            ActionButtonType.DeselectActionButtonType,
+            isEnabled = rectangleSelection != null || isAnyPixelSelected,
+        ).updateButtonEnabled(
+            ActionButtonType.MoveSelectionActionButtonType,
+            isEnabled = isAnyPixelSelected,
+        )
+    }
 }
 
 private fun ActionsSectionState.updateButtonEnabled(
