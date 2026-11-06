@@ -464,6 +464,7 @@ class MainViewModel @Inject constructor(
         val selectedPaintTool = mainScreenState.getSelectedPaintTool()
 
         when {
+            mainScreenState.isMoveSelectionSelected() -> {}
             mainScreenState.isSelectRectSelected() -> updateRectangleSelection(x, y)
             mainScreenState.isSelectTouchSelected() -> togglePixelSelected(x, y)
             mainScreenState.isSelectMagicWandSelected() -> {}
@@ -498,6 +499,7 @@ class MainViewModel @Inject constructor(
         val isVisitingPixels = canvasSectionState.isVisitingPixels
 
         when {
+            mainScreenState.isMoveSelectionSelected() -> {}
             mainScreenState.isSelectMagicWandSelected() && isVisitingPixels -> {
                 canvasSectionState.lastVisitedPixel?.let { (x, y) ->
                     selectWithMagicWand(x, y)
@@ -807,7 +809,11 @@ class MainViewModel @Inject constructor(
     }
 
     private fun toggleMoveSelection() {
-
+        _mainScreenState.update { mainScreenState ->
+            mainScreenState.copy(
+                actionsSectionState = mainScreenState.actionsSectionState.toggleMoveSelection()
+            )
+        }
     }
 
     private fun updateSelectedPaletteIndex(
@@ -1207,7 +1213,13 @@ private fun ActionsSectionState.updateSelectionRelatedButtonsState(
         ).updateButtonEnabled(
             ActionButtonType.MoveSelectionActionButtonType,
             isEnabled = false,
-        )
+        ).let { updatedState ->
+            if (updatedState.isSelected(ActionButtonType.MoveSelectionActionButtonType)) {
+                updatedState.toggleMoveSelection()
+            } else {
+                updatedState
+            }
+        }
     }
 
     val rectangleSelection = pixelSelection.rectangleSelection
@@ -1234,7 +1246,29 @@ private fun ActionsSectionState.updateSelectionRelatedButtonsState(
         ).updateButtonEnabled(
             ActionButtonType.MoveSelectionActionButtonType,
             isEnabled = isAnyPixelSelected,
-        )
+        ).let { updatedState ->
+            if (!isAnyPixelSelected && updatedState.isSelected(ActionButtonType.MoveSelectionActionButtonType)) {
+                updatedState.toggleMoveSelection()
+            } else {
+                updatedState
+            }
+        }
+    }
+}
+
+private fun ActionsSectionState.toggleMoveSelection() : ActionsSectionState {
+    return toggleSelectableButton(
+        ActionButtonType.MoveSelectionActionButtonType,
+    ).let { updatedSectionState ->
+        if (updatedSectionState.isSelected(ActionButtonType.MoveSelectionActionButtonType)) {
+            updatedSectionState
+                .disablePaintButtons()
+                .disableSelectionButtons()
+        } else {
+            updatedSectionState
+                .enablePaintButtons()
+                .enableSelectionButtons()
+        }
     }
 }
 
@@ -1387,6 +1421,34 @@ private fun ActionsSectionState.setPaintButtonsEnabled(
             put(
                 ActionButtonType.OpenToolsActionButtonType,
                 openToolsButtonGroup.copy(
+                    isEnabled = isEnabled,
+                    childButtonActionModels = childButtons.map { childButton ->
+                        childButton.copy(
+                            isEnabled = isEnabled,
+                        )
+                    }
+                ),
+            )
+        }
+    )
+}
+
+private fun ActionsSectionState.enableSelectionButtons() = setSelectionButtonsEnabled(true)
+
+private fun ActionsSectionState.disableSelectionButtons() = setSelectionButtonsEnabled(false)
+
+private fun ActionsSectionState.setSelectionButtonsEnabled(
+    isEnabled: Boolean,
+) : ActionsSectionState {
+    val selectionButtonGroup = actionModels[ActionButtonType.NoParentActionSelectionButtonGroupType] as ActionModel.SelectableButtonGroupActionModel
+    val childButtons = selectionButtonGroup.childButtonActionModels
+
+    return copy(
+        actionModels = actionModels.toMutableMap().apply {
+            put(
+                ActionButtonType.NoParentActionSelectionButtonGroupType,
+                selectionButtonGroup.copy(
+                    isEnabled = isEnabled,
                     childButtonActionModels = childButtons.map { childButton ->
                         childButton.copy(
                             isEnabled = isEnabled,
@@ -1438,6 +1500,10 @@ private fun MainScreenState.isSelectTouchSelected() = actionsSectionState.isSele
 
 private fun MainScreenState.isSelectMagicWandSelected() = actionsSectionState.isSelected(
     ActionButtonType.SelectMagicWandActionButtonType,
+)
+
+private fun MainScreenState.isMoveSelectionSelected() = actionsSectionState.isSelected(
+    ActionButtonType.MoveSelectionActionButtonType,
 )
 
 private fun MainScreenState.getSelectedPaintTool() = actionsSectionState.getSelectedPaintTool()
