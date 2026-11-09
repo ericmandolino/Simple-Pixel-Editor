@@ -1,13 +1,17 @@
 package com.swirlfist.simplepixel.domain.usecase
 
 import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
+import com.swirlfist.simplepixel.domain.bottom
 import com.swirlfist.simplepixel.domain.bottomLeft
 import com.swirlfist.simplepixel.domain.bottomRight
 import com.swirlfist.simplepixel.domain.error.UpdateRectangleSelectionError
+import com.swirlfist.simplepixel.domain.left
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import com.swirlfist.simplepixel.domain.model.RectangleSelectionModel
+import com.swirlfist.simplepixel.domain.right
+import com.swirlfist.simplepixel.domain.top
 import com.swirlfist.simplepixel.domain.topLeft
 import com.swirlfist.simplepixel.domain.topRight
 import javax.inject.Inject
@@ -128,10 +132,50 @@ class UpdateRectangleSelectionUseCaseImpl @Inject constructor(
             rectangleSelection
         } ?: return pixelSelection
 
+        val adjustedX = when (actionType) {
+            RectangleSelectionActionType.RESIZE_TOP_LEFT_CORNER,
+            RectangleSelectionActionType.RESIZE_BOTTOM_LEFT_CORNER,
+                 ->
+                     if (x + 1 >= adjustedRectangleSelection.right()) {
+                        x + 1
+                     } else {
+                        x
+                     }
+            RectangleSelectionActionType.RESIZE_TOP_RIGHT_CORNER,
+            RectangleSelectionActionType.RESIZE_BOTTOM_RIGHT_CORNER,
+                 ->
+                     if (x > adjustedRectangleSelection.left()) {
+                         x + 1
+                     } else {
+                         x
+                     }
+            else -> x
+        }
+
+        val adjustedY = when (actionType) {
+            RectangleSelectionActionType.RESIZE_TOP_LEFT_CORNER,
+            RectangleSelectionActionType.RESIZE_TOP_RIGHT_CORNER,
+                 ->
+                     if (y + 1 >= adjustedRectangleSelection.bottom()) {
+                         y + 1
+                     } else {
+                         y
+                     }
+            RectangleSelectionActionType.RESIZE_BOTTOM_LEFT_CORNER,
+            RectangleSelectionActionType.RESIZE_BOTTOM_RIGHT_CORNER,
+                 ->
+                     if (y > adjustedRectangleSelection.top()) {
+                         y + 1
+                     } else {
+                         y
+                     }
+            else -> y
+        }
+
         val updatedRectangleSelection = resizeSelection(
             rectangleSelection = adjustedRectangleSelection,
-            x,
-            y,
+            x = adjustedX,
+            y = adjustedY,
         )
 
         return pixelSelection.copy(
@@ -157,10 +201,24 @@ class UpdateRectangleSelectionUseCaseImpl @Inject constructor(
             rectangleSelection
         } ?: return pixelSelection
 
+        val adjustedY = when (actionType) {
+            RectangleSelectionActionType.RESIZE_VERTICAL_TOP -> if (y + 1 >= adjustedRectangleSelection.bottom()) {
+                y + 1
+            } else {
+                y
+            }
+            RectangleSelectionActionType.RESIZE_VERTICAL_BOTTOM -> if (y > adjustedRectangleSelection.top()) {
+                y + 1
+            } else {
+                y
+            }
+            else -> y
+        }
+
         val updatedRectangleSelection = resizeSelection(
             rectangleSelection = adjustedRectangleSelection,
             x = adjustedRectangleSelection.end.first,
-            y,
+            y = adjustedY,
         )
 
         return pixelSelection.copy(
@@ -186,9 +244,23 @@ class UpdateRectangleSelectionUseCaseImpl @Inject constructor(
             rectangleSelection
         } ?: return pixelSelection
 
+        val adjustedX = when (actionType) {
+            RectangleSelectionActionType.RESIZE_HORIZONTAL_LEFT -> if (x + 1 >= adjustedRectangleSelection.right()) {
+                x + 1
+            } else {
+                x
+            }
+            RectangleSelectionActionType.RESIZE_HORIZONTAL_RIGHT -> if (x > adjustedRectangleSelection.left()) {
+                x + 1
+            } else {
+                x
+            }
+            else -> x
+        }
+
         val updatedRectangleSelection = resizeSelection(
             rectangleSelection = adjustedRectangleSelection,
-            x,
+            x = adjustedX,
             y = adjustedRectangleSelection.end.second,
         )
 
