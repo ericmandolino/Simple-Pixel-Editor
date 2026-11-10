@@ -2,6 +2,7 @@ package com.swirlfist.simplepixel.domain.usecase
 
 import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import com.swirlfist.simplepixel.testutil.PixelImageModelTestUtil
 import io.mockk.MockKAnnotations
 import io.mockk.coVerify
@@ -45,7 +46,7 @@ class MoveImageUseCaseImplTest {
             paletteSize = 4,
         )
         val useCaseParams = MoveImageUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             MoveDirection.UP,
         )
 
@@ -68,7 +69,7 @@ class MoveImageUseCaseImplTest {
             paletteSize = 4,
         )
         val useCaseParams = MoveImageUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             MoveDirection.UP,
         )
 
@@ -88,7 +89,7 @@ class MoveImageUseCaseImplTest {
             pixelImageString = testPixelImageString
         )
         val useCaseParams = MoveImageUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             MoveDirection.UP,
         )
         val expected = PixelImageModelTestUtil.createPixelImageModel(
@@ -117,7 +118,7 @@ class MoveImageUseCaseImplTest {
             pixelImageString = testPixelImageString
         )
         val useCaseParams = MoveImageUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             MoveDirection.DOWN,
         )
         val expected = PixelImageModelTestUtil.createPixelImageModel(
@@ -146,7 +147,7 @@ class MoveImageUseCaseImplTest {
             pixelImageString = testPixelImageString
         )
         val useCaseParams = MoveImageUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             MoveDirection.LEFT,
         )
         val expected = PixelImageModelTestUtil.createPixelImageModel(
@@ -175,7 +176,7 @@ class MoveImageUseCaseImplTest {
             pixelImageString = testPixelImageString
         )
         val useCaseParams = MoveImageUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             MoveDirection.RIGHT,
         )
         val expected = PixelImageModelTestUtil.createPixelImageModel(
@@ -204,7 +205,7 @@ class MoveImageUseCaseImplTest {
             pixelImageString = testPixelImageString
         )
         val useCaseParams = MoveImageUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             MoveDirection.UP,
         )
 
@@ -215,10 +216,10 @@ class MoveImageUseCaseImplTest {
         coVerify(exactly = 1) {
             pixelImageEditorActionRepository.addAction(
                 PixelImageEditorAction.MoveImageAction(
-                    pixelImageModel,
+                    actionContext = PixelImageEditorActionContext(pixelImageModel),
                     MoveDirection.UP,
                 ),
-                result.getOrThrow(),
+                actionContextResult = PixelImageEditorActionContext(result.getOrThrow()),
             )
         }
     }

@@ -4,7 +4,7 @@ import android.net.Uri
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.fromColorLong
 import com.swirlfist.simplepixel.domain.error.ExportPixelImageError
-import com.swirlfist.simplepixel.presentation.toHexCode
+import com.swirlfist.simplepixel.domain.toHexCode
 import com.swirlfist.simplepixel.testutil.PixelImageModelTestUtil
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
