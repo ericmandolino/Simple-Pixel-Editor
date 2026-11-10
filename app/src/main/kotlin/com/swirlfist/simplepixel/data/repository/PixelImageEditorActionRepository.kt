@@ -1,8 +1,7 @@
 package com.swirlfist.simplepixel.data.repository
 
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
-import com.swirlfist.simplepixel.domain.model.PixelImageModel
-import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import kotlinx.coroutines.flow.Flow
 
 const val MAX_UNDO_ACTIONS = 10
@@ -13,15 +12,13 @@ interface PixelImageEditorActionRepository {
     suspend fun clearActions()
     suspend fun addAction(
         action: PixelImageEditorAction,
-        pixelImageResult: PixelImageModel,
-        pixelSelectionResult: PixelSelectionModel? = null,
+        actionContextResult: PixelImageEditorActionContext,
     )
     suspend fun updateLastAction(
-        pixelImageResult: PixelImageModel,
-        pixelSelectionResult: PixelSelectionModel? = null,
+        actionContextResult: PixelImageEditorActionContext,
     )
-    suspend fun undoAction(): Pair<PixelImageModel, PixelSelectionModel?>?
-    suspend fun redoAction(): Pair<PixelImageModel, PixelSelectionModel?>?
+    suspend fun undoAction(): PixelImageEditorActionContext?
+    suspend fun redoAction(): PixelImageEditorActionContext?
     fun isUndoAvailable(): Flow<Boolean>
     fun isRedoAvailable(): Flow<Boolean>
 }

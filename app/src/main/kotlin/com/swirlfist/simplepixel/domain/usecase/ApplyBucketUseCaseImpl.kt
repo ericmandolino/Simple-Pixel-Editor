@@ -3,9 +3,9 @@ package com.swirlfist.simplepixel.domain.usecase
 import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
 import com.swirlfist.simplepixel.domain.getPixelAt
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
-import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import javax.inject.Inject
 
 class ApplyBucketUseCaseImpl @Inject constructor(
@@ -14,8 +14,7 @@ class ApplyBucketUseCaseImpl @Inject constructor(
     override suspend fun invoke(params: ApplyBucketUseCase.Params): Result<PixelImageModel> {
         return Result.success(
             applyBucket(
-                pixelImage = params.pixelImageModel,
-                pixelSelection = params.pixelSelectionModel,
+                actionContext = params.actionContext,
                 x = params.x,
                 y = params.y,
                 paletteIndex = params.paletteIndex,
@@ -25,13 +24,13 @@ class ApplyBucketUseCaseImpl @Inject constructor(
     }
 
     private suspend fun applyBucket(
-        pixelImage: PixelImageModel,
-        pixelSelection: PixelSelectionModel?,
+        actionContext: PixelImageEditorActionContext,
         x: Int,
         y: Int,
         paletteIndex: Int,
         isSameAction: Boolean,
     ): PixelImageModel {
+        val pixelImage = actionContext.pixelImage
         val pixel = pixelImage.getPixelAt(x, y)
         if (pixel.paletteIndex == paletteIndex) {
             return pixelImage
@@ -56,19 +55,21 @@ class ApplyBucketUseCaseImpl @Inject constructor(
                 content = mutablePixelMatrix,
             )
         )
+        val actionContextResult = actionContext.copy(
+            pixelImage = pixelImageResult,
+        )
 
         if (isSameAction) {
-            pixelImageEditorActionRepository.updateLastAction(pixelImageResult)
+            pixelImageEditorActionRepository.updateLastAction(actionContextResult)
         } else {
             pixelImageEditorActionRepository.addAction(
                 PixelImageEditorAction.ApplyBucketColorAction(
-                    pixelImage,
-                    pixelSelection,
+                    actionContext,
                     x,
                     y,
                     paletteIndex,
                 ),
-                pixelImageResult,
+                actionContextResult,
             )
         }
 

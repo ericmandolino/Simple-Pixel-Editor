@@ -6,7 +6,7 @@ import com.swirlfist.simplepixel.domain.error.TogglePixelSelectionError
 import com.swirlfist.simplepixel.domain.getPixelAt
 import com.swirlfist.simplepixel.domain.isSelected
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
-import com.swirlfist.simplepixel.domain.model.PixelImageModel
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import javax.inject.Inject
 
@@ -17,9 +17,7 @@ class TogglePixelSelectionUseCaseImpl @Inject constructor(
         return try {
             Result.success(
                 togglePixelSelection(
-                    pixelImage = params.pixelImageModel,
-                    pixelSelection = params.pixelSelectionModel ?:
-                        params.pixelImageModel.createSelection(selectedCoordinates = listOf()),
+                    actionContext = params.actionContext,
                     x = params.x,
                     y = params.y,
                     isSameAction = params.isSameAction,
@@ -31,12 +29,14 @@ class TogglePixelSelectionUseCaseImpl @Inject constructor(
     }
 
     private suspend fun togglePixelSelection(
-        pixelImage: PixelImageModel,
-        pixelSelection: PixelSelectionModel,
+        actionContext: PixelImageEditorActionContext,
         x: Int,
         y: Int,
         isSameAction: Boolean,
     ): PixelSelectionModel {
+        val pixelImage = actionContext.pixelImage
+        val pixelSelection = actionContext.pixelSelection ?:
+            pixelImage.createSelection(selectedCoordinates = listOf())
         val pixelInSelection = pixelSelection.isSelected(x, y)
         val selectedPixels = pixelSelection.selected
 
@@ -50,7 +50,8 @@ class TogglePixelSelectionUseCaseImpl @Inject constructor(
                 }
             )
         }.toList()
-        val updatedPixelSelection = pixelSelection.copy(
+
+        val pixelSelectionResult = pixelSelection.copy(
             selected = selectedPixels.toMutableList().apply {
                 set(
                     index = y,
@@ -58,26 +59,26 @@ class TogglePixelSelectionUseCaseImpl @Inject constructor(
                 )
             }.toList()
         )
+        val actionContextResult = actionContext.copy(
+            pixelSelection = pixelSelectionResult,
+        )
 
         if (isSameAction) {
             pixelImageEditorActionRepository.updateLastAction(
-                pixelImageResult = pixelImage,
-                pixelSelectionResult = updatedPixelSelection,
+                actionContextResult,
             )
         } else {
             pixelImageEditorActionRepository.addAction(
                 PixelImageEditorAction.SelectTouchAction(
-                    pixelImage,
-                    pixelSelection,
+                    actionContext,
                     x,
                     y,
                     selected = !pixelInSelection,
                 ),
-                pixelImageResult = pixelImage,
-                pixelSelectionResult = updatedPixelSelection,
+                actionContextResult,
             )
         }
 
-        return updatedPixelSelection
+        return pixelSelectionResult
     }
 }

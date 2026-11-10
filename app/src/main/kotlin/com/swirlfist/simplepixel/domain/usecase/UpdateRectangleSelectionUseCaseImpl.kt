@@ -4,10 +4,11 @@ import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepositor
 import com.swirlfist.simplepixel.domain.bottom
 import com.swirlfist.simplepixel.domain.bottomLeft
 import com.swirlfist.simplepixel.domain.bottomRight
+import com.swirlfist.simplepixel.domain.createSelection
 import com.swirlfist.simplepixel.domain.error.UpdateRectangleSelectionError
 import com.swirlfist.simplepixel.domain.left
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
-import com.swirlfist.simplepixel.domain.model.PixelImageModel
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import com.swirlfist.simplepixel.domain.model.RectangleSelectionModel
 import com.swirlfist.simplepixel.domain.right
@@ -23,27 +24,28 @@ class UpdateRectangleSelectionUseCaseImpl @Inject constructor(
         return try {
             Result.success(
                 updateRectangleSelection(
-                    pixelImage = params.pixelImageModel,
-                    pixelSelection = params.pixelSelectionModel,
+                    actionContext = params.actionContext,
                     x = params.x,
                     y = params.y,
                     actionType = params.actionType,
                     isSameAction = params.isSameAction,
                 )
             )
-        } catch(exception: Exception) {
+        } catch (exception: Exception) {
             Result.failure(UpdateRectangleSelectionError(exception))
         }
     }
 
     private suspend fun updateRectangleSelection(
-        pixelImage: PixelImageModel,
-        pixelSelection: PixelSelectionModel,
+        actionContext: PixelImageEditorActionContext,
         x: Int,
         y: Int,
         actionType: RectangleSelectionActionType,
         isSameAction: Boolean,
     ): PixelSelectionModel {
+        val pixelImage = actionContext.pixelImage
+        val pixelSelection = actionContext.pixelSelection ?: pixelImage.createSelection(emptyList())
+
         val updatedPixelSelection = when (actionType) {
             RectangleSelectionActionType.NEW_SELECTION -> updateNewSelection(pixelSelection, x, y, isSameAction)
             RectangleSelectionActionType.RESIZE_VERTICAL_TOP,
@@ -58,24 +60,22 @@ class UpdateRectangleSelectionUseCaseImpl @Inject constructor(
             RectangleSelectionActionType.RESIZE_BOTTOM_RIGHT_CORNER,
                 -> resizeSelectionFromCorner(pixelSelection, x, y, actionType, isSameAction)
         }
+        val actionContextResult = actionContext.copy(
+            pixelSelection = updatedPixelSelection,
+        )
 
         if (pixelSelection != updatedPixelSelection) {
             if (isSameAction) {
-                pixelImageEditorActionRepository.updateLastAction(
-                    pixelImageResult = pixelImage,
-                    pixelSelectionResult = updatedPixelSelection,
-                )
+                pixelImageEditorActionRepository.updateLastAction(actionContextResult)
             } else {
                 pixelImageEditorActionRepository.addAction(
                     PixelImageEditorAction.SelectRectangleAction(
-                        pixelImage,
-                        pixelSelection,
+                        actionContext,
                         actionType,
                         x,
                         y,
                     ),
-                    pixelImageResult = pixelImage,
-                    pixelSelectionResult = updatedPixelSelection,
+                    actionContextResult,
                 )
             }
         }

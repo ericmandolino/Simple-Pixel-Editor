@@ -4,6 +4,8 @@ import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCase
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCase
 import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.ConvertSelectionToFloatingImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.ConvertSelectionToFloatingImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.DeletePalettePresetUseCase
 import com.swirlfist.simplepixel.domain.usecase.DeletePalettePresetUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.DeselectUseCase
@@ -22,6 +24,8 @@ import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseC
 import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.LandFloatingImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.LandFloatingImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
@@ -162,4 +166,14 @@ abstract class SingletonComponentModule {
     abstract fun bindDeselectUseCase(
         impl: DeselectUseCaseImpl,
     ): DeselectUseCase
+
+    @Binds
+    abstract fun bindConvertSelectionToFloatingImageUseCase(
+        impl: ConvertSelectionToFloatingImageUseCaseImpl,
+    ): ConvertSelectionToFloatingImageUseCase
+
+    @Binds
+    abstract fun bindLandFloatingImageUseCase(
+        impl: LandFloatingImageUseCaseImpl,
+    ): LandFloatingImageUseCase
 }

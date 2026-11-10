@@ -1,6 +1,8 @@
 package com.swirlfist.simplepixel.data.repository
 
+import com.swirlfist.simplepixel.domain.model.FloatingPixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import kotlinx.coroutines.flow.Flow
@@ -17,6 +19,7 @@ class PixelImageEditorActionRepositoryImpl @Inject constructor() :
     private var _redoAvailableFlow = MutableStateFlow(false)
     private var _finalPixelImage: PixelImageModel? = null
     private var _finalPixelSelection: PixelSelectionModel? = null
+    private var _finalFloatingPixelImage: FloatingPixelImageModel? = null
 
     override suspend fun getCurrentAction(): PixelImageEditorAction? {
         return _actions.getOrNull(_currentActionIndex)
@@ -34,8 +37,7 @@ class PixelImageEditorActionRepositoryImpl @Inject constructor() :
 
     override suspend fun addAction(
         action: PixelImageEditorAction,
-        pixelImageResult: PixelImageModel,
-        pixelSelectionResult: PixelSelectionModel?,
+        actionContextResult: PixelImageEditorActionContext,
     ) {
         clearActionsFromIndex(_currentActionIndex + 1)
         if (_actions.size == MAX_UNDO_ACTIONS) {
@@ -43,38 +45,37 @@ class PixelImageEditorActionRepositoryImpl @Inject constructor() :
         }
         _actions.add(action)
         _currentActionIndex = _actions.size - 1
-        _finalPixelImage = pixelImageResult
-        _finalPixelSelection = pixelSelectionResult
+        _finalPixelImage = actionContextResult.pixelImage
+        _finalPixelSelection = actionContextResult.pixelSelection
+        _finalFloatingPixelImage = actionContextResult.floatingPixelImage
         updateAvailableOperations()
     }
 
     override suspend fun updateLastAction(
-        pixelImageResult: PixelImageModel,
-        pixelSelectionResult: PixelSelectionModel?,
+        actionContextResult: PixelImageEditorActionContext,
     ) {
         if (_currentActionIndex != _actions.size - 1) {
             return
         }
 
-        _finalPixelImage = pixelImageResult
-        _finalPixelSelection = pixelSelectionResult
+        _finalPixelImage = actionContextResult.pixelImage
+        _finalPixelSelection = actionContextResult.pixelSelection
+        _finalFloatingPixelImage = actionContextResult.floatingPixelImage
     }
 
-    override suspend fun undoAction(): Pair<PixelImageModel, PixelSelectionModel?>? {
+    override suspend fun undoAction(): PixelImageEditorActionContext? {
         if (_currentActionIndex !in _actions.indices) {
             return null
         }
 
         val currentAction = _actions[_currentActionIndex]
-        val pixelImage = currentAction.pixelImage
-        val pixelSelection = currentAction.pixelSelection
         _currentActionIndex--
         updateAvailableOperations()
 
-        return Pair(pixelImage, pixelSelection)
+        return currentAction.actionContext
     }
 
-    override suspend fun redoAction(): Pair<PixelImageModel, PixelSelectionModel?>? {
+    override suspend fun redoAction(): PixelImageEditorActionContext? {
         val newCurrentActionIndex = _currentActionIndex + 1
         return if (newCurrentActionIndex !in _actions.indices) {
             null
@@ -84,10 +85,14 @@ class PixelImageEditorActionRepositoryImpl @Inject constructor() :
             val nextActionIndex = _currentActionIndex + 1
             if (nextActionIndex in _actions.indices) {
                 val nextAction = _actions[nextActionIndex]
-                Pair(nextAction.pixelImage, nextAction.pixelSelection)
+                nextAction.actionContext
             } else {
                 _finalPixelImage?.let { pixelImage ->
-                    Pair(pixelImage, _finalPixelSelection)
+                    PixelImageEditorActionContext(
+                        pixelImage,
+                        _finalPixelSelection,
+                        _finalFloatingPixelImage,
+                    )
                 }
             }
         }

@@ -5,11 +5,13 @@ import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.domain.model.BaseButtonGroupActionModel
 import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
 import com.swirlfist.simplepixel.domain.model.PaletteModel
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
 import com.swirlfist.simplepixel.presentation.section.ActionButtonType
 import com.swirlfist.simplepixel.presentation.state.ActionsSectionState
+import com.swirlfist.simplepixel.presentation.state.CanvasSectionState
 
 fun List<Color>.invertColors(): List<Color> = map { color ->
     color.invert()
@@ -83,6 +85,24 @@ fun PixelImageModel.deletePaletteColor(
         paletteModel = newPalette,
     )
 }
+
+fun CanvasSectionState.createEditorActionContext(): PixelImageEditorActionContext? {
+    return if (pixelImageModel == null) {
+        null
+    } else {
+        PixelImageEditorActionContext(
+            pixelImageModel,
+            pixelSelectionModel,
+            floatingPixelImageModel,
+        )
+    }
+}
+
+fun CanvasSectionState.updateWith(actionContext: PixelImageEditorActionContext) = copy(
+    pixelImageModel = actionContext.pixelImage,
+    pixelSelectionModel = actionContext.pixelSelection,
+    floatingPixelImageModel = actionContext.floatingPixelImage,
+)
 
 fun ActionsSectionState.isSelected(
     actionButtonType: ActionButtonType

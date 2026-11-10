@@ -5,7 +5,7 @@ import com.swirlfist.simplepixel.domain.createSelection
 import com.swirlfist.simplepixel.domain.error.MagicWandSelectionError
 import com.swirlfist.simplepixel.domain.getPixelAt
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
-import com.swirlfist.simplepixel.domain.model.PixelImageModel
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import com.swirlfist.simplepixel.domain.model.PixelModel
 import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import javax.inject.Inject
@@ -17,9 +17,7 @@ class SelectWithMagicWandUseCaseImpl @Inject constructor(
         return try {
             Result.success(
                 selectWithMagicWand(
-                    pixelImage = params.pixelImageModel,
-                    pixelSelection = params.pixelSelectionModel ?:
-                    params.pixelImageModel.createSelection(selectedCoordinates = listOf()),
+                    actionContext = params.actionContext,
                     x = params.x,
                     y = params.y,
                 )
@@ -30,11 +28,13 @@ class SelectWithMagicWandUseCaseImpl @Inject constructor(
     }
 
     private suspend fun selectWithMagicWand(
-        pixelImage: PixelImageModel,
-        pixelSelection: PixelSelectionModel,
+        actionContext: PixelImageEditorActionContext,
         x: Int,
         y: Int,
     ): PixelSelectionModel {
+        val pixelImage = actionContext.pixelImage
+        val pixelSelection = actionContext.pixelSelection ?:
+            pixelImage.createSelection(selectedCoordinates = listOf())
         val pixel = pixelImage.getPixelAt(x, y)
         val mutableSelectionMatrix = mutableListOf<MutableList<PixelModel?>>().apply {
             pixelSelection.selected.forEach { row ->
@@ -57,24 +57,25 @@ class SelectWithMagicWandUseCaseImpl @Inject constructor(
             paletteIndexToSelect = pixel.paletteIndex,
         )
 
-        val updatedPixelSelection = pixelSelection.copy(
+        val pixelSelectionResult = pixelSelection.copy(
             selected = mutableSelectionMatrix.toList()
         )
+        val actionContextResult = actionContext.copy(
+            pixelSelection = pixelSelectionResult,
+        )
 
-        if (updatedPixelSelection != pixelSelection) {
+        if (pixelSelectionResult != pixelSelection) {
             pixelImageEditorActionRepository.addAction(
                 PixelImageEditorAction.SelectMagicWandAction(
-                    pixelImage,
-                    pixelSelection,
+                    actionContext,
                     x,
                     y,
                 ),
-                pixelImageResult = pixelImage,
-                pixelSelectionResult = updatedPixelSelection,
+                actionContextResult,
             )
         }
 
-        return updatedPixelSelection
+        return pixelSelectionResult
     }
 
     private fun applySelection(

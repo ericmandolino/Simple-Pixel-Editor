@@ -4,8 +4,8 @@ import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepositor
 import com.swirlfist.simplepixel.domain.error.UpdatePixelError
 import com.swirlfist.simplepixel.domain.getPixelAt
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
-import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import javax.inject.Inject
 
 class UpdatePixelColorUseCaseImpl @Inject constructor(
@@ -15,8 +15,7 @@ class UpdatePixelColorUseCaseImpl @Inject constructor(
         return try {
             Result.success(
                 updatePixel(
-                    pixelImage = params.pixelImageModel,
-                    pixelSelection = params.pixelSelectionModel,
+                    actionContext = params.actionContext,
                     x = params.x,
                     y = params.y,
                     paletteIndex = params.paletteIndex,
@@ -29,13 +28,13 @@ class UpdatePixelColorUseCaseImpl @Inject constructor(
     }
 
     private suspend fun updatePixel(
-        pixelImage: PixelImageModel,
-        pixelSelection: PixelSelectionModel?,
+        actionContext: PixelImageEditorActionContext,
         x: Int,
         y: Int,
         paletteIndex: Int,
         isSameAction: Boolean,
     ): PixelImageModel {
+        val pixelImage = actionContext.pixelImage
         val pixelMatrix = pixelImage.pixelMatrixModel
         val pixel = pixelImage.getPixelAt(x, y)
 
@@ -64,19 +63,21 @@ class UpdatePixelColorUseCaseImpl @Inject constructor(
         val pixelImageResult = pixelImage.copy(
             pixelMatrixModel = updatedPixelMatrix,
         )
+        val actionContextResult = actionContext.copy(
+            pixelImage = pixelImageResult,
+        )
 
         if (isSameAction) {
-            pixelImageEditorActionRepository.updateLastAction(pixelImageResult)
+            pixelImageEditorActionRepository.updateLastAction(actionContextResult)
         } else {
             pixelImageEditorActionRepository.addAction(
                 PixelImageEditorAction.ApplyPixelColorAction(
-                    pixelImage,
-                    pixelSelection,
+                    actionContext,
                     x,
                     y,
                     paletteIndex,
                 ),
-                pixelImageResult,
+                actionContextResult,
             )
         }
 

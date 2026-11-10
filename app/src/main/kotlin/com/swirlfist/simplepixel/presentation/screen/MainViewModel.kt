@@ -5,20 +5,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.swirlfist.simplepixel.domain.createSelection
 import com.swirlfist.simplepixel.domain.error.ExportPixelImageError
 import com.swirlfist.simplepixel.domain.error.OpenPixelImageError
 import com.swirlfist.simplepixel.domain.getPixelHeight
-import com.swirlfist.simplepixel.domain.isEmpty
 import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.domain.model.BaseButtonGroupActionModel
 import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
+import com.swirlfist.simplepixel.domain.model.FloatingPixelImageModel
 import com.swirlfist.simplepixel.domain.model.PaletteModel
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelSelectionModel
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCase
 import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCase
+import com.swirlfist.simplepixel.domain.usecase.ConvertSelectionToFloatingImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.DeselectUseCase
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToPngUseCase
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToSvgUseCase
@@ -27,6 +28,7 @@ import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetRectangleSelectionActionTypeUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseCase
+import com.swirlfist.simplepixel.domain.usecase.LandFloatingImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.MoveDirection
 import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
@@ -40,6 +42,7 @@ import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdateRectangleSelectionUseCase
 import com.swirlfist.simplepixel.domain.usecase.UseCaseParams
 import com.swirlfist.simplepixel.domain.usecase.execute
+import com.swirlfist.simplepixel.presentation.createEditorActionContext
 import com.swirlfist.simplepixel.presentation.createPaletteButtons
 import com.swirlfist.simplepixel.presentation.isSelected
 import com.swirlfist.simplepixel.presentation.section.ActionButtonType
@@ -53,6 +56,7 @@ import com.swirlfist.simplepixel.presentation.state.PixelImagePreviewSectionStat
 import com.swirlfist.simplepixel.presentation.state.updateSelectedPreviewBackgroundColor
 import com.swirlfist.simplepixel.presentation.uielements.MAX_ZOOM_FACTOR
 import com.swirlfist.simplepixel.presentation.uielements.MIN_ZOOM_FACTOR
+import com.swirlfist.simplepixel.presentation.updateWith
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -87,6 +91,8 @@ class MainViewModel @Inject constructor(
     private val getRectangleSelectionActionTypeUseCase : GetRectangleSelectionActionTypeUseCase,
     private val updateRectangleSelectionUseCase: UpdateRectangleSelectionUseCase,
     private val deselectUseCase: DeselectUseCase,
+    private val convertSelectionToFloatingImageUseCase: ConvertSelectionToFloatingImageUseCase,
+    private val landFloatingImageUseCase: LandFloatingImageUseCase,
 ) : ViewModel() {
     private val _mainScreenState = MutableStateFlow(
         value = MainScreenState(
@@ -546,9 +552,13 @@ class MainViewModel @Inject constructor(
 
     private fun updatePixelSelection(
         pixelSelection: PixelSelectionModel?,
+        floatingPixelImage: FloatingPixelImageModel?,
     ) {
         _mainScreenState.update { state ->
-            state.updateSelection(pixelSelection)
+            state.updateSelection(
+                pixelSelection,
+                floatingPixelImage,
+            )
         }
     }
 
@@ -558,16 +568,18 @@ class MainViewModel @Inject constructor(
     ) {
         val mainScreenState = _mainScreenState.value
         val canvasSectionState = mainScreenState.canvasSectionState
-        val pixelImage = canvasSectionState.pixelImageModel ?: return
+        val actionContext = canvasSectionState.createEditorActionContext() ?: return
 
         viewModelScope.launch {
             togglePixelSelectionUseCase.execute(
                 successBlock = { pixelSelection ->
-                    updatePixelSelection(pixelSelection)
+                    updatePixelSelection(
+                        pixelSelection,
+                        floatingPixelImage = null,
+                    )
                 },
                 params = TogglePixelSelectionUseCase.Params(
-                    pixelImageModel = pixelImage,
-                    pixelSelectionModel = canvasSectionState.pixelSelectionModel,
+                    actionContext,
                     x,
                     y,
                     isSameAction = canvasSectionState.isVisitingPixels,
@@ -582,32 +594,30 @@ class MainViewModel @Inject constructor(
     ) {
         val mainScreenState = _mainScreenState.value
         val canvasSectionState = mainScreenState.canvasSectionState
-        val pixelImage = canvasSectionState.pixelImageModel ?: return
-        val pixelSelection = canvasSectionState.pixelSelectionModel
+        val actionContext = canvasSectionState.createEditorActionContext() ?: return
         val isSameAction = canvasSectionState.isVisitingPixels
         val rectangleSelectionActionType = canvasSectionState.rectangleSelectionActionType
 
         if (!isSameAction || rectangleSelectionActionType == null) {
             val zoomFactor = canvasSectionState.zoomFactor
-            startRectangleSelectionAction(x, y, pixelImage, pixelSelection, zoomFactor)
+            startRectangleSelectionAction(x, y, actionContext, zoomFactor)
         } else {
-            updateRectangleSelection(x, y, pixelImage, pixelSelection, rectangleSelectionActionType,true)
+            updateRectangleSelection(x, y, actionContext, rectangleSelectionActionType,true)
         }
     }
 
     private fun startRectangleSelectionAction(
         x: Int,
         y: Int,
-        pixelImage: PixelImageModel,
-        pixelSelection: PixelSelectionModel?,
+        actionContext: PixelImageEditorActionContext,
         zoomFactor: Float,
     ) {
         viewModelScope.launch {
             getRectangleSelectionActionTypeUseCase.invoke(
                 params = GetRectangleSelectionActionTypeUseCase.Params(
-                    rectangleSelectionModel = pixelSelection?.rectangleSelection,
+                    rectangleSelectionModel = actionContext.pixelSelection?.rectangleSelection,
                     x,
-                    y = pixelImage.getPixelHeight() - 1 - y,
+                    y = actionContext.pixelImage.getPixelHeight() - 1 - y,
                     zoomFactor,
                 )
             ).getOrNull()?.let { rectangleSelectionActionType ->
@@ -621,8 +631,7 @@ class MainViewModel @Inject constructor(
                 updateRectangleSelection(
                     x,
                     y,
-                    pixelImage,
-                    pixelSelection,
+                    actionContext,
                     rectangleSelectionActionType,
                     isSameAction = false,
                 )
@@ -633,21 +642,22 @@ class MainViewModel @Inject constructor(
     private fun updateRectangleSelection(
         x: Int,
         y: Int,
-        pixelImage: PixelImageModel,
-        pixelSelection: PixelSelectionModel?,
+        actionContext: PixelImageEditorActionContext,
         rectangleSelectionActionType: RectangleSelectionActionType,
         isSameAction: Boolean,
     ) {
         viewModelScope.launch {
             updateRectangleSelectionUseCase.execute(
                 successBlock = { pixelSelection ->
-                    updatePixelSelection(pixelSelection)
+                    updatePixelSelection(
+                        pixelSelection,
+                        floatingPixelImage = null,
+                    )
                 },
                 params = UpdateRectangleSelectionUseCase.Params(
-                    pixelImageModel = pixelImage,
-                    pixelSelectionModel = pixelSelection ?: pixelImage.createSelection(listOf()),
+                    actionContext,
                     x,
-                    y = pixelImage.getPixelHeight() - 1 - y,
+                    y = actionContext.pixelImage.getPixelHeight() - 1 - y,
                     rectangleSelectionActionType,
                     isSameAction = isSameAction,
                 )
@@ -661,16 +671,18 @@ class MainViewModel @Inject constructor(
     ) {
         val mainScreenState = _mainScreenState.value
         val canvasSectionState = mainScreenState.canvasSectionState
-        val pixelImage = canvasSectionState.pixelImageModel ?: return
+        val actionContext = canvasSectionState.createEditorActionContext() ?: return
 
         viewModelScope.launch {
             selectWithMagicWandUseCase.execute(
                 successBlock = { pixelSelection ->
-                    updatePixelSelection(pixelSelection)
+                    updatePixelSelection(
+                        pixelSelection,
+                        floatingPixelImage = null,
+                    )
                 },
                 params = SelectWithMagicWandUseCase.Params(
-                    pixelImageModel = pixelImage,
-                    pixelSelectionModel = canvasSectionState.pixelSelectionModel,
+                    actionContext,
                     x,
                     y,
                 ),
@@ -684,9 +696,8 @@ class MainViewModel @Inject constructor(
     ) {
         val mainScreenState = _mainScreenState.value
         val canvasSectionState = mainScreenState.canvasSectionState
-        val pixelImage = canvasSectionState.pixelImageModel ?: return
+        val actionContext = canvasSectionState.createEditorActionContext() ?: return
         val paletteIndex = mainScreenState.getPaletteIndex()
-        val pixelSelection = canvasSectionState.pixelSelectionModel
 
         viewModelScope.launch {
             updatePixelColorUseCase.execute(
@@ -695,8 +706,7 @@ class MainViewModel @Inject constructor(
                 },
                 failureBlock = { },
                 params = UpdatePixelColorUseCase.Params(
-                    pixelImageModel = pixelImage,
-                    pixelSelectionModel = pixelSelection,
+                    actionContext,
                     x = x,
                     y = y,
                     paletteIndex,
@@ -712,9 +722,8 @@ class MainViewModel @Inject constructor(
     ) {
         val mainScreenState = _mainScreenState.value
         val canvasSectionState = mainScreenState.canvasSectionState
-        val pixelImage = canvasSectionState.pixelImageModel ?: return
+        val actionContext = canvasSectionState.createEditorActionContext() ?: return
         val paletteIndex = mainScreenState.getPaletteIndex()
-        val pixelSelection = canvasSectionState.pixelSelectionModel
 
         viewModelScope.launch {
             applyBucketUseCase.execute(
@@ -723,8 +732,7 @@ class MainViewModel @Inject constructor(
                 },
                 failureBlock = { },
                 params = ApplyBucketUseCase.Params(
-                    pixelImageModel = pixelImage,
-                    pixelSelectionModel = pixelSelection,
+                    actionContext,
                     x = x,
                     y = y,
                     paletteIndex,
@@ -738,8 +746,7 @@ class MainViewModel @Inject constructor(
         direction: MoveDirection
     ) {
         val canvasSectionState = _mainScreenState.value.canvasSectionState
-        val pixelImage = canvasSectionState.pixelImageModel ?: return
-        val pixelSelection = canvasSectionState.pixelSelectionModel
+        val actionContext = canvasSectionState.createEditorActionContext() ?: return
 
         viewModelScope.launch {
             moveImageUseCaseImpl.execute(
@@ -748,8 +755,7 @@ class MainViewModel @Inject constructor(
                 },
                 failureBlock = { },
                 params = MoveImageUseCase.Params(
-                    pixelImageModel = pixelImage,
-                    pixelSelectionModel = pixelSelection,
+                    actionContext,
                     moveDirection = direction,
                 ),
             )
@@ -792,17 +798,18 @@ class MainViewModel @Inject constructor(
 
     private fun deselectPreviouslySelected() {
         val canvasSectionState = _mainScreenState.value.canvasSectionState
-        val pixelImage = canvasSectionState.pixelImageModel ?: return
-        val pixelSelection = canvasSectionState.pixelSelectionModel ?: return
+        val actionContext = canvasSectionState.createEditorActionContext() ?: return
 
         viewModelScope.launch {
             deselectUseCase.execute(
                 successBlock = {
-                    updatePixelSelection(null)
+                    updatePixelSelection(
+                        pixelSelection = null,
+                        floatingPixelImage = null,
+                    )
                 },
                 params = DeselectUseCase.Params(
-                    pixelImageModel = pixelImage,
-                    pixelSelectionModel = pixelSelection,
+                    actionContext,
                 ),
             )
         }
@@ -813,6 +820,47 @@ class MainViewModel @Inject constructor(
             mainScreenState.copy(
                 actionsSectionState = mainScreenState.actionsSectionState.toggleMoveSelection()
             )
+        }
+
+        val mainScreenState = _mainScreenState.value
+        val canvasSectionState = mainScreenState.canvasSectionState
+        val actionContext = canvasSectionState.createEditorActionContext() ?: return
+
+        if (mainScreenState.isMoveSelectionSelected()) {
+            viewModelScope.launch {
+                convertSelectionToFloatingImageUseCase.execute(
+                    successBlock = { actionContextResult ->
+                        _mainScreenState.update { state ->
+                            state.copy(
+                                canvasSectionState = state.canvasSectionState.updateWith(
+                                    actionContext = actionContextResult,
+                                ),
+                            )
+                        }
+                    },
+                    params = ConvertSelectionToFloatingImageUseCase.Params(
+                        actionContext,
+                    )
+                )
+            }
+        } else {
+            viewModelScope.launch {
+                landFloatingImageUseCase.execute(
+                    successBlock = { actionContextResult ->
+                        _mainScreenState.update { state ->
+                            state.copy(
+                                canvasSectionState = state.canvasSectionState.updateWith(
+                                    actionContext = actionContextResult,
+                                ),
+                            )
+                        }
+
+                    },
+                    params = LandFloatingImageUseCase.Params(
+                        actionContext,
+                    )
+                )
+            }
         }
     }
 
@@ -859,9 +907,12 @@ class MainViewModel @Inject constructor(
     private fun undoEditorAction() {
         viewModelScope.launch {
             undoEditorActionUseCase.execute(
-                successBlock = { (pixelImage, pixelSelection) ->
-                    updatePixelImage(pixelImage)
-                    updatePixelSelection(pixelSelection)
+                successBlock = { actionContext ->
+                    updatePixelImage(actionContext.pixelImage)
+                    updatePixelSelection(
+                        pixelSelection = actionContext.pixelSelection,
+                        floatingPixelImage = actionContext.floatingPixelImage,
+                    )
                 },
                 params = UseCaseParams.NoParams,
             )
@@ -871,9 +922,12 @@ class MainViewModel @Inject constructor(
     private fun redoEditorAction() {
         viewModelScope.launch {
             redoEditorActionUseCase.execute(
-                successBlock = { (pixelImage, pixelSelection) ->
-                    updatePixelImage(pixelImage)
-                    updatePixelSelection(pixelSelection)
+                successBlock = { actionContext ->
+                    updatePixelImage(actionContext.pixelImage)
+                    updatePixelSelection(
+                        pixelSelection = actionContext.pixelSelection,
+                        floatingPixelImage = actionContext.floatingPixelImage,
+                    )
                 },
                 params = UseCaseParams.NoParams,
             )
@@ -1162,13 +1216,16 @@ class MainViewModel @Inject constructor(
 
 private fun MainScreenState.updateSelection(
     pixelSelection: PixelSelectionModel?,
+    floatingPixelImage: FloatingPixelImageModel?,
 ): MainScreenState {
     return copy(
         canvasSectionState = canvasSectionState.copy(
             pixelSelectionModel = pixelSelection,
+            floatingPixelImageModel = floatingPixelImage,
         ),
         actionsSectionState = actionsSectionState.updateSelectionRelatedButtonsState(
             pixelSelection,
+            floatingPixelImage,
         ),
     )
 }
@@ -1204,54 +1261,40 @@ private fun ActionsSectionState.updateRedoButtonState(
 }
 
 private fun ActionsSectionState.updateSelectionRelatedButtonsState(
-    pixelSelection: PixelSelectionModel?
+    pixelSelection: PixelSelectionModel?,
+    floatingPixelImage: FloatingPixelImageModel?,
 ): ActionsSectionState {
-    if (pixelSelection == null) {
-        return updateButtonEnabled(
-            ActionButtonType.DeselectActionButtonType,
-            isEnabled = false,
-        ).updateButtonEnabled(
-            ActionButtonType.MoveSelectionActionButtonType,
-            isEnabled = false,
-        ).let { updatedState ->
-            if (updatedState.isSelected(ActionButtonType.MoveSelectionActionButtonType)) {
-                updatedState.toggleMoveSelection()
-            } else {
-                updatedState
-            }
-        }
+    val isAnySelectionActive =
+        pixelSelection != null && (
+                pixelSelection.rectangleSelection != null ||
+                pixelSelection.selected.find { row ->
+                    row.find { pixel ->
+                        pixel != null
+                    } != null
+                } != null
+            )
+    val isAnyFloatingPixelImageActive = floatingPixelImage != null
+
+    val isDeselectButtonEnabled = isAnySelectionActive || isAnyFloatingPixelImageActive
+    val isMoveSelectionButtonEnabled = isAnySelectionActive || isAnyFloatingPixelImageActive
+    val isMoveSelectionButtonSelected = isSelected(ActionButtonType.MoveSelectionActionButtonType)
+    val isMoveSelectionButtonToBeToggled = if (isAnyFloatingPixelImageActive) {
+        !isMoveSelectionButtonSelected
+    } else {
+        isMoveSelectionButtonSelected
     }
 
-    val rectangleSelection = pixelSelection.rectangleSelection
-    val isRectangleSelectionEmpty = rectangleSelection?.isEmpty() ?: true
-
-    return if (!isRectangleSelectionEmpty) {
-        updateButtonEnabled(
-            ActionButtonType.DeselectActionButtonType,
-            isEnabled = true,
-        ).updateButtonEnabled(
-            ActionButtonType.MoveSelectionActionButtonType,
-            isEnabled = true,
-        )
-    } else {
-        val isAnyPixelSelected = pixelSelection.selected.find { row ->
-            row.find { pixel ->
-                pixel != null
-            } != null
-        } != null
-
-        updateButtonEnabled(
-            ActionButtonType.DeselectActionButtonType,
-            isEnabled = rectangleSelection != null || isAnyPixelSelected,
-        ).updateButtonEnabled(
-            ActionButtonType.MoveSelectionActionButtonType,
-            isEnabled = isAnyPixelSelected,
-        ).let { updatedState ->
-            if (!isAnyPixelSelected && updatedState.isSelected(ActionButtonType.MoveSelectionActionButtonType)) {
-                updatedState.toggleMoveSelection()
-            } else {
-                updatedState
-            }
+    return updateButtonEnabled(
+        ActionButtonType.DeselectActionButtonType,
+        isEnabled = isDeselectButtonEnabled,
+    ).updateButtonEnabled(
+        ActionButtonType.MoveSelectionActionButtonType,
+        isEnabled = isMoveSelectionButtonEnabled,
+    ).let { updatedState ->
+        if (isMoveSelectionButtonToBeToggled) {
+            updatedState.toggleSelectableButton(ActionButtonType.MoveSelectionActionButtonType)
+        } else {
+            updatedState
         }
     }
 }
@@ -1421,7 +1464,6 @@ private fun ActionsSectionState.setPaintButtonsEnabled(
             put(
                 ActionButtonType.OpenToolsActionButtonType,
                 openToolsButtonGroup.copy(
-                    isEnabled = isEnabled,
                     childButtonActionModels = childButtons.map { childButton ->
                         childButton.copy(
                             isEnabled = isEnabled,
