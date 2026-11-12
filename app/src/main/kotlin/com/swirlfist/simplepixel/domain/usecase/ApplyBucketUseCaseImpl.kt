@@ -32,29 +32,31 @@ class ApplyBucketUseCaseImpl @Inject constructor(
     ): PixelImageModel {
         val pixelImage = actionContext.pixelImage
         val pixel = pixelImage.getPixelAt(x, y)
-        if (pixel.paletteIndex == paletteIndex) {
-            return pixelImage
-        }
 
-        val mutablePixelMatrix = mutableListOf<MutableList<PixelModel>>().apply {
-            pixelImage.pixelMatrixModel.content.forEach { row ->
-                add(row.toMutableList())
+        val pixelImageResult = if (pixel.paletteIndex == paletteIndex) {
+             pixelImage
+        } else {
+            val mutablePixelMatrix = mutableListOf<MutableList<PixelModel>>().apply {
+                pixelImage.pixelMatrixModel.content.forEach { row ->
+                    add(row.toMutableList())
+                }
             }
+
+            applyBucket(
+                pixelMatrix = mutablePixelMatrix,
+                x,
+                y,
+                paletteIndexToReplace = pixel.paletteIndex,
+                paletteIndexNew = paletteIndex,
+            )
+
+            pixelImage.copy(
+                pixelMatrixModel = pixelImage.pixelMatrixModel.copy(
+                    content = mutablePixelMatrix,
+                )
+            )
         }
 
-        applyBucket(
-            pixelMatrix = mutablePixelMatrix,
-            x,
-            y,
-            paletteIndexToReplace = pixel.paletteIndex,
-            paletteIndexNew = paletteIndex,
-        )
-
-        val pixelImageResult = pixelImage.copy(
-            pixelMatrixModel = pixelImage.pixelMatrixModel.copy(
-                content = mutablePixelMatrix,
-            )
-        )
         val actionContextResult = actionContext.copy(
             pixelImage = pixelImageResult,
         )

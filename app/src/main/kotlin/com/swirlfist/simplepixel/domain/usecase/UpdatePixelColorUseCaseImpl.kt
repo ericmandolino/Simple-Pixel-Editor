@@ -38,31 +38,32 @@ class UpdatePixelColorUseCaseImpl @Inject constructor(
         val pixelMatrix = pixelImage.pixelMatrixModel
         val pixel = pixelImage.getPixelAt(x, y)
 
-        if (pixel.paletteIndex == paletteIndex) {
-            return pixelImage
+        val pixelImageResult = if (pixel.paletteIndex == paletteIndex) {
+            pixelImage
+        } else {
+            val updatedPixel = pixel.copy(
+                paletteIndex = paletteIndex,
+            )
+            val updatedRow = pixelMatrix.content[y].toMutableList().apply {
+                set(
+                    index = x,
+                    element = updatedPixel,
+                )
+            }.toList()
+            val updatedPixelMatrix = pixelMatrix.copy(
+                content = pixelMatrix.content.toMutableList().apply {
+                    set(
+                        index = y,
+                        element = updatedRow,
+                    )
+                },
+            )
+
+            pixelImage.copy(
+                pixelMatrixModel = updatedPixelMatrix,
+            )
         }
 
-        val updatedPixel = pixel.copy(
-            paletteIndex = paletteIndex,
-        )
-        val updatedRow = pixelMatrix.content[y].toMutableList().apply {
-            set(
-                index = x,
-                element = updatedPixel,
-            )
-        }.toList()
-        val updatedPixelMatrix = pixelMatrix.copy(
-            content = pixelMatrix.content.toMutableList().apply {
-                set(
-                    index = y,
-                    element = updatedRow,
-                )
-            },
-        )
-
-        val pixelImageResult = pixelImage.copy(
-            pixelMatrixModel = updatedPixelMatrix,
-        )
         val actionContextResult = actionContext.copy(
             pixelImage = pixelImageResult,
         )
