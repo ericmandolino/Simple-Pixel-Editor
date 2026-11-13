@@ -22,8 +22,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.fromColorLong
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
@@ -51,8 +54,13 @@ import kotlin.math.min
 private const val NO_ZOOM_FACTOR = 1F
 private const val PIXEL_SIZE_DP_CANVAS = 32
 private const val PIXEL_SIZE_DP_PREVIEW = 1
+private const val FLOATING_MOVE_HINT_TRIANGLE_ALPHA = 0.5F
+private const val FLOATING_MOVE_HINT_TRIANGLE_MARGIN_DP = 8
+private const val FLOATING_MOVE_HINT_TRIANGLE_WIDTH_DP = 48
+private const val FLOATING_MOVE_HINT_TRIANGLE_HEIGHT_DP = 36
+private const val FLOATING_MOVE_HINT_TRIANGLE_STROKE_WIDTH_DP = 4F
 private const val FLOATING_STROKE_WIDTH_DP = 3
-private const val FLOATING_STROKE_DASH_INTERVAL = 20F
+private const val FLOATING_STROKE_DASH_INTERVAL = 10F
 private const val SELECTION_STROKE_WIDTH_DP = 3
 private const val SELECTION_STROKE_DASH_INTERVAL = 10F
 private const val SELECTION_RESIZE_SQUARE_SIZE_DP = 16
@@ -471,6 +479,10 @@ private fun DrawScope.drawCanvas(
         floatingImageLines.selectionLines,
         isFloatingImage = true,
     )
+
+    if (floatingPixelImage != null) {
+        drawFloatingImageMoveHints()
+    }
 }
 
 private fun DrawScope.drawImageInCanvas(
@@ -1176,6 +1188,83 @@ private fun DrawScope.drawGridLine(
     }
 
     drawLine(Color.DarkGray, start, end, width)
+}
+
+private fun DrawScope.drawFloatingImageMoveHints() {
+    val triangleWidth = FLOATING_MOVE_HINT_TRIANGLE_WIDTH_DP.dp.toPx()
+    val triangleHeight = FLOATING_MOVE_HINT_TRIANGLE_HEIGHT_DP.dp.toPx()
+    val margin = FLOATING_MOVE_HINT_TRIANGLE_MARGIN_DP.dp.toPx()
+
+    val centerWidth = size.width / 2
+    val centerHeight = size.height / 2
+    val halfTriangleWidth = triangleWidth / 2
+    val halfTriangleHeight = triangleHeight / 2
+
+    val topTriangleVertices = floatArrayOf(
+        centerWidth,
+        margin + halfTriangleHeight,
+        centerWidth + halfTriangleWidth,
+        margin + triangleHeight,
+        centerWidth - halfTriangleWidth,
+        margin + triangleHeight,
+    )
+
+    val bottomTriangleVertices = floatArrayOf(
+        centerWidth,
+        size.height - margin - halfTriangleHeight,
+        centerWidth + halfTriangleWidth,
+        size.height - margin - triangleHeight,
+        centerWidth - halfTriangleWidth,
+        size.height - margin - triangleHeight,
+    )
+
+    val leftTriangleVertices = floatArrayOf(
+        margin + halfTriangleHeight,
+        centerHeight,
+        margin + triangleHeight,
+        centerHeight - halfTriangleHeight,
+        margin + triangleHeight,
+        centerHeight + halfTriangleHeight,
+    )
+
+    val rightTriangleVertices = floatArrayOf(
+        size.width - margin - halfTriangleHeight,
+        centerHeight,
+        size.width - margin -  triangleHeight,
+        centerHeight - halfTriangleHeight,
+        size.width - margin -  triangleHeight,
+        centerHeight + halfTriangleHeight,
+    )
+
+    drawFloatingImageMoveHint(topTriangleVertices)
+    drawFloatingImageMoveHint(bottomTriangleVertices)
+    drawFloatingImageMoveHint(leftTriangleVertices)
+    drawFloatingImageMoveHint(rightTriangleVertices)
+}
+
+private fun DrawScope.drawFloatingImageMoveHint(
+    vertices: FloatArray,
+) {
+    val path = Path().apply {
+        moveTo(vertices[0], vertices[1])
+        lineTo(vertices[2], vertices[3])
+        lineTo(vertices[4], vertices[5])
+        lineTo(vertices[0], vertices[1])
+    }
+
+    drawPath(
+        path,
+        color = Color.Black.copy(alpha = FLOATING_MOVE_HINT_TRIANGLE_ALPHA),
+        style = Fill,
+    )
+
+    drawPath(
+        path,
+        color = Color.White.copy(alpha = FLOATING_MOVE_HINT_TRIANGLE_ALPHA),
+        style = Stroke(
+            width = FLOATING_MOVE_HINT_TRIANGLE_STROKE_WIDTH_DP,
+        ),
+    )
 }
 
 private fun getColor(
