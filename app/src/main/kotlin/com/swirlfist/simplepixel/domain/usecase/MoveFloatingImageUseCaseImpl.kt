@@ -13,6 +13,7 @@ class MoveFloatingImageUseCaseImpl @Inject constructor(
             moveFloatingImage(
                 actionContext = params.actionContext,
                 offsetDelta = params.offsetDelta,
+                isSameAction = params.isSameAction,
             )
         )
     }
@@ -20,30 +21,41 @@ class MoveFloatingImageUseCaseImpl @Inject constructor(
     private suspend fun moveFloatingImage(
         actionContext: PixelImageEditorActionContext,
         offsetDelta: Pair<Int, Int>,
+        isSameAction: Boolean,
     ): PixelImageEditorActionContext {
-        val floatingImage = actionContext.floatingPixelImage ?: return actionContext
-        val offset = floatingImage.offset
+        val floatingImage = actionContext.floatingPixelImage
 
-        val offsetResult = Pair(
-            offset.first + offsetDelta.first,
-            offset.second + offsetDelta.second,
-        )
+        val actionContextResult =
+            if (floatingImage == null || (offsetDelta.first == 0 && offsetDelta.second == 0)) {
+                actionContext
+            } else {
+                val offset = floatingImage.offset
 
-        val floatingImageResult = floatingImage.copy(
-            offset = offsetResult
-        )
+                val offsetResult = Pair(
+                    offset.first + offsetDelta.first,
+                    offset.second + offsetDelta.second,
+                )
 
-        val actionContextResult = actionContext.copy(
-            floatingPixelImage = floatingImageResult,
-        )
+                val floatingImageResult = floatingImage.copy(
+                    offset = offsetResult
+                )
 
-        pixelImageEditorActionRepository.addAction(
-            PixelImageEditorAction.MoveFloatingImageAction(
-                actionContext,
-                offsetDelta,
-            ),
-            actionContextResult,
-        )
+                actionContext.copy(
+                    floatingPixelImage = floatingImageResult,
+                )
+            }
+
+        if (isSameAction) {
+            pixelImageEditorActionRepository.updateLastAction(actionContextResult)
+        } else {
+            pixelImageEditorActionRepository.addAction(
+                PixelImageEditorAction.MoveFloatingImageAction(
+                    actionContext,
+                    offsetDelta,
+                ),
+                actionContextResult,
+            )
+        }
 
         return actionContextResult
     }

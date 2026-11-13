@@ -7,5 +7,6 @@ interface MoveFloatingImageUseCase : UseCase<MoveFloatingImageUseCase.Params, Pi
     data class Params(
         val actionContext: PixelImageEditorActionContext,
         val offsetDelta: Pair<Int, Int>,
+        val isSameAction: Boolean,
     ) : UseCaseParams
 }

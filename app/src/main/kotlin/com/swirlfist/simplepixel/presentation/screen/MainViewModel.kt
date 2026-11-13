@@ -472,7 +472,7 @@ class MainViewModel @Inject constructor(
         val selectedPaintTool = mainScreenState.getSelectedPaintTool()
 
         when {
-            mainScreenState.isMoveSelectionSelected() -> {}
+            mainScreenState.isMoveSelectionSelected() -> updateFloatingImagePosition(x, y)
             mainScreenState.isSelectRectSelected() -> updateRectangleSelection(x, y)
             mainScreenState.isSelectTouchSelected() -> togglePixelSelected(x, y)
             mainScreenState.isSelectMagicWandSelected() -> {}
@@ -586,6 +586,40 @@ class MainViewModel @Inject constructor(
                     y,
                     isSameAction = canvasSectionState.isVisitingPixels,
                 )
+            )
+        }
+    }
+
+    private fun updateFloatingImagePosition(
+        x: Int,
+        y: Int,
+    ) {
+        val mainScreenState = _mainScreenState.value
+        val canvasSectionState = mainScreenState.canvasSectionState
+        val lastVisitedPixel = canvasSectionState.lastVisitedPixel
+        val actionContext = canvasSectionState.createEditorActionContext() ?: return
+        val isSameAction = canvasSectionState.isVisitingPixels
+
+        viewModelScope.launch {
+            moveFloatingImageUseCase.execute(
+                successBlock = { actionContextResult ->
+                    _mainScreenState.update { state ->
+                        state.copy(
+                            canvasSectionState = state.canvasSectionState.updateWith(
+                                actionContext = actionContextResult,
+                            ),
+                        )
+                    }
+                },
+                params = MoveFloatingImageUseCase.Params(
+                    actionContext,
+                    offsetDelta = if (!isSameAction || lastVisitedPixel == null) {
+                        Pair(0, 0)
+                    } else {
+                        Pair(x - lastVisitedPixel.first, y - lastVisitedPixel.second)
+                    },
+                    isSameAction,
+                ),
             )
         }
     }
@@ -772,6 +806,7 @@ class MainViewModel @Inject constructor(
                             MoveDirection.LEFT -> Pair(-1, 0)
                             MoveDirection.RIGHT -> Pair(1, 0)
                         },
+                        isSameAction = false,
                     ),
                 )
             }
