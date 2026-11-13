@@ -51,7 +51,10 @@ import kotlin.math.min
 private const val NO_ZOOM_FACTOR = 1F
 private const val PIXEL_SIZE_DP_CANVAS = 32
 private const val PIXEL_SIZE_DP_PREVIEW = 1
+private const val FLOATING_STROKE_WIDTH_DP = 3
+private const val FLOATING_STROKE_DASH_INTERVAL = 20F
 private const val SELECTION_STROKE_WIDTH_DP = 3
+private const val SELECTION_STROKE_DASH_INTERVAL = 10F
 private const val SELECTION_RESIZE_SQUARE_SIZE_DP = 16
 private const val SELECTION_RESIZE_SQUARE_BORDER_WIDTH_DP = 1
 private const val PAN_VS_ZOOM_FACTOR = 0.025F
@@ -453,7 +456,10 @@ private fun DrawScope.drawCanvas(
         drawBorders(imageSize, canvasSize, margin.value, gridLineWidth)
     }
 
-    drawSelectionLines(imageLines.selectionLines)
+    drawSelectionLines(
+        imageLines.selectionLines,
+        isFloatingImage = false,
+    )
     drawRectangleSelection(
         rectangleSelection = pixelSelection?.rectangleSelection,
         pixelSizeInt,
@@ -461,7 +467,10 @@ private fun DrawScope.drawCanvas(
         imageOffset.value,
         margin.value,
     )
-    drawSelectionLines(floatingImageLines.selectionLines)
+    drawSelectionLines(
+        floatingImageLines.selectionLines,
+        isFloatingImage = true,
+    )
 }
 
 private fun DrawScope.drawImageInCanvas(
@@ -610,14 +619,26 @@ private fun DrawScope.drawBorders(
 
 private fun DrawScope.drawSelectionLines(
     selectionLines: List<Pair<Offset, Offset>>,
+    isFloatingImage: Boolean,
 ) {
     if (selectionLines.isEmpty()) {
         return
     }
 
-    val strokeWidth = SELECTION_STROKE_WIDTH_DP.dp.toPx()
+    val strokeWidth = if (isFloatingImage) {
+        FLOATING_STROKE_WIDTH_DP.dp.toPx()
+    } else {
+        SELECTION_STROKE_WIDTH_DP.dp.toPx()
+    }
+
+    val interval = if (isFloatingImage) {
+        FLOATING_STROKE_DASH_INTERVAL
+    } else {
+        SELECTION_STROKE_DASH_INTERVAL
+    }
+
     selectionLines.forEach { (start, end) ->
-        drawSelectionLine(start, end, strokeWidth)
+        drawSelectionLine(start, end, strokeWidth, interval)
     }
 }
 
@@ -625,6 +646,7 @@ private fun DrawScope.drawSelectionLine(
     start: Offset,
     end: Offset,
     strokeWidth: Float,
+    interval: Float,
     color1: Color = Color.Black,
     color2: Color = Color.White,
 ) {
@@ -634,7 +656,7 @@ private fun DrawScope.drawSelectionLine(
         start = start,
         end = end,
         pathEffect = PathEffect.dashPathEffect(
-            intervals = floatArrayOf(10F, 10F),
+            intervals = floatArrayOf(interval, interval),
             phase = 0F
         )
     )
@@ -644,8 +666,8 @@ private fun DrawScope.drawSelectionLine(
         start = start,
         end = end,
         pathEffect = PathEffect.dashPathEffect(
-            intervals = floatArrayOf(10F, 10F),
-            phase = 30F
+            intervals = floatArrayOf(interval, interval),
+            phase = 3 * interval
         )
     )
 }
@@ -872,7 +894,7 @@ private fun DrawScope.drawRectangleSelectionHorizontalLine(
         x = endX,
         y,
     )
-    drawSelectionLine(start, end, strokeWidth)
+    drawSelectionLine(start, end, strokeWidth, SELECTION_STROKE_DASH_INTERVAL)
 }
 
 private fun DrawScope.drawRectangleSelectionVerticalLine(
@@ -889,7 +911,7 @@ private fun DrawScope.drawRectangleSelectionVerticalLine(
         x,
         y = endY,
     )
-    drawSelectionLine(start, end, strokeWidth)
+    drawSelectionLine(start, end, strokeWidth, SELECTION_STROKE_DASH_INTERVAL)
 }
 
 private fun DrawScope.drawRectangleSelectionResizeSquare(
@@ -935,7 +957,7 @@ private fun DrawScope.drawFloatingImage(
         imagePixelSize,
         imageOffset,
         margin,
-        palette =  floatingPixelImage.pixelImageModel.paletteModel.colors.map { color -> Color.fromColorLong(color) },
+        palette = floatingPixelImage.pixelImageModel.paletteModel.colors.map { color -> Color.fromColorLong(color) },
         backGroundCheckersColors = null,
         floatingOffset = floatingPixelImage.offset,
     )
