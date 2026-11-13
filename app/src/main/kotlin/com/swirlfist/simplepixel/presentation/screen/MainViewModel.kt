@@ -1356,7 +1356,7 @@ private fun ActionsSectionState.updateSelectionRelatedButtonsState(
         isEnabled = isMoveSelectionButtonEnabled,
     ).let { updatedState ->
         if (isMoveSelectionButtonToBeToggled) {
-            updatedState.toggleSelectableButton(ActionButtonType.MoveSelectionActionButtonType)
+            updatedState.toggleMoveSelection()
         } else {
             updatedState
         }
@@ -1373,8 +1373,11 @@ private fun ActionsSectionState.toggleMoveSelection() : ActionsSectionState {
                 .disableSelectionButtons()
         } else {
             updatedSectionState
-                .enablePaintButtons()
-                .enableSelectionButtons()
+                .enableSelectionButtons().apply {
+                    if (!isAnySelectToolSelected()) {
+                        enablePaintButtons()
+                    }
+                }
         }
     }
 }
@@ -1596,20 +1599,29 @@ private fun MainScreenState.isEraserSelected() = actionsSectionState.isSelected(
     ActionButtonType.InkEraserActionButtonType,
 )
 
-private fun MainScreenState.isSelectRectSelected() = actionsSectionState.isSelected(
-    ActionButtonType.SelectRectangleActionButtonType,
-)
+private fun MainScreenState.isSelectRectSelected() = actionsSectionState.isSelectRectSelected()
 
-private fun MainScreenState.isSelectTouchSelected() = actionsSectionState.isSelected(
-    ActionButtonType.SelectTouchActionButtonType,
-)
+private fun MainScreenState.isSelectTouchSelected() = actionsSectionState.isSelectTouchSelected()
 
-private fun MainScreenState.isSelectMagicWandSelected() = actionsSectionState.isSelected(
-    ActionButtonType.SelectMagicWandActionButtonType,
-)
+private fun MainScreenState.isSelectMagicWandSelected() = actionsSectionState.isSelectMagicWandSelected()
 
 private fun MainScreenState.isMoveSelectionSelected() = actionsSectionState.isSelected(
     ActionButtonType.MoveSelectionActionButtonType,
+)
+
+private fun ActionsSectionState.isAnySelectToolSelected() =
+    isSelectRectSelected() || isSelectTouchSelected() || isSelectMagicWandSelected()
+
+private fun ActionsSectionState.isSelectRectSelected() = isSelected(
+    ActionButtonType.SelectRectangleActionButtonType,
+)
+
+private fun ActionsSectionState.isSelectTouchSelected() = isSelected(
+    ActionButtonType.SelectTouchActionButtonType,
+)
+
+private fun ActionsSectionState.isSelectMagicWandSelected() = isSelected(
+    ActionButtonType.SelectMagicWandActionButtonType,
 )
 
 private fun MainScreenState.getSelectedPaintTool() = actionsSectionState.getSelectedPaintTool()
