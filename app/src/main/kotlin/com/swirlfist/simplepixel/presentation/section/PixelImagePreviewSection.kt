@@ -15,9 +15,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.swirlfist.simplepixel.R
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
+import com.swirlfist.simplepixel.domain.toHexCode
 import com.swirlfist.simplepixel.presentation.state.PixelImagePreviewSectionState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
-import com.swirlfist.simplepixel.presentation.toHexCode
 import com.swirlfist.simplepixel.presentation.uielements.PaletteColorSelectButton
 import com.swirlfist.simplepixel.presentation.uielements.PixelCanvasSnapshot
 import com.swirlfist.simplepixel.presentation.uielements.createCheckersPixelImage

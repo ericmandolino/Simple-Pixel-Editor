@@ -4,8 +4,12 @@ import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCase
 import com.swirlfist.simplepixel.domain.usecase.ApplyBucketUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCase
 import com.swirlfist.simplepixel.domain.usecase.ClearEditorActionsUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.ConvertSelectionToFloatingImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.ConvertSelectionToFloatingImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.DeletePalettePresetUseCase
 import com.swirlfist.simplepixel.domain.usecase.DeletePalettePresetUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.DeselectUseCase
+import com.swirlfist.simplepixel.domain.usecase.DeselectUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToSvgUseCase
 import com.swirlfist.simplepixel.domain.usecase.ExportPixelImageToSvgUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetBasePixelImageUseCase
@@ -14,10 +18,16 @@ import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetNextZoomFactorUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetPalettePresetsUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetPalettePresetsUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.GetRectangleSelectionActionTypeUseCase
+import com.swirlfist.simplepixel.domain.usecase.GetRectangleSelectionActionTypeUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseCase
 import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.LandFloatingImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.LandFloatingImageUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.MoveFloatingImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.MoveFloatingImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
@@ -28,12 +38,18 @@ import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePalettePresetUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.SavePixelImageUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.SelectWithMagicWandUseCase
+import com.swirlfist.simplepixel.domain.usecase.SelectWithMagicWandUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.TogglePixelSelectionUseCase
+import com.swirlfist.simplepixel.domain.usecase.TogglePixelSelectionUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.UndoEditorActionUseCase
 import com.swirlfist.simplepixel.domain.usecase.UndoEditorActionUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.UpdateBasePixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdateBasePixelImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdatePixelColorUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.UpdateRectangleSelectionUseCase
+import com.swirlfist.simplepixel.domain.usecase.UpdateRectangleSelectionUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -127,4 +143,44 @@ abstract class SingletonComponentModule {
     abstract fun bindDeletePalettePresetUseCase(
         impl: DeletePalettePresetUseCaseImpl,
     ): DeletePalettePresetUseCase
+
+    @Binds
+    abstract fun bindTogglePixelSelectionUseCase(
+        impl: TogglePixelSelectionUseCaseImpl,
+    ): TogglePixelSelectionUseCase
+
+    @Binds
+    abstract fun bindSelectWithMagicWandUseCase(
+        impl: SelectWithMagicWandUseCaseImpl,
+    ): SelectWithMagicWandUseCase
+
+    @Binds
+    abstract fun bindGetRectangleSelectionActionTypeUseCase(
+        impl: GetRectangleSelectionActionTypeUseCaseImpl,
+    ): GetRectangleSelectionActionTypeUseCase
+
+    @Binds
+    abstract fun bindUpdateRectangleSelectionUseCase(
+        impl: UpdateRectangleSelectionUseCaseImpl,
+    ): UpdateRectangleSelectionUseCase
+
+    @Binds
+    abstract fun bindDeselectUseCase(
+        impl: DeselectUseCaseImpl,
+    ): DeselectUseCase
+
+    @Binds
+    abstract fun bindConvertSelectionToFloatingImageUseCase(
+        impl: ConvertSelectionToFloatingImageUseCaseImpl,
+    ): ConvertSelectionToFloatingImageUseCase
+
+    @Binds
+    abstract fun bindLandFloatingImageUseCase(
+        impl: LandFloatingImageUseCaseImpl,
+    ): LandFloatingImageUseCase
+
+    @Binds
+    abstract fun bindMoveFloatingImageUseCase(
+        impl: MoveFloatingImageUseCaseImpl,
+    ): MoveFloatingImageUseCase
 }

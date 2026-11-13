@@ -1,8 +1,9 @@
 package com.swirlfist.simplepixel.domain.usecase
 
 import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
+import com.swirlfist.simplepixel.domain.getPixelAt
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
-import com.swirlfist.simplepixel.presentation.getPixelAt
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import com.swirlfist.simplepixel.testutil.PixelImageModelTestUtil
 import io.mockk.MockKAnnotations
 import io.mockk.coVerify
@@ -44,7 +45,7 @@ class ApplyBucketUseCaseImplTest {
         val x = 1
         val y = 1
         val useCaseParams = ApplyBucketUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             x,
             y,
             isSameAction = false,
@@ -68,7 +69,7 @@ class ApplyBucketUseCaseImplTest {
         val x = 1
         val y = 1
         val useCaseParams = ApplyBucketUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             x,
             y,
             isSameAction = false,
@@ -94,7 +95,7 @@ class ApplyBucketUseCaseImplTest {
         val x = 1
         val y = 1
         val useCaseParams = ApplyBucketUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             x,
             y,
             isSameAction = false,
@@ -127,7 +128,7 @@ class ApplyBucketUseCaseImplTest {
         val x = 1
         val y = 2
         val useCaseParams = ApplyBucketUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             x,
             y,
             isSameAction = false,
@@ -160,7 +161,7 @@ class ApplyBucketUseCaseImplTest {
         val x = 1
         val y = 1
         val useCaseParams = ApplyBucketUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             x,
             y,
             isSameAction = false,
@@ -174,12 +175,12 @@ class ApplyBucketUseCaseImplTest {
         coVerify(exactly = 1) {
             pixelImageEditorActionRepository.addAction(
                 PixelImageEditorAction.ApplyBucketColorAction(
-                    pixelImageModel,
+                    actionContext = PixelImageEditorActionContext(pixelImageModel),
                     x,
                     y,
                     paletteIndex = 0,
                 ),
-                result.getOrThrow(),
+                actionContextResult = PixelImageEditorActionContext(result.getOrThrow()),
             )
         }
         coVerify(exactly = 0) {
@@ -196,7 +197,7 @@ class ApplyBucketUseCaseImplTest {
         val x = 1
         val y = 1
         val useCaseParams = ApplyBucketUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             x,
             y,
             isSameAction = true,
@@ -209,7 +210,7 @@ class ApplyBucketUseCaseImplTest {
         // Then
         coVerify(exactly = 1) {
             pixelImageEditorActionRepository.updateLastAction(
-                result.getOrThrow(),
+                actionContextResult = PixelImageEditorActionContext(result.getOrThrow()),
             )
         }
         coVerify(exactly = 0) {

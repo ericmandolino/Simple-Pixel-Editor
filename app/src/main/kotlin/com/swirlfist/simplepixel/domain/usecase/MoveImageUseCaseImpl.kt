@@ -1,12 +1,13 @@
 package com.swirlfist.simplepixel.domain.usecase
 
 import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
+import com.swirlfist.simplepixel.domain.isBlank
 import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
-import com.swirlfist.simplepixel.presentation.isBlank
 import javax.inject.Inject
 
 class MoveImageUseCaseImpl @Inject constructor(
@@ -15,16 +16,18 @@ class MoveImageUseCaseImpl @Inject constructor(
     override suspend fun invoke(params: MoveImageUseCase.Params): Result<PixelImageModel> {
         return Result.success(
             moveImage(
-                pixelImage = params.pixelImageModel,
+                actionContext = params.actionContext,
                 moveDirection = params.moveDirection,
             )
         )
     }
 
     private suspend fun moveImage(
-        pixelImage: PixelImageModel,
+        actionContext: PixelImageEditorActionContext,
         moveDirection: MoveDirection,
     ): PixelImageModel {
+        val pixelImage = actionContext.pixelImage
+
         if (pixelImage.pixelMatrixModel.isBlank()) {
             return pixelImage
         }
@@ -35,13 +38,16 @@ class MoveImageUseCaseImpl @Inject constructor(
             MoveDirection.LEFT -> pixelImage.moveImageLeft()
             MoveDirection.RIGHT -> pixelImage.moveImageRight()
         }
+        val actionContextResult = actionContext.copy(
+            pixelImage = pixelImageResult,
+        )
 
         pixelImageEditorActionRepository.addAction(
             PixelImageEditorAction.MoveImageAction(
-                pixelImage,
+                actionContext,
                 moveDirection,
             ),
-            pixelImageResult,
+            actionContextResult,
         )
 
         return pixelImageResult

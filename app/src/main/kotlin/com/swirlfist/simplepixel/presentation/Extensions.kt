@@ -5,13 +5,13 @@ import com.swirlfist.simplepixel.domain.model.ActionModel
 import com.swirlfist.simplepixel.domain.model.BaseButtonGroupActionModel
 import com.swirlfist.simplepixel.domain.model.EMPTY_PIXEL_PALETTE_INDEX
 import com.swirlfist.simplepixel.domain.model.PaletteModel
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import com.swirlfist.simplepixel.domain.model.PixelMatrixModel
 import com.swirlfist.simplepixel.domain.model.PixelModel
 import com.swirlfist.simplepixel.presentation.section.ActionButtonType
 import com.swirlfist.simplepixel.presentation.state.ActionsSectionState
-
-private const val HEX_FORMAT = "#%02x%02x%02x"
+import com.swirlfist.simplepixel.presentation.state.CanvasSectionState
 
 fun List<Color>.invertColors(): List<Color> = map { color ->
     color.invert()
@@ -33,16 +33,6 @@ fun List<Color>.getColor(pixel: PixelModel): Color? {
     }
 }
 
-fun PixelMatrixModel.width(): Int = if (content.isEmpty()) 0 else content.first().size
-
-fun PixelMatrixModel.height(): Int = content.size
-
-fun PixelImageModel.getPixelAt(x: Int, y: Int): PixelModel = pixelMatrixModel.content[y][x]
-
-fun PixelImageModel.getPixelWidth(): Int = pixelMatrixModel.width()
-
-fun PixelImageModel.getPixelHeight(): Int = pixelMatrixModel.height()
-
 fun PaletteModel.createPaletteButtons(): List<ActionModel.ButtonActionModel> {
     return colors.indices.map { index ->
         ActionModel.ButtonActionModel(
@@ -55,26 +45,6 @@ fun PaletteModel.createPaletteButtons(): List<ActionModel.ButtonActionModel> {
     } + ActionModel.ButtonActionModel(
             actionType = ActionButtonType.InkEraserActionButtonType,
     )
-}
-
-fun Color.toHexCode(): String {
-    val red = this.red * 255
-    val green = this.green * 255
-    val blue = this.blue * 255
-
-    return String.format(HEX_FORMAT, red.toInt(), green.toInt(), blue.toInt())
-}
-
-fun PixelMatrixModel.isBlank(): Boolean {
-    content.forEach { row ->
-        row.forEach { pixel ->
-            if (pixel.paletteIndex != EMPTY_PIXEL_PALETTE_INDEX) {
-                return false
-            }
-        }
-    }
-
-    return true
 }
 
 fun PixelImageModel.deletePaletteColor(
@@ -116,15 +86,49 @@ fun PixelImageModel.deletePaletteColor(
     )
 }
 
+fun CanvasSectionState.createEditorActionContext(): PixelImageEditorActionContext? {
+    return if (pixelImageModel == null) {
+        null
+    } else {
+        PixelImageEditorActionContext(
+            pixelImageModel,
+            pixelSelectionModel,
+            floatingPixelImageModel,
+        )
+    }
+}
+
+fun CanvasSectionState.updateWith(actionContext: PixelImageEditorActionContext) = copy(
+    pixelImageModel = actionContext.pixelImage,
+    pixelSelectionModel = actionContext.pixelSelection,
+    floatingPixelImageModel = actionContext.floatingPixelImage,
+)
+
 fun ActionsSectionState.isSelected(
     actionButtonType: ActionButtonType
 ): Boolean {
     return actionModels[actionButtonType]?.let { actionModel ->
         when (actionModel) {
             is ActionModel.ButtonActionModel -> actionModel.isSelected
-            is BaseButtonGroupActionModel -> actionModel.isSelected(actionButtonType)
+            is BaseButtonGroupActionModel -> false
         }
-    } ?: false
+    } ?: isSelectedChild(actionButtonType)
+}
+
+private fun ActionsSectionState.isSelectedChild(
+    actionButtonType: ActionButtonType
+): Boolean {
+    actionModels.values.forEach { actionModel ->
+        (actionModel as? BaseButtonGroupActionModel)?.let { buttonGroup ->
+            buttonGroup.childButtonActionModels.forEach { childButton ->
+                if (childButton.actionType == actionButtonType) {
+                    return childButton.isSelected
+                }
+            }
+        }
+    }
+
+    return false
 }
 
 fun BaseButtonGroupActionModel.isSelected(

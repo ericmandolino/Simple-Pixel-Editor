@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.swirlfist.simplepixel.domain.error.OpenPixelImageError
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.UpdateBasePixelImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.execute
 import com.swirlfist.simplepixel.presentation.state.StartScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -77,29 +78,30 @@ class StartViewModel @Inject constructor(
 
     private fun openPixelImage(uri: Uri) {
         viewModelScope.launch {
-            openPixelImageUseCase(
-                OpenPixelImageUseCase.Params(
-                    uri
-                )
-            ).fold(
-                onSuccess = { loadedPixelImage ->
-                    updateBasePixelImageUseCase(
-                        UpdateBasePixelImageUseCase.Params(loadedPixelImage)
-                    )
-                    _startScreenState.update { startScreenState ->
-                        startScreenState.copy(
-                            isNavigateToMainExpected = true,
+            openPixelImageUseCase.execute(
+                successBlock = { loadedPixelImage ->
+                    viewModelScope.launch {
+                        updateBasePixelImageUseCase(
+                            UpdateBasePixelImageUseCase.Params(loadedPixelImage)
                         )
+                        _startScreenState.update { startScreenState ->
+                            startScreenState.copy(
+                                isNavigateToMainExpected = true,
+                            )
+                        }
                     }
                 },
-                onFailure = { error ->
+                failureBlock = { error ->
                     _startScreenState.update { startScreenState ->
                         startScreenState.copy(
                             isLoadingImage = false,
                             openPixelImageError = error as? OpenPixelImageError,
                         )
                     }
-                }
+                },
+                params = OpenPixelImageUseCase.Params(
+                    uri
+                ),
             )
         }
     }

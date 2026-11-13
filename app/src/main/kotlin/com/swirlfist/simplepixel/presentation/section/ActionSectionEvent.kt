@@ -45,4 +45,14 @@ sealed interface ActionSectionEvent {
     data object ExportPixelImageButtonClicked : ActionSectionEvent
 
     data object TogglePreviewButtonClicked : ActionSectionEvent
+
+    data object SelectRectangleActionButtonClicked : ActionSectionEvent
+
+    data object SelectTouchActionButtonClicked : ActionSectionEvent
+
+    data object SelectMagicWandActionButtonClicked : ActionSectionEvent
+
+    data object DeselectActionButtonClicked : ActionSectionEvent
+
+    data object MoveSelectionActionButtonClicked : ActionSectionEvent
 }

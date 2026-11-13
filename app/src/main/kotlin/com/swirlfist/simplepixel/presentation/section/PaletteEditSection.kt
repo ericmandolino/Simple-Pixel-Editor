@@ -41,9 +41,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
 import com.swirlfist.simplepixel.R
+import com.swirlfist.simplepixel.domain.toHexCode
 import com.swirlfist.simplepixel.presentation.state.PaletteEditState
 import com.swirlfist.simplepixel.presentation.theme.SimplePixelTheme
-import com.swirlfist.simplepixel.presentation.toHexCode
 import com.swirlfist.simplepixel.presentation.uielements.IconButton
 import com.swirlfist.simplepixel.presentation.uielements.PaletteColorSelectButton
 import kotlin.math.roundToInt

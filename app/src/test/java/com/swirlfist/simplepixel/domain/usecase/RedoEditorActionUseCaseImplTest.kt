@@ -2,6 +2,7 @@ package com.swirlfist.simplepixel.domain.usecase
 
 import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
 import com.swirlfist.simplepixel.domain.error.RedoEditorActionError
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
@@ -35,14 +36,16 @@ class RedoEditorActionUseCaseImplTest {
         runTest {
             // Given
             val pixelImage = mockk<PixelImageModel>()
-            coEvery { pixelImageEditorActionRepository.redoAction() }.returns(pixelImage)
+            coEvery { pixelImageEditorActionRepository.redoAction() }.returns(
+                PixelImageEditorActionContext(pixelImage, null)
+            )
 
             // When
             val result = useCase.invoke(UseCaseParams.NoParams)
 
             // Then
             assertTrue(result.isSuccess)
-            assertEquals(pixelImage, result.getOrThrow())
+            assertEquals(pixelImage, result.getOrThrow().pixelImage)
         }
 
     @Test

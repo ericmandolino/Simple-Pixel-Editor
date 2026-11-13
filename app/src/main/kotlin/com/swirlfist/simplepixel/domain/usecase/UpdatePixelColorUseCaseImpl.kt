@@ -2,9 +2,10 @@ package com.swirlfist.simplepixel.domain.usecase
 
 import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
 import com.swirlfist.simplepixel.domain.error.UpdatePixelError
+import com.swirlfist.simplepixel.domain.getPixelAt
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import com.swirlfist.simplepixel.domain.model.PixelImageModel
-import com.swirlfist.simplepixel.presentation.getPixelAt
 import javax.inject.Inject
 
 class UpdatePixelColorUseCaseImpl @Inject constructor(
@@ -14,7 +15,7 @@ class UpdatePixelColorUseCaseImpl @Inject constructor(
         return try {
             Result.success(
                 updatePixel(
-                    pixelImage = params.pixelImageModel,
+                    actionContext = params.actionContext,
                     x = params.x,
                     y = params.y,
                     paletteIndex = params.paletteIndex,
@@ -27,52 +28,57 @@ class UpdatePixelColorUseCaseImpl @Inject constructor(
     }
 
     private suspend fun updatePixel(
-        pixelImage: PixelImageModel,
+        actionContext: PixelImageEditorActionContext,
         x: Int,
         y: Int,
         paletteIndex: Int,
         isSameAction: Boolean,
     ): PixelImageModel {
+        val pixelImage = actionContext.pixelImage
         val pixelMatrix = pixelImage.pixelMatrixModel
         val pixel = pixelImage.getPixelAt(x, y)
 
-        if (pixel.paletteIndex == paletteIndex) {
-            return pixelImage
-        }
+        val pixelImageResult = if (pixel.paletteIndex == paletteIndex) {
+            pixelImage
+        } else {
+            val updatedPixel = pixel.copy(
+                paletteIndex = paletteIndex,
+            )
+            val updatedRow = pixelMatrix.content[y].toMutableList().apply {
+                set(
+                    index = x,
+                    element = updatedPixel,
+                )
+            }.toList()
+            val updatedPixelMatrix = pixelMatrix.copy(
+                content = pixelMatrix.content.toMutableList().apply {
+                    set(
+                        index = y,
+                        element = updatedRow,
+                    )
+                },
+            )
 
-        val updatedPixel = pixel.copy(
-            paletteIndex = paletteIndex,
-        )
-        val updatedRow = pixelMatrix.content[y].toMutableList().apply {
-            set(
-                index = x,
-                element = updatedPixel,
+            pixelImage.copy(
+                pixelMatrixModel = updatedPixelMatrix,
             )
         }
-        val updatedPixelMatrix = pixelMatrix.copy(
-            content = pixelMatrix.content.toMutableList().apply {
-                set(
-                    index = y,
-                    element = updatedRow,
-                )
-            },
-        )
 
-        val pixelImageResult = pixelImage.copy(
-            pixelMatrixModel = updatedPixelMatrix,
+        val actionContextResult = actionContext.copy(
+            pixelImage = pixelImageResult,
         )
 
         if (isSameAction) {
-            pixelImageEditorActionRepository.updateLastAction(pixelImageResult)
+            pixelImageEditorActionRepository.updateLastAction(actionContextResult)
         } else {
             pixelImageEditorActionRepository.addAction(
                 PixelImageEditorAction.ApplyPixelColorAction(
-                    pixelImage,
+                    actionContext,
                     x,
                     y,
                     paletteIndex,
                 ),
-                pixelImageResult,
+                actionContextResult,
             )
         }
 

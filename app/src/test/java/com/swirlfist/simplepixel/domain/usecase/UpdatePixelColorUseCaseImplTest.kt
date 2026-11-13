@@ -3,6 +3,7 @@ package com.swirlfist.simplepixel.domain.usecase
 import com.swirlfist.simplepixel.data.repository.PixelImageEditorActionRepository
 import com.swirlfist.simplepixel.domain.error.UpdatePixelError
 import com.swirlfist.simplepixel.domain.model.PixelImageEditorAction
+import com.swirlfist.simplepixel.domain.model.PixelImageEditorActionContext
 import com.swirlfist.simplepixel.testutil.PixelImageModelTestUtil
 import io.mockk.MockKAnnotations
 import io.mockk.coVerify
@@ -45,7 +46,7 @@ class UpdatePixelColorUseCaseImplTest {
         val x = 1
         val y = 1
         val useCaseParams = UpdatePixelColorUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             x,
             y,
             isSameAction = false,
@@ -69,7 +70,7 @@ class UpdatePixelColorUseCaseImplTest {
         val x = 1
         val y = 1
         val useCaseParams = UpdatePixelColorUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             x,
             y,
             isSameAction = false,
@@ -96,7 +97,7 @@ class UpdatePixelColorUseCaseImplTest {
             val x = 1
             val y = 1
             val useCaseParams = UpdatePixelColorUseCase.Params(
-                pixelImageModel,
+                actionContext = PixelImageEditorActionContext(pixelImageModel),
                 x,
                 y,
                 isSameAction = false,
@@ -129,7 +130,7 @@ class UpdatePixelColorUseCaseImplTest {
         val x = 6
         val y = 1
         val useCaseParams = UpdatePixelColorUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             x,
             y,
             isSameAction = false,
@@ -153,7 +154,7 @@ class UpdatePixelColorUseCaseImplTest {
         val x = 6
         val y = 1
         val useCaseParams = UpdatePixelColorUseCase.Params(
-            pixelImageModel,
+            actionContext = PixelImageEditorActionContext(pixelImageModel),
             x,
             y,
             isSameAction = false,
@@ -180,7 +181,7 @@ class UpdatePixelColorUseCaseImplTest {
             val x = 1
             val y = 1
             val useCaseParams = UpdatePixelColorUseCase.Params(
-                pixelImageModel,
+                actionContext = PixelImageEditorActionContext(pixelImageModel),
                 x,
                 y,
                 isSameAction = false,
@@ -194,12 +195,12 @@ class UpdatePixelColorUseCaseImplTest {
             coVerify(exactly = 1) {
                 pixelImageEditorActionRepository.addAction(
                     PixelImageEditorAction.ApplyPixelColorAction(
-                        pixelImageModel,
+                        actionContext = PixelImageEditorActionContext(pixelImageModel),
                         x,
                         y,
                         paletteIndex = 3,
                     ),
-                    result.getOrThrow(),
+                    actionContextResult = PixelImageEditorActionContext(result.getOrThrow()),
                 )
             }
             coVerify(exactly = 0) {
@@ -217,7 +218,7 @@ class UpdatePixelColorUseCaseImplTest {
             val x = 1
             val y = 1
             val useCaseParams = UpdatePixelColorUseCase.Params(
-                pixelImageModel,
+                actionContext = PixelImageEditorActionContext(pixelImageModel),
                 x,
                 y,
                 isSameAction = true,
@@ -230,7 +231,7 @@ class UpdatePixelColorUseCaseImplTest {
             // Then
             coVerify(exactly = 1) {
                 pixelImageEditorActionRepository.updateLastAction(
-                    result.getOrThrow(),
+                    actionContextResult = PixelImageEditorActionContext(result.getOrThrow()),
                 )
             }
             coVerify(exactly = 0) {
