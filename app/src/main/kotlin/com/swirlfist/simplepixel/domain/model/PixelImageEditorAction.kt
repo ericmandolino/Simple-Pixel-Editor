@@ -57,5 +57,10 @@ sealed interface PixelImageEditorAction {
     data class LandFloatingImageAction(
         override val actionContext: PixelImageEditorActionContext,
     ) : PixelImageEditorAction
+
+    data class MoveFloatingImageAction(
+        override val actionContext: PixelImageEditorActionContext,
+        val offsetDelta: Pair<Int, Int>,
+    ) : PixelImageEditorAction
 }
 

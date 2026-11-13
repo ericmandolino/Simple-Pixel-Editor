@@ -30,6 +30,7 @@ import com.swirlfist.simplepixel.domain.usecase.GetRedoEditorActionAvailableUseC
 import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseCase
 import com.swirlfist.simplepixel.domain.usecase.LandFloatingImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.MoveDirection
+import com.swirlfist.simplepixel.domain.usecase.MoveFloatingImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.RectangleSelectionActionType
@@ -80,7 +81,7 @@ class MainViewModel @Inject constructor(
     private val getNextZoomFactorUseCase: GetNextZoomFactorUseCase,
     private val updatePixelColorUseCase: UpdatePixelColorUseCase,
     private val applyBucketUseCase: ApplyBucketUseCase,
-    private val moveImageUseCaseImpl: MoveImageUseCase,
+    private val moveImageUseCase: MoveImageUseCase,
     private val getUndoEditorActionAvailableUseCase: GetUndoEditorActionAvailableUseCase,
     private val getRedoEditorActionAvailableUseCase: GetRedoEditorActionAvailableUseCase,
     private val undoEditorActionUseCase: UndoEditorActionUseCase,
@@ -93,6 +94,7 @@ class MainViewModel @Inject constructor(
     private val deselectUseCase: DeselectUseCase,
     private val convertSelectionToFloatingImageUseCase: ConvertSelectionToFloatingImageUseCase,
     private val landFloatingImageUseCase: LandFloatingImageUseCase,
+    private val moveFloatingImageUseCase: MoveFloatingImageUseCase,
 ) : ViewModel() {
     private val _mainScreenState = MutableStateFlow(
         value = MainScreenState(
@@ -747,18 +749,45 @@ class MainViewModel @Inject constructor(
     ) {
         val canvasSectionState = _mainScreenState.value.canvasSectionState
         val actionContext = canvasSectionState.createEditorActionContext() ?: return
+        val actionsSectionState = _mainScreenState.value.actionsSectionState
+        val isMoveSelectionButtonSelected = actionsSectionState.isSelected(ActionButtonType.MoveSelectionActionButtonType)
 
-        viewModelScope.launch {
-            moveImageUseCaseImpl.execute(
-                successBlock = { updatedPixelImage ->
-                    updatePixelImage(updatedPixelImage)
-                },
-                failureBlock = { },
-                params = MoveImageUseCase.Params(
-                    actionContext,
-                    moveDirection = direction,
-                ),
-            )
+        if (isMoveSelectionButtonSelected) {
+            viewModelScope.launch {
+                moveFloatingImageUseCase.execute(
+                    successBlock = { actionContextResult ->
+                        _mainScreenState.update { state ->
+                            state.copy(
+                                canvasSectionState = state.canvasSectionState.updateWith(
+                                    actionContext = actionContextResult,
+                                ),
+                            )
+                        }
+                    },
+                    params = MoveFloatingImageUseCase.Params(
+                        actionContext,
+                        offsetDelta = when (direction) {
+                            MoveDirection.UP -> Pair(0, 1)
+                            MoveDirection.DOWN -> Pair(0, -1)
+                            MoveDirection.LEFT -> Pair(-1, 0)
+                            MoveDirection.RIGHT -> Pair(1, 0)
+                        },
+                    ),
+                )
+            }
+        } else {
+            viewModelScope.launch {
+                moveImageUseCase.execute(
+                    successBlock = { pixelImageResult ->
+                        updatePixelImage(pixelImageResult)
+                    },
+                    failureBlock = { },
+                    params = MoveImageUseCase.Params(
+                        actionContext,
+                        moveDirection = direction,
+                    ),
+                )
+            }
         }
     }
 

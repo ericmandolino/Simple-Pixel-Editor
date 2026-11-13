@@ -26,6 +26,8 @@ import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseC
 import com.swirlfist.simplepixel.domain.usecase.GetUndoEditorActionAvailableUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.LandFloatingImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.LandFloatingImageUseCaseImpl
+import com.swirlfist.simplepixel.domain.usecase.MoveFloatingImageUseCase
+import com.swirlfist.simplepixel.domain.usecase.MoveFloatingImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCase
 import com.swirlfist.simplepixel.domain.usecase.MoveImageUseCaseImpl
 import com.swirlfist.simplepixel.domain.usecase.OpenPixelImageUseCase
@@ -176,4 +178,9 @@ abstract class SingletonComponentModule {
     abstract fun bindLandFloatingImageUseCase(
         impl: LandFloatingImageUseCaseImpl,
     ): LandFloatingImageUseCase
+
+    @Binds
+    abstract fun bindMoveFloatingImageUseCase(
+        impl: MoveFloatingImageUseCaseImpl,
+    ): MoveFloatingImageUseCase
 }
